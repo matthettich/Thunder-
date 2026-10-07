@@ -19,6 +19,10 @@ An 8-pad drum synth and 16-track tracker for the browser, built for a Galaxy Z F
 - **MIDI.** Plug in a controller, tap MIDI ▾ → Connect MIDI. Pads answer notes 36–43 with velocity; Learn pads lets you assign any note.
 - **Kits.** Kits save in the browser automatically and can be saved or loaded as `.json`, recorded samples included.
 
+## Skins
+
+**Skin ▾** in the top bar (or SKIN in the tracker's Project screen) switches between the ...Seeds skins: Pastel (follows your system), Pastel light, Minimal, Minimal colors, Monotone, Minimal black, Minimal colors black and Neon. The choice is remembered.
+
 ## Tracker
 
 Tap **Tracker** at the top for an M8-style sequencer that plays the kit. 16 tracks, built the M8 way:
@@ -27,11 +31,21 @@ Tap **Tracker** at the top for an M8-style sequencer that plays the kit. 16 trac
 - **Chain** – up to 16 phrases in order, each with a transpose.
 - **Phrase** – 16 steps of note, volume, instrument and three effects.
 - **Inst** – 16 instruments. Each plays one of the 8 pads with its own transpose, volume, pan, reverse and start point. C-4 plays a pad at its own pitch.
-- **Mixer** – volume, pan, mute, solo and effects per track, a master level and meters.
+- **Mixer** – volume, pan, mute, solo and effects per track, level meters per track (green, yellow above −12 dB, red above −6 dB), and a stereo master meter with peak and CLIP.
 - **FX** – up to 4 effects per track and 4 on the master, running live as the song plays (see below).
 - **Project** – tempo, swing, limiter, render settings, renders, and project files (song and kit together).
 
-Effects: `RET` retrigger, `DEL` delay, `CUT`, `CHA` chance, `PSL` pitch slide, `RND` random pitch/level, `OFS` start offset, `REV` reverse, `PAN`, `TPO` tempo, `HOP` jump. There are 6 ticks to a step.
+**FX column.** Named and laid out like the M8's. Sequencer commands:
+
+| | | | |
+|---|---|---|---|
+| `ARP` arpeggio (+X, +Y semitones) | `ARC` arpeggio pattern (X: up, down, up-down, random) and speed (Y ticks) | `CHA` chance the note plays | `DEL` delay in ticks |
+| `GRV` / `GGR` groove: X ticks on even steps, Y on odd | `HOP` end the phrase, next one starts at row Y | `INS` play with instrument XX | `KIL` stop the note after XX ticks |
+| `OFF` fade the note out after XX ticks | `NTH` play on pass Y of every X | `RET` retrigger every Y ticks, X fades | `REP` repeat the last command, adding XX |
+| `RND` randomise the command to the left (alone: the note's pitch), −X / +Y | `RNL` the same as a random walk | `PSL` pitch slide | `PBN` pitch bend across the step |
+| `PVB` vibrato (X speed, Y depth) | `SED` seed the random numbers | `TPO` tempo | `TSP` transpose the track from here on |
+
+Instrument commands, like the M8 sampler's: `VOL` volume, `PIT` pitch (signed semitones), `FIN` fine tune (cents), `PLY` 00 forwards / 01 reversed, `STA` start point, `PAN`. On a row with no note they change the note that is already playing (so do `ARP`, `PBN`, `PVB`, `KIL` and `OFF`). There are 6 ticks to a step. Not here yet: tables (`TBL`, `TBX`, `THO`, `TIC`), `SNG`, `NXT`, `RTO`, `PVX`, filter and MIDI commands. In this version `GRV` sets the groove for every track, the same as `GGR`. Songs from earlier versions are converted on load (`CUT` becomes `KIL`, `OFS` `STA`, `REV` `PLY`).
 
 **Track effects.** Open FX from the tab, from the mixer's FX row (EDIT), or with SHIFT+▶ in the mixer (on the MASTER row it opens the master chain). Each track has 4 slots that run top to bottom; EDIT on an empty slot adds an effect, EDIT+arrows picks another type, OPTION+EDIT removes it. The settings of the slot you were last on are listed underneath, as hex values like the rest of the tracker. The effects:
 
@@ -43,7 +57,7 @@ Effects: `RET` retrigger, `DEL` delay, `CUT`, `CHA` chance, `PSL` pitch slide, `
 - **CHOR** – DaisySP chorus · **CRSH** – DaisySP bitcrush
 - **RING** – Mutable Instruments Rings resonator · **CLDS** – Mutable Instruments Clouds
 
-Renders include the effects and let reverb and delay tails ring out. Stems skip the master effects and the limiter, so they add up to the mix when the master chain is empty. Each effect costs some phone CPU; Clouds and Rings are the heaviest. The **CPU** meter in the tab bar shows the load (Chrome's own audio load where it reports one, otherwise the share of real time the track effects take); it turns gold past 50% and red past 80% or on dropouts. Tap it to see which tracks cost the most.
+Renders include the effects and let reverb and delay tails ring out. Stems skip the master effects and the limiter, so they add up to the mix when the master chain is empty. Each effect costs some phone CPU; Clouds and Rings are the heaviest. The **CPU** meter in the top bar shows the load (Chrome's own audio load where it reports one, otherwise the share of real time the track effects take); it turns gold past 50% and red past 80% or on dropouts. Tap it to see which tracks cost the most.
 
 **One finger is enough.** Every M8 combination works without holding two buttons:
 

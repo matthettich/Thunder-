@@ -29,6 +29,8 @@ On the synth page the keyboard plays the selected pad chromatically, Renoise sty
 
 ## Tracker
 
+Press **?** (or F1, or the **?** button at the top right) for a help screen with every key and a guide to how the tracker works.
+
 Tap **Tracker** at the top for an M8-style sequencer that plays the kit. 16 tracks, built the M8 way:
 
 - **Song** – 256 rows × 16 tracks of chain numbers. Each track loops back to the top of its block of filled rows when it reaches an empty row.
@@ -77,7 +79,7 @@ Both are on by default on touch screens and can be turned off in Project (COMMAN
 
 **Computer keyboard** (KEYS mode, with Renoise habits where they fit the M8 layout):
 
-- **Screens:** Alt+1–7 for Song, Chain, Phrase, Inst, Mixer, FX, Project (Alt+0 goes back to the synth); F2 Phrase, F3 Mixer, F4 Inst. Shift+◀▶ still move between screens the M8 way (and Shift+▲▼ on the screens that aren't grids).
+- **Screens:** Alt+1–7 for Song, Chain, Phrase, Inst, Mixer, FX, Project (Alt+0 goes back to the synth); F2 Phrase, F3 Mixer, F4 Inst. Shift+◀▶ still move between screens the M8 way, and Ctrl/⌘+Shift+arrows change screen from anywhere (▲ Project, ▼ Mixer), since Shift+▲▼ selects lines.
 - **Transport:** F5 plays the song from the top, F6 this screen, F7 the song from the cursor row, F8 stops. Space plays this screen, Shift+Space the song.
 - **Notes:** Z to / and Q to P as in Renoise (S D G H J and 2 3 5 6 7 9 0 for sharps), 1 or Caps Lock for note off, − = or numpad / * for octave.
 - **Editing:** Delete clears the whole row and steps down; Shift+Delete clears just the cell; Insert adds a blank row; Backspace removes the row. { and } set the edit step (how far the cursor moves after typing). Ctrl/⌘+Z undo, Ctrl/⌘+Y or Shift+Z redo.

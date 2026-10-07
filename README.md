@@ -1,6 +1,6 @@
 # ...Thunder
 
-An 8-pad drum synth for the browser, built for a Galaxy Z Fold 6, for making one-shots to use in Koala or SunVox. It uses the Minimal skin from ...Seeds.
+An 8-pad drum synth and 16-track tracker for the browser, built for a Galaxy Z Fold 6, for making one-shots to use in Koala or SunVox. It uses the Minimal skin from ...Seeds.
 
 ## What it does
 
@@ -18,6 +18,30 @@ An 8-pad drum synth for the browser, built for a Galaxy Z Fold 6, for making one
 - **Effects per pad.** Up to 6 in any order, with a tail length: Rings resonator, Clouds (granular, stretch, delay, spectral, with a hold-the-tail switch), Airwindows Density saturation and ToTape6, DaisySP chorus and bitcrush.
 - **MIDI.** Plug in a controller, tap MIDI ▾ → Connect MIDI. Pads answer notes 36–43 with velocity; Learn pads lets you assign any note.
 - **Kits.** Kits save in the browser automatically and can be saved or loaded as `.json`, recorded samples included.
+
+## Tracker
+
+Tap **Tracker** at the top for an M8-style sequencer that plays the kit. 16 tracks, built the M8 way:
+
+- **Song** – 256 rows × 16 tracks of chain numbers. Each track loops back to the top of its block of filled rows when it reaches an empty row.
+- **Chain** – up to 16 phrases in order, each with a transpose.
+- **Phrase** – 16 steps of note, volume, instrument and three effects.
+- **Inst** – 16 instruments. Each plays one of the 8 pads with its own transpose, volume, pan, reverse and start point. C-4 plays a pad at its own pitch.
+- **Mixer** – volume, pan, mute and solo per track, a master level and meters.
+- **Project** – tempo, swing, limiter, render settings, renders, and project files (song and kit together).
+
+Effects: `RET` retrigger, `DEL` delay, `CUT`, `CHA` chance, `PSL` pitch slide, `RND` random pitch/level, `OFS` start offset, `REV` reverse, `PAN`, `TPO` tempo, `HOP` jump. There are 6 ticks to a step.
+
+**Two input modes** (the INPUT button by the tabs, or Project → INPUT):
+
+- **PAD** – a d-pad plus SHIFT, PLAY, OPTION and EDIT, used like an M8: SHIFT+arrows changes screen, EDIT adds (twice for a new chain or phrase), EDIT+arrows changes a value, OPTION+EDIT clears, SHIFT+OPTION selects, SHIFT+EDIT pastes. On a computer keyboard: arrows, Shift, Z = Option, X = Edit, Space = Play.
+- **KEYS** – direct entry. On a keyboard: notes on Z–M and Q–I, `-`/`=` octave, `1` note off, 0–F for hex, letters for effects, Enter to add or open, Delete to clear, Alt+arrows to change values, `[` `]` for the previous/next chain or phrase, Ctrl/⌘ B, C, X, V to select, copy, cut and paste. On a touch screen the dock turns into a keypad that follows the cursor: a piano in the note column, 0–F in hex columns, effect names in effect columns.
+
+On touch, tap a cell to move there, tap it again to open or add, and drag up or down on it to change the value. Tap a track number to mute it.
+
+**Rendering.** Project → RENDER SONG saves a stereo WAV; RENDER STEMS saves a zip with the mix plus one WAV per track. Stems are all the same length and add up to the mix (they skip the limiter). Rate, bits and normalising follow the Export settings.
+
+The tracker keeps playing while you switch back to the synth, so you can change a pad and hear it in the loop.
 
 ## Running it
 

@@ -217,37 +217,46 @@ input[type=range]{width:100%; accent-color:var(--ink); height:30px; margin:0; to
 .ttabs button{border:0; border-right:1px solid var(--line); background:none; min-height:36px; padding:0 14px; font-weight:500; font-size:13px; letter-spacing:.04em; flex:none}
 .ttabs button.on{background:var(--ink); color:var(--inv)}
 .tbody{flex:1; min-height:0; display:flex}
-.tscr{flex:1; min-width:0; background:var(--screen); color:var(--screen-ink); font-family:var(--mono); font-size:14px; padding:8px 12px;
+.tscr{flex:1; min-width:0; font-family:var(--mono); font-size:14px; padding:8px 12px;
   display:flex; flex-direction:column; overflow:hidden; touch-action:none; user-select:none; -webkit-user-select:none; font-variant-ligatures:none}
 .thd{display:flex; justify-content:space-between; gap:12px; font-weight:700; line-height:1.3; flex:none}
-.tsub{color:#8a8a8a; font-weight:400; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.tsub{color:var(--ts-th); font-weight:400; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .tgrid{flex:1; min-height:0; overflow:hidden; padding-top:.25em}
 .tgrid .ln{white-space:pre; line-height:1.3; height:1.3em}
 .tgrid span[data-x]{cursor:pointer}
-.tscr .e{color:#4f4f4f}
-.tscr .v{color:#ffffff}
-.tscr .rn{color:#6f6f6f}
-.tscr .rn4{color:#b5b5b5}
-.tscr .th{color:#8a8a8a}
-.tscr .th.mu{color:#e0564a; text-decoration:line-through}
-.tscr .th.so{color:#e8b93c}
-.tscr .cn{color:#ffffff}
-.tscr .cv{color:#7fd3cf}
-.tscr .ci{color:#a6c2f0}
-.tscr .cf{color:#e8a5de}
-.tscr .mu2{color:#e0564a}
-.tscr .so2{color:#e8b93c}
-.tscr .lb{color:#8a8a8a}
-.tscr .act{color:#ffffff}
-.tscr .mt{color:#7fd3cf}
-.tscr .m1{color:var(--meter-ok)} .tscr .m2{color:var(--meter-hot)} .tscr .m3{color:var(--meter-clip)}
-.tscr .pl{background:#4a3c0c; color:#ffd659}
-.tscr .sel{background:#2c3a55}
-.tscr .cur{background:#ffffff; color:#000000}
-.tinfo{flex:none; font-size:.8em; line-height:1.35; color:#c9c9c9; border-top:1px solid var(--screen-line); padding-top:.45em; margin-top:.3em}
+/* Screen colours. Dark is the M8 look; the pastel ones keep every colour at readable contrast (4.5:1 or more for text). */
+.tscr{--ts-bg:#000000; --ts-ink:#ffffff; --ts-dim:#4f4f4f; --ts-rn:#6f6f6f; --ts-rn4:#b5b5b5; --ts-th:#8a8a8a; --ts-vol:#7fd3cf; --ts-inst:#a6c2f0; --ts-fx:#e8a5de;
+  --ts-mute:#e0564a; --ts-solo:#e8b93c; --ts-pl-bg:#4a3c0c; --ts-pl:#ffd659; --ts-sel:#2c3a55; --ts-cur-bg:#ffffff; --ts-cur:#000000; --ts-line:#3a3a3a; --ts-info:#c9c9c9; --ts-hint:#7a7a7a;
+  --ts-ok:var(--meter-ok); --ts-hot:var(--meter-hot); --ts-clip:var(--meter-clip); background:var(--ts-bg); color:var(--ts-ink)}
+.tscr:not([data-ts="dark"]){--ts-ink:#1b2130; --ts-dim:#7d8597; --ts-rn:#5c6476; --ts-rn4:#1b2130; --ts-th:#4d5566; --ts-vol:#0a6560; --ts-inst:#2546a0; --ts-fx:#8c1f7e;
+  --ts-mute:#b42b20; --ts-solo:#8a5a00; --ts-pl-bg:#ffd76a; --ts-pl:#3d2c00; --ts-sel:#bccbea; --ts-cur-bg:#1b2130; --ts-cur:#ffffff; --ts-line:rgba(27,33,48,.22);
+  --ts-info:#1b2130; --ts-hint:#5c6476; --ts-ok:#1f8a4c; --ts-hot:#a87400; --ts-clip:#c62a1d}
+.tscr[data-ts="blue"]{--ts-bg:#e3ebf8} .tscr[data-ts="lilac"]{--ts-bg:#ece6f8} .tscr[data-ts="mint"]{--ts-bg:#e1f3ea}
+.tscr[data-ts="peach"]{--ts-bg:#fbe9dc} .tscr[data-ts="butter"]{--ts-bg:#f8f1d4}
+.tscr .e{color:var(--ts-dim)}
+.tscr .v{color:var(--ts-ink)}
+.tscr .rn{color:var(--ts-rn)}
+.tscr .rn4{color:var(--ts-rn4); font-weight:700}
+.tscr .th{color:var(--ts-th)}
+.tscr .th.mu{color:var(--ts-mute); text-decoration:line-through}
+.tscr .th.so{color:var(--ts-solo)}
+.tscr .cn{color:var(--ts-ink)}
+.tscr .cv{color:var(--ts-vol)}
+.tscr .ci{color:var(--ts-inst)}
+.tscr .cf{color:var(--ts-fx)}
+.tscr .mu2{color:var(--ts-mute)}
+.tscr .so2{color:var(--ts-solo)}
+.tscr .lb{color:var(--ts-th)}
+.tscr .act{color:var(--ts-ink)}
+.tscr .mt{color:var(--ts-vol)}
+.tscr .m1{color:var(--ts-ok)} .tscr .m2{color:var(--ts-hot)} .tscr .m3{color:var(--ts-clip)}
+.tscr .pl{background:var(--ts-pl-bg); color:var(--ts-pl)}
+.tscr .sel{background:var(--ts-sel)}
+.tscr .cur{background:var(--ts-cur-bg); color:var(--ts-cur)}
+.tinfo{flex:none; font-size:.8em; line-height:1.35; color:var(--ts-info); border-top:1px solid var(--ts-line); padding-top:.45em; margin-top:.3em}
 .tinfo>div{overflow:hidden; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2}
 .tinfo>.thint{-webkit-line-clamp:1; display:block; white-space:nowrap; text-overflow:ellipsis}
-.thint{color:#7a7a7a}
+.thint{color:var(--ts-hint)}
 .tside{width:236px; flex:none; border-left:1px solid var(--line); background:var(--side); padding:12px; display:flex; flex-direction:column; gap:12px; overflow:auto}
 .tmap{display:grid; grid-template-columns:repeat(4,1fr); gap:4px}
 .tmap button{min-height:28px; padding:0 2px; font-size:10.5px; font-weight:600; letter-spacing:.03em}
@@ -462,19 +471,28 @@ body.trkv .toast{bottom:calc(var(--k) * 2 + 40px + env(safe-area-inset-bottom,0p
         <dt>Sticky keys</dt><dd>tap SHIFT or OPTION alone and it stays lit for the next button</dd>
         <dt>Command row</dt><dd>buttons for change, clear, select, copy, cut, paste</dd>
         <dt>Touch</dt><dd>tap to move, tap again to open or add, drag up or down to change</dd>
-        <dt>Keys</dt><dd>arrows, Shift, Z option, X edit, Space play</dd>
+        <dt>Keys</dt><dd>arrows, Shift, Z option, X edit, Space play · Alt+1–7 screens · F5–F8 transport · Ctrl+Z undo</dd>
       </dl>
       <dl class="tlegend" id="tLegKeys" hidden>
+        <dt>Alt + 1–7</dt><dd>Song, Chain, Phrase, Inst, Mixer, FX, Project · Alt+0 the synth</dd>
+        <dt>F2 F3 F4</dt><dd>Phrase, Mixer, Inst (like Renoise’s editor keys)</dd>
+        <dt>F5 F6 F7 F8</dt><dd>play song · play this screen · song from cursor · stop</dd>
         <dt>Arrows</dt><dd>move · Shift+arrows change screen</dd>
+        <dt>Tab</dt><dd>next column (phrase) or track</dd>
+        <dt>Home End PgUp PgDn</dt><dd>top, bottom, 16 rows</dd>
         <dt>Alt + arrows</dt><dd>change the value (◀▶ ±1, ▲▼ more)</dd>
-        <dt>Z S X … M</dt><dd>notes, lower octave</dd>
-        <dt>Q 2 W … I</dt><dd>notes, upper octave</dd>
-        <dt>− / =</dt><dd>octave down / up</dd>
-        <dt>1</dt><dd>note off</dd>
+        <dt>Z S X … /</dt><dd>notes, lower octave</dd>
+        <dt>Q 2 W … P</dt><dd>notes, upper octave</dd>
+        <dt>− = or num / *</dt><dd>octave down / up</dd>
+        <dt>1 or Caps Lock</dt><dd>note off</dd>
+        <dt>{ }</dt><dd>edit step down / up</dd>
         <dt>0–9 A–F</dt><dd>type hex values</dd>
         <dt>Letters</dt><dd>commands in FX columns (R cycles RET REP RND RNL)</dd>
         <dt>Enter</dt><dd>add, open or run · twice for new</dd>
-        <dt>Delete</dt><dd>clear</dd>
+        <dt>Delete</dt><dd>clear the row, step down · Shift+Delete just the cell</dd>
+        <dt>Insert Backspace</dt><dd>add a row · remove a row</dd>
+        <dt>Ctrl/⌘ Z Y</dt><dd>undo, redo</dd>
+        <dt>Ctrl/⌘ ▲▼</dt><dd>previous / next chain or phrase</dd>
         <dt>[ ]</dt><dd>previous / next chain, phrase or instrument</dd>
         <dt>Ctrl/⌘ B C X V</dt><dd>select, copy, cut, paste</dd>
         <dt>Space</dt><dd>play this screen · Shift+Space the song</dd>
@@ -1253,6 +1271,7 @@ function refreshAll(){
 }
 document.addEventListener('keydown', e => {
   if (view === 'tracker' || e.target.matches('input[type=text],select') || e.repeat || e.ctrlKey || e.metaKey) return;
+  if (e.altKey && /^Digit[1-7]$/.test(e.code)){ e.preventDefault(); setView('tracker'); go(VIEWS[+e.code.slice(5) - 1]); return; }
   const n = '12345678'.indexOf(e.key); if (n >= 0){ padPress(n); e.preventDefault(); }
   else if (e.key === ' ' && !e.target.matches('button')){ play(cur); e.preventDefault(); }
 });
@@ -1817,7 +1836,23 @@ function demoSong(){
 }
 let S = (() => { try { const s = localStorage.getItem(TK); return s ? normSong(JSON.parse(s)) : demoSong(); } catch(e){ return demoSong(); } })();
 let sT = 0;
-function saveS(){ clearTimeout(sT); sT = setTimeout(() => { try { localStorage.setItem(TK, JSON.stringify(S)); } catch(e){} }, 600); }
+// Undo: every saved change keeps the state before it (up to 200 steps).
+const undo = {past:[], future:[], cur:JSON.stringify(S), busy:false};
+function snap(){
+  if (undo.busy) return;
+  const j = JSON.stringify(S);
+  if (undo.cur !== null && j !== undo.cur){ undo.past.push(undo.cur); if (undo.past.length > 200) undo.past.shift(); undo.future = []; }
+  undo.cur = j;
+}
+function undoStep(dir){
+  const from = dir < 0 ? undo.past : undo.future, to = dir < 0 ? undo.future : undo.past;
+  if (!from.length) return toast(dir < 0 ? 'Nothing to undo' : 'Nothing to redo');
+  to.push(undo.cur); undo.cur = from.pop();
+  undo.busy = true; S = normSong(JSON.parse(undo.cur)); saveS(); undo.busy = false;
+  if (rt){ rtAllFx(); rtRoute(); rt.pl.applyMix(); }
+  draw(); toast(dir < 0 ? 'Undo' : 'Redo');
+}
+function saveS(){ snap(); clearTimeout(sT); sT = setTimeout(() => { try { localStorage.setItem(TK, JSON.stringify(S)); } catch(e){} }, 600); }
 const isEmptyChain = c => !c || c.every(r => r[0] < 0);
 const isEmptyPhrase = p => !p || p.every(r => r.every(v => v < 0));
 const clone = o => JSON.parse(JSON.stringify(o));
@@ -2292,6 +2327,8 @@ function projRows(){
     {l:'INPUT', get:() => inMode === 'keys' ? 1 : 0, set:v => setInput(v ? 'keys' : 'pad'), min:0, max:1, tog:true, d:0, fmt:v => v ? 'KEYS' : 'PAD', info:() => 'PAD: M8-style d-pad and four keys. KEYS: type notes and hex, with an on-screen keypad on touch screens'},
     {l:'COMMANDS', get:() => cmdOn ? 1 : 0, set:v => setCmd(!!v), min:0, max:1, tog:true, d:+coarse, fmt:onOff, info:() => 'A row of buttons for the two-key commands: change value, clear, select, copy, cut, paste, other chain or phrase, play the song'},
     {l:'STICKY KEYS', get:() => latchOn ? 1 : 0, set:v => setLatch(!!v), min:0, max:1, tog:true, d:1, fmt:onOff, info:() => 'Tap SHIFT or OPTION on its own and it stays lit for the next button, so no command needs two fingers. Tap it again to cancel'},
+    {l:'SCREEN', get:() => SCREENS.findIndex(x => x[0] === tScreen), set:v => setScreen(SCREENS[v][0]), min:0, max:SCREENS.length - 1, fmt:v => SCREENS[v][1], info:() => 'Colour of this screen: pastels with dark text, or the M8’s black'},
+    {l:'EDIT STEP', get:() => kStep, set:v => kStep = v, min:0, max:16, big:4, fmt:v => v + (v === 1 ? ' row' : ' rows'), info:() => 'How far the cursor moves after you type a note or value or delete a row (Renoise’s edit step). Keyboard: { and }'},
     {l:'SKIN', get:() => SKINS.findIndex(k => k.id === skin), set:v => applySkin(SKINS[v].id), min:0, max:SKINS.length - 1, fmt:v => SKINS[v].name.toUpperCase(), info:() => 'The look of the whole app: the ...Seeds skins'},
     {l:'NAME', show:() => S.name, tap:() => { const n = prompt('Song name', S.name); if (n != null){ S.name = n.trim().slice(0, 40) || 'Song'; saveS(); draw(); } }, info:() => 'EDIT renames the song'},
     {l:'TEMPO', get:() => S.bpm, set:v => S.bpm = v, min:40, max:300, big:10, d:120, fmt:v => v + ' BPM', after:rtAllFx, info:() => 'Beats per minute, 4 steps to a beat. Track delays follow it'},
@@ -2405,6 +2442,32 @@ function del(){
   }
   if (tv === 'mixer'){ if (c.y === 4) return toast('Open FX (EDIT) to change or remove effects.'); if (c.y === 5){ S.master = 224; rtRoute(); } else { const m = S.mix[c.x], f = freshMix(); if (c.y === 0) m.vol = f.vol; else if (c.y === 1) m.pan = f.pan; else if (c.y === 2) m.mute = false; else m.solo = false; } mixChanged(); return draw(); }
   const r = rowsOf(tv)[c.y]; if (r && r.get && r.d != null){ r.set(r.d); if (r.after) r.after(); saveS(); draw(); }
+}
+// Whole rows, Renoise style: clear a row, insert a blank one (rows below move down), or remove one (rows below move up).
+function rowBlank(v){ return v === 'chain' ? [-1, 0] : [-1, -1, -1, -1, -1, -1, -1, -1, -1]; }
+function rowsArr(v){
+  if (v === 'chain'){ if (!S.chains[cChain]) S.chains[cChain] = freshChain(); return S.chains[cChain]; }
+  if (v === 'phrase'){ if (!S.phrases[cPhrase]) S.phrases[cPhrase] = freshPhrase(); return S.phrases[cPhrase]; }
+  return null;
+}
+function rowOp(op){
+  const c = cs[tv];
+  if (selA){ copySel(true); return; }
+  if (tv === 'song'){
+    // in the song a "row" belongs to one track: work on the cursor's column only
+    const col = S.song.map(r => r[c.x]);
+    if (op === 'clear') col[c.y] = -1;
+    else if (op === 'insert'){ col.splice(c.y, 0, -1); col.length = 256; }
+    else { col.splice(c.y, 1); col.push(-1); }
+    col.forEach((v, y) => S.song[y][c.x] = v);
+  } else if (tv === 'chain' || tv === 'phrase'){
+    const A = rowsArr(tv);
+    if (op === 'clear') A[c.y] = rowBlank(tv);
+    else if (op === 'insert'){ A.splice(c.y, 0, rowBlank(tv)); A.length = 16; }
+    else { A.splice(c.y, 1); A.push(rowBlank(tv)); }
+  } else return del();
+  if (op === 'clear') down1();
+  saveS(); draw();
 }
 function toggleSel(){
   if (!GRIDV.has(tv)) return toast('Selecting works in Song, Chain and Phrase.');
@@ -2663,7 +2726,7 @@ function draw(){
     `<span class="${s.cls || ''}"${s.x != null ? ` data-x="${s.x}" data-y="${s.y}"` : ''}>${esc(s.t)}</span>`).join('') + '</div>').join('');
   meterEls = tv === 'mixer' ? [...grid.querySelectorAll('.mt')] : []; masterEls = tv === 'mixer' ? [...grid.querySelectorAll('.mm')] : [];
   $('tTitle').textContent = title; $('tSub').textContent = sub;
-  $('tInfo').textContent = info(); $('tHint').textContent = (inMode === 'keys' ? HINTK : HINT)[tv] + (inMode === 'keys' && tv === 'phrase' ? ' · octave ' + kOct : '');
+  $('tInfo').textContent = info(); $('tHint').textContent = (inMode === 'keys' ? HINTK : HINT)[tv] + (inMode === 'keys' && tv === 'phrase' ? ' · octave ' + kOct + ' · step ' + kStep : '');
   const km = inMode === 'keys'; $('tKp').hidden = !km; $('tPad').hidden = km; $('tLegKeys').hidden = !km; $('tLegPad').hidden = km;
   $('tMode').innerHTML = '<span class="mx">INPUT: </span>' + (km ? 'KEYS' : 'PAD'); $('tMode').classList.toggle('on', km);
   if (km) drawKeypad();
@@ -2796,8 +2859,28 @@ const dragEnd = e => {
 };
 grid.addEventListener('pointerup', dragEnd); grid.addEventListener('pointercancel', dragEnd);
 const KEYB = {ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right', ' ':'play', Shift:'shift', z:'opt', Z:'opt', x:'edit', X:'edit'};
+// Keys that work in both input modes: screens, transport and undo.
+const PAGEK = {F2:'phrase', F3:'mixer', F4:'inst'};
+function globalKeys(e){
+  const mod = e.ctrlKey || e.metaKey;
+  if (e.altKey && !mod && /^Digit[1-7]$/.test(e.code)){ go(VIEWS[+e.code.slice(5) - 1]); return true; }
+  if (e.altKey && !mod && e.code === 'Digit0'){ setView('synth'); return true; }
+  if (!e.altKey && !mod && !e.shiftKey && PAGEK[e.key]){ go(PAGEK[e.key]); return true; }
+  if (!mod && !e.altKey && /^F[5-8]$/.test(e.key)){
+    if (e.repeat) return true;
+    if (e.key === 'F5') tStart('song', {row:0});
+    else if (e.key === 'F6'){ if (tp.on) tStop(); playCtx(); }
+    else if (e.key === 'F7') tStart('song', {row:cs.song.y});
+    else tStop();
+    return true;
+  }
+  if (mod && !e.altKey && (e.key === 'z' || e.key === 'Z')){ undoStep(e.shiftKey ? 1 : -1); return true; }
+  if (mod && !e.altKey && (e.key === 'y' || e.key === 'Y')){ undoStep(1); return true; }
+  return false;
+}
 document.addEventListener('keydown', e => {
   if (view !== 'tracker' || e.target.matches('input[type=text],select')) return;
+  if (globalKeys(e)){ e.preventDefault(); return; }
   if (inMode === 'keys'){ if (keysDown(e)) e.preventDefault(); return; }
   if (e.ctrlKey || e.metaKey || e.altKey) return;
   const b = KEYB[e.key]; if (!b) return; e.preventDefault();
@@ -2820,13 +2903,19 @@ if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { me
 
 
 /* ---------- KEYS input mode: type notes, hex and effects directly (physical keyboard or on-screen keypad) ---------- */
-const IK = 'thunder-input-v1';
+const IK = 'thunder-input-v1', SCK = 'thunder-screen-v1';
+const SCREENS = [['blue', 'PASTEL BLUE'], ['lilac', 'LILAC'], ['mint', 'MINT'], ['peach', 'PEACH'], ['butter', 'BUTTER'], ['dark', 'DARK (M8)']];
+let tScreen = (() => { try { const v = localStorage.getItem(SCK); if (SCREENS.some(x => x[0] === v)) return v; } catch(e){} return 'blue'; })();
+function setScreen(v){ tScreen = v; try { localStorage.setItem(SCK, v); } catch(e){} $('tScr').dataset.ts = v; }
+$('tScr').dataset.ts = tScreen;
+let kStep = 1;     // edit step: rows the cursor moves after typing, like Renoise
 let inMode = (() => { try { const m = localStorage.getItem(IK); if (m === 'keys' || m === 'pad') return m; } catch(e){} return matchMedia('(pointer:fine)').matches ? 'keys' : 'pad'; })();
 let kOct = 4, hexBuf = {key:'', n:0, t:0}, kpSig = '';
-const PIANO = {z:0, s:1, x:2, d:3, c:4, v:5, g:6, b:7, h:8, n:9, j:10, m:11, ',':12, q:12, 2:13, w:14, 3:15, e:16, r:17, 5:18, t:19, 6:20, y:21, 7:22, u:23, i:24};
+const PIANO = {z:0, s:1, x:2, d:3, c:4, v:5, g:6, b:7, h:8, n:9, j:10, m:11, ',':12, l:13, '.':14, ';':15, '/':16,
+  q:12, 2:13, w:14, 3:15, e:16, r:17, 5:18, t:19, 6:20, y:21, 7:22, u:23, i:24, 9:25, o:26, 0:27, p:28};
 const HEXK = '0123456789abcdef';
 function curKind(){ const c = cs[tv]; if (GRIDV.has(tv)) return kindAt(tv, c.x); if (tv === 'mixer') return 'mix'; return 'param'; }
-function down1(){ const c = cs[tv], d = dims(tv); c.y = clamp(c.y + 1, 0, d.h - 1); }
+function down1(){ const c = cs[tv], d = dims(tv); c.y = clamp(c.y + (GRIDV.has(tv) ? kStep : 1), 0, d.h - 1); }
 function typeNote(semi){
   const c = cs[tv]; if (tv !== 'phrase' || c.x !== 0) return;
   const n = clamp(kOct * 12 + semi, 0, 119);
@@ -2874,6 +2963,7 @@ function keysDown(e){
     if (lo === 'c'){ if (selA) copySel(false); else toast('Ctrl/⌘+B starts a selection.'); return true; }
     if (lo === 'x'){ if (selA) copySel(true); return true; }
     if (lo === 'v'){ paste(); return true; }
+    if (k === 'ArrowUp' || k === 'ArrowDown'){ optDir(k === 'ArrowDown' ? 'right' : 'left'); return true; }
     return false;
   }
   const arrow = {ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right'}[k];
@@ -2886,9 +2976,24 @@ function keysDown(e){
   if (e.altKey) return false;
   if (k === ' '){ if (!e.repeat){ if (e.shiftKey){ if (tp.on) tStop(); else tStart('song', {row:cs.song.y}); } else playCtx(); } return true; }
   if (k === 'Enter'){ if (!e.repeat) editTap(); return true; }
-  if (k === 'Backspace' || k === 'Delete'){ del(); return true; }
+  // Delete clears the whole row and steps down; Shift+Delete clears just the cell; Backspace removes the
+  // row (rows below move up); Insert adds a blank row (rows below move down). As in Renoise.
+  if (k === 'Delete'){ if (e.shiftKey) del(); else rowOp('clear'); return true; }
+  if (k === 'Backspace'){ if (e.shiftKey) del(); else rowOp('remove'); return true; }
+  if (k === 'Insert'){ rowOp('insert'); return true; }
   if (k === 'Escape'){ if (selA){ selA = null; draw(); } return true; }
-  if (k === 'PageUp' || k === 'PageDown'){ if (tv === 'song') move(0, k === 'PageUp' ? -16 : 16); else optDir(k === 'PageUp' ? 'up' : 'down'); return true; }
+  if (k === 'Tab'){
+    const c = cs[tv], d = dims(tv), dir = e.shiftKey ? -1 : 1;
+    if (tv === 'phrase'){ const G = [0, 1, 2, 3, 5, 7], i = G.findIndex(g => g > c.x); const cur = i < 0 ? G.length - 1 : i - 1;
+      c.x = G[(cur + dir + G.length) % G.length]; draw(); }
+    else move(dir, 0);
+    void d; return true;
+  }
+  if (k === 'Home' || k === 'End'){ const c = cs[tv]; c.y = k === 'Home' ? 0 : dims(tv).h - 1; draw(); return true; }
+  if (k === 'PageUp' || k === 'PageDown'){ if (GRIDV.has(tv) || tv === 'mixer') move(0, k === 'PageUp' ? -16 : 16); else move(0, k === 'PageUp' ? -8 : 8); return true; }
+  if (k === '{' || k === '}'){ kStep = clamp(kStep + (k === '}' ? 1 : -1), 0, 16); toast('Edit step ' + kStep); draw(); return true; }
+  if (e.code === 'NumpadDivide' || e.code === 'NumpadMultiply'){ setOct(kOct + (e.code === 'NumpadMultiply' ? 1 : -1)); return true; }
+  if (k === 'CapsLock' && curKind() === 'note'){ typeOff(); return true; }
   if (k === '[' || k === ']'){ optDir(k === ']' ? 'right' : 'left'); return true; }
   if (k === '-' || k === '_'){ setOct(kOct - 1); return true; }
   if (k === '=' || k === '+'){ setOct(kOct + 1); return true; }
@@ -2948,7 +3053,7 @@ $('tMode').addEventListener('click', () => setInput(inMode === 'keys' ? 'pad' : 
 const HINTK = {
   song:'Type hex · Enter add or open · Enter×2 new chain · Del clear · Alt+arrows ±1/±16 · Shift+→ open',
   chain:'Type hex · Enter add or open · Enter×2 new phrase · Del clear · [ ] other chain · Shift+→ open',
-  phrase:'Notes Z–M and Q–I · 1 note off · −/= octave · hex 0–F · effects by letter · Del clear · [ ] other phrase',
+  phrase:'Notes Z–/ and Q–P · 1 off · −/= octave · Del clear row · Ins/Bksp row · Tab column · [ ] other phrase',
   inst:'Alt+arrows change · Enter runs › rows · [ ] other instrument · Shift+← phrase',
   mixer:'Type hex for VOL and PAN · Enter mutes, solos or opens FX · Del resets · Shift+→ FX · Shift+↑ back',
   fx:'Type hex · Alt+arrows change · Enter adds · Del removes or resets · [ ] other track · Shift+← mixer',

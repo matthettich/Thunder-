@@ -71,6 +71,18 @@ Both are on by default on touch screens and can be turned off in Project (COMMAN
 - **PAD** – a d-pad plus SHIFT, PLAY, OPTION and EDIT, used like an M8: SHIFT+arrows changes screen, EDIT adds (twice for a new chain or phrase), EDIT+arrows changes a value, OPTION+EDIT clears, SHIFT+OPTION selects, SHIFT+EDIT pastes. On a computer keyboard: arrows, Shift, Z = Option, X = Edit, Space = Play.
 - **KEYS** – direct entry. On a keyboard: notes on Z–M and Q–I, `-`/`=` octave, `1` note off, 0–F for hex, letters for effects, Enter to add or open, Delete to clear, Alt+arrows to change values, `[` `]` for the previous/next chain or phrase, Ctrl/⌘ B, C, X, V to select, copy, cut and paste. On a touch screen the dock turns into a keypad that follows the cursor: a piano in the note column, 0–F in hex columns, effect names in effect columns.
 
+**Computer keyboard** (KEYS mode, with Renoise habits where they fit the M8 layout):
+
+- **Screens:** Alt+1–7 for Song, Chain, Phrase, Inst, Mixer, FX, Project (Alt+0 goes back to the synth); F2 Phrase, F3 Mixer, F4 Inst. Shift+arrows still move between screens the M8 way.
+- **Transport:** F5 plays the song from the top, F6 this screen, F7 the song from the cursor row, F8 stops. Space plays this screen, Shift+Space the song.
+- **Notes:** Z to / and Q to P as in Renoise (S D G H J and 2 3 5 6 7 9 0 for sharps), 1 or Caps Lock for note off, − = or numpad / * for octave.
+- **Editing:** Delete clears the whole row and steps down; Shift+Delete clears just the cell; Insert adds a blank row; Backspace removes the row. { and } set the edit step (how far the cursor moves after typing). Ctrl/⌘+Z undo, Ctrl/⌘+Y or Shift+Z redo.
+- **Moving:** Tab and Shift+Tab jump between the note, volume, instrument and FX columns (or tracks); Home, End, Page Up/Down; Ctrl/⌘+▲▼ or [ ] for the previous/next chain or phrase.
+
+These screen, transport and undo keys also work in PAD mode.
+
+**Screen colour.** Project → SCREEN picks the tracker screen's colour: pastel blue (the default), lilac, mint, peach, butter, or the M8's black. The pastels use dark text at readable contrast.
+
 On touch, tap a cell to move there, tap it again to open or add, and drag up or down on it to change the value. Tap a track number to mute it.
 
 **Rendering.** Project → RENDER SONG saves a stereo WAV; RENDER STEMS saves a zip with the mix plus one WAV per track. Stems are all the same length and include each track's effects; they skip the limiter and the master effects. Rate, bits and normalising follow the Export settings.

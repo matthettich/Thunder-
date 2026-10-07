@@ -269,6 +269,12 @@ input[type=range]{width:100%; accent-color:var(--ink); height:30px; margin:0; to
   --ts-info:#1b2130; --ts-hint:#5c6476; --ts-ok:#1f8a4c; --ts-hot:#a87400; --ts-clip:#c62a1d}
 .tscr[data-ts="blue"]{--ts-bg:#e3ebf8} .tscr[data-ts="lilac"]{--ts-bg:#ece6f8} .tscr[data-ts="mint"]{--ts-bg:#e1f3ea}
 .tscr[data-ts="peach"]{--ts-bg:#fbe9dc} .tscr[data-ts="butter"]{--ts-bg:#f8f1d4}
+/* Each tracker screen has its own pastel: its tab, its button in the side map and (with SCREEN on BY SCREEN) the screen itself. */
+[data-v="song"]{--tc:#dbe6f8} [data-v="chain"]{--tc:#e9e0f8} [data-v="phrase"]{--tc:#d8f0e2} [data-v="inst"]{--tc:#fbe2d2}
+[data-v="mixer"]{--tc:#f6edc8} [data-v="fx"]{--tc:#f8dce8} [data-v="project"]{--tc:#d5eef2}
+.tscr[data-ts="rainbow"]{--ts-bg:var(--tc, #e3ebf8)}
+.ttabs button[data-v],.tmap button[data-v]{background:color-mix(in srgb, var(--tc) 55%, var(--side)); color:#1b2130}
+.ttabs button[data-v].on,.tmap button[data-v].on{background:var(--tc); color:#1b2130; font-weight:700; box-shadow:inset 0 -3px 0 #1b2130}
 .tscr .e{color:var(--ts-dim)}
 .tscr .v{color:var(--ts-ink)}
 .tscr .rn{color:var(--ts-rn)}
@@ -2733,7 +2739,7 @@ function projRows(){
     {l:'INPUT', get:() => inMode === 'keys' ? 1 : 0, set:v => setInput(v ? 'keys' : 'pad'), min:0, max:1, tog:true, d:0, fmt:v => v ? 'KEYS' : 'PAD', info:() => 'PAD: M8-style d-pad and four keys. KEYS: type notes and hex, with an on-screen keypad on touch screens'},
     {l:'COMMANDS', get:() => cmdOn ? 1 : 0, set:v => setCmd(!!v), min:0, max:1, tog:true, d:+coarse, fmt:onOff, info:() => 'A row of buttons for the two-key commands: change value, clear, select, copy, cut, paste, other chain or phrase, play the song'},
     {l:'STICKY KEYS', get:() => latchOn ? 1 : 0, set:v => setLatch(!!v), min:0, max:1, tog:true, d:1, fmt:onOff, info:() => 'Tap SHIFT or OPTION on its own and it stays lit for the next button, so no command needs two fingers. Tap it again to cancel'},
-    {l:'SCREEN', get:() => SCREENS.findIndex(x => x[0] === tScreen), set:v => setScreen(SCREENS[v][0]), min:0, max:SCREENS.length - 1, fmt:v => SCREENS[v][1], info:() => 'Colour of this screen: pastels with dark text, or the M8’s black'},
+    {l:'SCREEN', get:() => SCREENS.findIndex(x => x[0] === tScreen), set:v => setScreen(SCREENS[v][0]), min:0, max:SCREENS.length - 1, fmt:v => SCREENS[v][1], info:() => 'Colour of the screen: BY SCREEN gives Song, Chain, Phrase and the rest their own pastel (the same as their tabs), or pick one pastel, or the M8’s black'},
     {l:'EDIT STEP', get:() => kStep, set:v => kStep = v, min:0, max:16, big:4, fmt:v => v + (v === 1 ? ' row' : ' rows'), info:() => 'How far the cursor moves after you type a note or value or delete a row (Renoise’s edit step). Keyboard: { and }'},
     {l:'SKIN', get:() => SKINS.findIndex(k => k.id === skin), set:v => applySkin(SKINS[v].id), min:0, max:SKINS.length - 1, fmt:v => SKINS[v].name.toUpperCase(), info:() => 'The look of the whole app: the ...Seeds skins'},
     {l:'NAME', show:() => S.name, tap:() => { const n = prompt('Song name', S.name); if (n != null){ S.name = n.trim().slice(0, 40) || 'Song'; saveS(); draw(); } }, info:() => 'EDIT renames the song'},
@@ -3164,6 +3170,7 @@ const lvl = p => p <= 0.0001 ? 0 : clamp((20 * Math.log10(p) + 48) / 48, 0, 1);
 function draw(){
   if (view !== 'tracker') return;
   if (selA && selA.v !== tv) selA = null;
+  scr.dataset.v = tv;
   const c = cs[tv], dm = dims(tv);
   if (onPset()) c.x = clamp(c.x, 0, 1); else { c.x = clamp(c.x, 0, dm.w - 1); c.y = clamp(c.y, 0, dm.h - 1); }
   const P = tp.on ? tp.pos : null, L = [];
@@ -3465,8 +3472,9 @@ if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { me
 
 /* ---------- KEYS input mode: type notes, hex and effects directly (physical keyboard or on-screen keypad) ---------- */
 const IK = 'thunder-input-v1', SCK = 'thunder-screen-v1';
-const SCREENS = [['blue', 'PASTEL BLUE'], ['lilac', 'LILAC'], ['mint', 'MINT'], ['peach', 'PEACH'], ['butter', 'BUTTER'], ['dark', 'DARK (M8)']];
-let tScreen = (() => { try { const v = localStorage.getItem(SCK); if (SCREENS.some(x => x[0] === v)) return v; } catch(e){} return 'blue'; })();
+const SCREENS = [['rainbow', 'BY SCREEN'], ['blue', 'PASTEL BLUE'], ['lilac', 'LILAC'], ['mint', 'MINT'], ['peach', 'PEACH'], ['butter', 'BUTTER'], ['dark', 'DARK (M8)']];
+let tScreen = (() => { try { const v = localStorage.getItem(SCK); if (SCREENS.some(x => x[0] === v) && !(v === 'blue' && !localStorage.getItem(SCK + '-r'))) return v; } catch(e){} return 'rainbow'; })();
+try { localStorage.setItem(SCK + '-r', '1'); } catch(e){}   // the colour per screen came in as the new default once; after that the choice sticks
 function setScreen(v){ tScreen = v; try { localStorage.setItem(SCK, v); } catch(e){} $('tScr').dataset.ts = v; }
 $('tScr').dataset.ts = tScreen;
 let kStep = 1;     // edit step: rows the cursor moves after typing, like Renoise

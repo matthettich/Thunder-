@@ -104,7 +104,7 @@ These screen, transport and undo keys also work in PAD mode.
 
 **Moving a project between phone and computer.** Project → SHARE PROJECT (on phones) sends the project file, song and kit together, to Drive, Gmail, Quick Share or any app on the share sheet. On the other device, Project → LOAD PROJECT (Ctrl/⌘+O) opens it. SAVE works too: it downloads the `.json` on a phone, and writes straight back to the file on desktop Chrome and Edge, so you can keep one file in a synced folder.
 
-**Screen colour.** Project → SCREEN picks the tracker screen's colour: pastel blue (the default), lilac, mint, peach, butter, or the M8's black. The pastels use dark text at readable contrast.
+**Screen colour.** Every tracker screen has its own pastel, on its tab and its button in the side map: Song blue, Chain lilac, Phrase mint, Inst peach, Mixer butter, FX pink, Project aqua. Project → SCREEN set to BY SCREEN (the default) colours the screen to match; or pick one pastel for all of them (blue, lilac, mint, peach, butter), or the M8's black. The pastels use dark text at readable contrast.
 
 On touch, tap a cell to move there, tap it again to open or add, and drag up or down on it to change the value. Tap a track number to mute it.
 

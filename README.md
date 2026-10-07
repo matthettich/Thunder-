@@ -10,9 +10,11 @@ An 8-pad drum synth for the browser, built for a Galaxy Z Fold 6, for making one
   - FM: 2-op, feedback, metal, cross-mod
   - Additive: harmonic, odd, membrane, bell, bar, chord
   - Noise: white, pink, brown, blue, 808 metal, digital LFSR, crackle, sample-and-hold
+  - Plaits: all 24 models of Mutable Instruments Plaits (synth voices, 6-op FM, chords, speech, strings, modal, drums), run from the original code
   - Samples loaded from audio files
 - **Samples.** Load an audio file into any layer with Load sample, then pitch, reverse and filter it like any other layer.
-- **Export.** Mono WAV, 44.1k or 48k, 16 or 24-bit, normalised and tail-trimmed. Save one pad or all 8 as a zip, or share straight to Koala on Android.
+- **Export.** Mono WAV, 44.1k or 48k, 16 or 24-bit, normalised and tail-trimmed. Save one pad or all 8 as a zip, or share straight to Koala on Android. Optionally add the note to the file name (for example `03 Pluck C3.wav`).
+- **MIDI.** Plug in a controller, tap MIDI ▾ → Connect MIDI. Pads answer notes 36–43 with velocity; Learn pads lets you assign any note.
 - **Kits.** Kits save in the browser automatically and can be saved or loaded as `.json`, recorded samples included.
 
 ## Running it
@@ -25,3 +27,7 @@ It's a plain web app with no build step: `index.html`, `manifest.webmanifest`, `
 - **Mac / PC (Chrome or Edge):** click the install icon in the address bar.
 
 It opens full screen with its own icon and works offline once it has loaded. To update, push a new `index.html`; open the app while online and it picks up the change (close and reopen once if you still see the old version).
+
+## Credits
+
+The Plaits layer uses Mutable Instruments Plaits by Emilie Gillet (MIT license). See `THIRD_PARTY_NOTICES.md`.

@@ -41,11 +41,11 @@ Tap **Tracker** at the top for an M8-style sequencer that plays the kit. 16 trac
 
 - **Song** – 256 rows × 16 tracks of chain numbers. Each track loops back to the top of its block of filled rows when it reaches an empty row.
 - **Chain** – up to 16 phrases in order, each with a transpose.
-- **Phrase** – up to 32 rows of note, volume, instrument and three effects. Press ▲ on the top row to reach the phrase's LEN (how many rows it plays, 1–32, default 16) and LPB (lines per beat for this phrase; -- uses the song's).
+- **Phrase** – up to 32 rows of note, volume, instrument and three effects. **ROWS** (− 16 +, beside INPUT) sets how many rows the open phrase plays, 1–32; tap the number to type one. On the Chain screen it changes the phrase on the cursor's row. Press ▲ on the top row to reach the same LEN plus LPB (lines per beat for this phrase; -- uses the song's).
 - **Inst** – 16 instruments. Each plays one of the 8 pads with its own transpose, volume, pan, reverse and start point. C-4 plays a pad at its own pitch.
 - **Mixer** – volume, pan, mute, solo and effects per track, level meters per track (green, yellow above −12 dB, red above −6 dB), and a stereo master meter with peak and CLIP.
 - **FX** – up to 4 effects per track and 4 on the master, running live as the song plays (see below).
-- **Project** – tempo, LPB (lines per beat, like Renoise: 4 = 16ths, 8 = 32nds, 3 or 6 = triplets), swing, limiter, render settings, renders, and project files (song and kit together).
+- **Project** – tempo, LPB (lines per beat, like Renoise: 4 = 16ths, 8 = 32nds, 3 or 6 = triplets), TICKS (ticks a step, 6 by default), PATTERN LEN (how many rows a new phrase starts with, 16 by default; ALL PHRASES TO sets every phrase to it), swing, limiter, render settings, renders, and project files (song and kit together).
 
 **Chords and polyphony.** Tracks 9–16 are polyphonic. A phrase opened from one of them shows four note columns (N1–N4), so a row can hold a chord, and notes ring over each other up to 4 per track (a fifth steals the oldest). A note OFF in any note column releases every note on the track; on synth slots that's their release, drum pads stop at once. Tracks 1–8 stay monophonic and play only N1. Instruments 08–0F play the synth slots in new songs (older songs keep their instruments as they were). Songs saved before the chord columns open with their notes in N1.
 
@@ -57,9 +57,10 @@ Tap **Tracker** at the top for an M8-style sequencer that plays the kit. 16 trac
 | `GRV` / `GGR` groove: X ticks on even steps, Y on odd | `HOP` end the phrase, next one starts at row Y | `INS` play with instrument XX | `KIL` stop the note after XX ticks |
 | `OFF` fade the note out after XX ticks | `NTH` play on pass Y of every X | `RET` retrigger every Y ticks, X fades | `REP` repeat the last command, adding XX |
 | `RND` randomise the command to the left (alone: the note's pitch), −X / +Y | `RNL` the same as a random walk | `PSL` pitch slide | `PBN` pitch bend across the step |
-| `PVB` vibrato (X speed, Y depth) | `SED` seed the random numbers | `TPO` tempo | `TSP` transpose the track from here on |
+| `PVB` vibrato (X speed, Y depth) | `SED` seed the random numbers | `TPO` tempo from this row on | `TSP` transpose the track from here on |
+| `TIC` ticks a step from this row on (00 goes back to the project's) | | | |
 
-Instrument commands, like the M8 sampler's: `VOL` volume, `PIT` pitch (signed semitones), `FIN` fine tune (cents), `PLY` 00 forwards / 01 reversed, `STA` start point, `PAN`. On a row with no note they change the note that is already playing (so do `ARP`, `PBN`, `PVB`, `KIL` and `OFF`). There are 6 ticks to a step. Not here yet: tables (`TBL`, `TBX`, `THO`, `TIC`), `SNG`, `NXT`, `RTO`, `PVX`, filter and MIDI commands. In this version `GRV` sets the groove for every track, the same as `GGR`. Songs from earlier versions are converted on load (`CUT` becomes `KIL`, `OFS` `STA`, `REV` `PLY`).
+Instrument commands, like the M8 sampler's: `VOL` volume, `PIT` pitch (signed semitones), `FIN` fine tune (cents), `PLY` 00 forwards / 01 reversed, `STA` start point, `PAN`. On a row with no note they change the note that is already playing (so do `ARP`, `PBN`, `PVB`, `KIL` and `OFF`). There are 6 ticks to a step unless Project → TICKS or a `TIC` command changes it. Not here yet: tables (`TBL`, `TBX`, `THO`, `TIC`), `SNG`, `NXT`, `RTO`, `PVX`, filter and MIDI commands. In this version `GRV` sets the groove for every track, the same as `GGR`. Songs from earlier versions are converted on load (`CUT` becomes `KIL`, `OFS` `STA`, `REV` `PLY`).
 
 **Track effects.** Open FX from the tab, from the mixer's FX row (EDIT), or with SHIFT+▶ in the mixer (on the MASTER row it opens the master chain). Each track has 4 slots that run top to bottom; EDIT on an empty slot adds an effect, EDIT+arrows picks another type, OPTION+EDIT removes it. The settings of the slot you were last on are listed underneath, as hex values like the rest of the tracker. The effects:
 
@@ -96,6 +97,12 @@ Both are on by default on touch screens and can be turned off in Project (COMMAN
 - **Moving:** Tab and Shift+Tab jump between the note, volume, instrument and FX columns (or tracks); Home, End, Page Up/Down; Ctrl/⌘+▲▼ or [ ] for the previous/next chain or phrase.
 
 These screen, transport and undo keys also work in PAD mode.
+
+**Tempo and ticks.** Beside ROWS, the tracker shows the tempo and the ticks a step. While it plays they follow `TPO` and `TIC` (in gold), and the dots light up tick by tick through each step. Tap them for a reminder of where to set them.
+
+**On a phone** the tabs take the first line under the top bar, with tempo, ticks, ROWS and INPUT on the second. The buttons under the screen are taller for thumbs, and the screen's text shrinks as needed so 16 rows always fit.
+
+**Moving a project between phone and computer.** Project → SHARE PROJECT (on phones) sends the project file, song and kit together, to Drive, Gmail, Quick Share or any app on the share sheet. On the other device, Project → LOAD PROJECT (Ctrl/⌘+O) opens it. SAVE works too: it downloads the `.json` on a phone, and writes straight back to the file on desktop Chrome and Edge, so you can keep one file in a synced folder.
 
 **Screen colour.** Project → SCREEN picks the tracker screen's colour: pastel blue (the default), lilac, mint, peach, butter, or the M8's black. The pastels use dark text at readable contrast.
 

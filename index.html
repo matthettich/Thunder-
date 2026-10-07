@@ -330,6 +330,26 @@ body.trkv.cmdv .toast{bottom:calc(var(--k) * 3.3 + 60px + env(safe-area-inset-bo
 .ttabbar .ttabs{border-bottom:0; flex:1; min-width:0}
 .tmode{border:0; border-left:1px solid var(--line); min-height:36px; padding:0 12px; font-size:12px; font-weight:600; letter-spacing:.04em; flex:none; white-space:nowrap}
 .tmode.on{background:var(--ink); color:var(--inv)}
+/* Rows of the open phrase, beside INPUT, with the live tempo and ticks (dots light up tick by tick as it plays). */
+.tpat{display:flex; align-items:stretch; flex:none; border-left:1px solid var(--line); font-variant-numeric:tabular-nums}
+.tclk{display:flex; align-items:center; gap:3px; padding:0 10px; font-size:12px; white-space:nowrap; border-right:1px solid var(--line)}
+.tclk b{font-weight:700; font-size:13px} .tclk small{font-size:9.5px; letter-spacing:.06em; color:var(--muted); margin-right:5px}
+.tclk.live b{color:var(--pl)}
+.tdots{display:inline-grid; grid-auto-flow:column; grid-template-rows:repeat(2,4px); gap:2px; margin-left:1px}
+.tdots i{width:4px; height:4px; border-radius:50%; background:var(--line)}
+.tdots i.on{background:var(--ink)} .tclk.live .tdots i.on{background:var(--pl)}
+.trows{display:flex; align-items:stretch}
+.trows button{border:0; border-radius:0; min-height:36px; min-width:34px; padding:0 8px; font-size:16px; font-weight:600; background:none}
+.trows .rv{display:flex; flex-direction:column; justify-content:center; align-items:center; line-height:1.05; min-width:46px; border-inline:1px solid var(--line)}
+.trows .rv small{font-size:9px; letter-spacing:.06em; color:var(--muted)} .trows .rv b{font-size:14px}
+.trows button:active{background:var(--ink); color:var(--inv)}
+/* On a phone the tabs take the first line; tempo, ticks, rows and INPUT share the second. */
+@media (max-width:600px){
+  .ttabbar{flex-wrap:wrap} .ttabbar .ttabs{flex:1 1 100%; border-bottom:1px solid var(--line)}
+  .tpat{flex:1; border-left:0} .tclk{flex:1}
+  .trows button{min-height:40px; min-width:44px} .ttabbar .tmode .mx{display:inline}
+  .ttabbar .ttabs button{flex:1 0 auto; padding:0 6px; font-size:11.5px; letter-spacing:.02em}
+}
 .tcpu{border:0; border-left:1px solid var(--line); min-height:36px; padding:0 10px; font-size:12px; font-weight:600; letter-spacing:.04em; flex:none; white-space:nowrap;
   font-variant-numeric:tabular-nums; position:relative; min-width:84px; text-align:left; background:var(--side)}
 .tcpu i{position:absolute; left:0; bottom:0; height:4px; width:0; background:var(--ink); transition:width .3s}
@@ -344,6 +364,15 @@ body.trkv.cmdv .toast{bottom:calc(var(--k) * 3.3 + 60px + env(safe-area-inset-bo
 .kp.lbl{border-color:transparent; background:none; opacity:1}
 .kp.play{background:var(--pl); color:var(--inv)}
 body.trkv .toast{bottom:calc(var(--k) * 2 + 40px + env(safe-area-inset-bottom,0px))}
+/* Phones: taller buttons under the screen, easier to hit with a thumb (the screen's text shrinks to keep 16 rows in view). */
+@media (pointer:coarse) and (max-width:760px){
+  .tcmd{gap:6px; padding-top:8px}
+  .tcmd button{min-height:max(46px, calc(var(--k) * .95)); font-size:12.5px}
+  .dpad,.keys{grid-template-rows:repeat(2,calc(var(--k) * 1.3))}
+  .kp{min-height:max(46px, calc(var(--k) * .95))}
+  .kpc{height:calc(var(--k) * 2.5 + 12px)}
+  .tctl{padding-block:8px 10px}
+}
 @media (max-width:760px){ .tside{display:none} }
 @media (max-width:480px){ .top{flex-wrap:wrap} .top .brand{display:none} .top .kitname{order:9; flex:1 1 100%} .top button{white-space:nowrap} .ttabs button{padding:0 10px; font-size:12px} .tmode .mx{display:none} .tmode{padding:0 10px} .tctl{padding-inline:10px} .tcmd{padding-inline:10px} }
 </style>
@@ -481,7 +510,12 @@ body.trkv .toast{bottom:calc(var(--k) * 2 + 40px + env(safe-area-inset-bottom,0p
 </div>
 
 <div class="trk" id="trk" hidden>
-  <div class="ttabbar"><nav class="ttabs" id="tTabs" aria-label="Tracker screens"></nav><button type="button" class="tmode" id="tMode" aria-label="Switch input mode">INPUT: PAD</button></div>
+  <div class="ttabbar"><nav class="ttabs" id="tTabs" aria-label="Tracker screens"></nav>
+    <div class="tpat" id="tPat">
+      <span class="tclk" id="tClk" title="Tempo and ticks a step (TPO and TIC change them as the song plays)"><b id="tClkB">120</b><small>BPM</small><b id="tClkT">6</b><small>TK</small><span class="tdots" id="tDots"></span></span>
+      <span class="trows" role="group" aria-label="Rows in this phrase"><button type="button" id="tRowsDn" aria-label="Fewer rows">−</button><button type="button" id="tRowsV" class="rv" aria-label="Rows in this phrase"><small id="tRowsP">PH 00</small><b id="tRowsN">16</b></button><button type="button" id="tRowsUp" aria-label="More rows">+</button></span>
+    </div>
+    <button type="button" class="tmode" id="tMode" aria-label="Switch input mode">INPUT: PAD</button></div>
   <div class="tbody">
     <div class="tscr" id="tScr">
       <div class="thd"><span id="tTitle">SONG</span><span class="tsub" id="tSub"></span></div>
@@ -556,7 +590,7 @@ body.trkv .toast{bottom:calc(var(--k) * 2 + 40px + env(safe-area-inset-bottom,0p
     </div>
     </div>
   </div>
-  <input type="file" id="projIn" accept=".json,application/json" hidden>
+  <input type="file" id="projIn" accept=".json,application/json,text/plain,application/octet-stream" hidden>
 </div>
 <input type="file" id="fileIn" accept="audio/*,.wav,.mp3,.ogg,.m4a,.flac" hidden>
 <div class="help" id="help" hidden role="dialog" aria-modal="true" aria-label="Help">
@@ -582,7 +616,7 @@ body.trkv .toast{bottom:calc(var(--k) * 2 + 40px + env(safe-area-inset-bottom,0p
     <section id="hPad"><h2>Tracker · PAD mode</h2><table><tr><td>Arrows</td><td>Move</td></tr><tr><td>SHIFT + arrows</td><td>Change screen (◀▶ go through every screen in tab order)</td></tr><tr><td>EDIT</td><td>Add, or run a › row · in a phrase, picks up the row’s instrument and the note, volume or effect under the cursor · tap twice for a new chain or phrase, or a note off</td></tr><tr><td>EDIT + arrows</td><td>Change the value (◀▶ by 1, ▲▼ by more)</td></tr><tr><td>OPTION + EDIT</td><td>Clear (with a selection: cut)</td></tr><tr><td>OPTION + arrows</td><td>Other chain, phrase, instrument or FX track · in Song, page up/down</td></tr><tr><td>SHIFT + OPTION</td><td>Start or cancel a selection; arrows grow it, OPTION copies</td></tr><tr><td>SHIFT + EDIT</td><td>Paste</td></tr><tr><td>PLAY · SHIFT + PLAY</td><td>Play this screen · play the song</td></tr><tr><td>Row numbers</td><td>Tap to select whole lines, then COPY and PASTE</td></tr></table><p><b>One finger is enough.</b> With <b>Sticky keys</b> on, tap SHIFT or OPTION alone and it stays lit for the next button. The <b>command row</b> (Project → COMMANDS) gives every two-key command its own button: change, prev/next, clear, select, copy, cut, paste, play song.</p><p>On a computer keyboard in PAD mode: arrows, <kbd>Shift</kbd>, <kbd>Z</kbd> = OPTION, <kbd>X</kbd> = EDIT, <kbd>Space</kbd> = PLAY.</p><h3>Touch</h3><p>Tap a cell to move there; tap it again to open or add. Drag up or down on the cursor’s cell to change its value; drag elsewhere to scroll.</p></section>
     <section id="hFx"><h2>FX column commands</h2>
 <p>Each phrase row has three effect columns: a command and a hex value. The info line at the bottom of the screen explains the one under the cursor.</p>
-<div class="fxg"><div><code>ARP</code>arpeggio: the note, +X, +Y semitones</div><div><code>ARC</code>arpeggio pattern (X) and speed in ticks (Y)</div><div><code>CHA</code>chance the note plays</div><div><code>DEL</code>delay the note by XX ticks</div><div><code>GRV</code>groove for this track: X ticks even, Y odd</div><div><code>GGR</code>groove for every track</div><div><code>HOP</code>end the phrase; the next starts at row Y</div><div><code>INS</code>play with instrument XX</div><div><code>KIL</code>stop the note after XX ticks</div><div><code>OFF</code>fade the note out after XX ticks</div><div><code>NTH</code>play on pass Y of every X</div><div><code>RET</code>retrigger every Y ticks, X fades</div><div><code>REP</code>repeat the last command, adding XX</div><div><code>RND</code>randomise the command to the left</div><div><code>RNL</code>RND as a random walk</div><div><code>PSL</code>slide from the last pitch</div><div><code>PBN</code>bend the pitch across the step</div><div><code>PVB</code>vibrato: X speed, Y depth</div><div><code>SED</code>seed the random numbers</div><div><code>TPO</code>tempo in BPM</div><div><code>TSP</code>transpose the track from here on</div><div><code>VOL</code>volume</div><div><code>PIT</code>pitch in semitones (signed)</div><div><code>FIN</code>fine tune in cents</div><div><code>PLY</code>00 forwards, 01 reversed</div><div><code>STA</code>start point into the sound</div><div><code>PAN</code>pan, 80 is centre</div></div>
+<div class="fxg"><div><code>ARP</code>arpeggio: the note, +X, +Y semitones</div><div><code>ARC</code>arpeggio pattern (X) and speed in ticks (Y)</div><div><code>CHA</code>chance the note plays</div><div><code>DEL</code>delay the note by XX ticks</div><div><code>GRV</code>groove for this track: X ticks even, Y odd</div><div><code>GGR</code>groove for every track</div><div><code>HOP</code>end the phrase; the next starts at row Y</div><div><code>INS</code>play with instrument XX</div><div><code>KIL</code>stop the note after XX ticks</div><div><code>OFF</code>fade the note out after XX ticks</div><div><code>NTH</code>play on pass Y of every X</div><div><code>RET</code>retrigger every Y ticks, X fades</div><div><code>REP</code>repeat the last command, adding XX</div><div><code>RND</code>randomise the command to the left</div><div><code>RNL</code>RND as a random walk</div><div><code>PSL</code>slide from the last pitch</div><div><code>PBN</code>bend the pitch across the step</div><div><code>PVB</code>vibrato: X speed, Y depth</div><div><code>SED</code>seed the random numbers</div><div><code>TPO</code>tempo in BPM</div><div><code>TIC</code>ticks a step from here on (00: the project’s)</div><div><code>TSP</code>transpose the track from here on</div><div><code>VOL</code>volume</div><div><code>PIT</code>pitch in semitones (signed)</div><div><code>FIN</code>fine tune in cents</div><div><code>PLY</code>00 forwards, 01 reversed</div><div><code>STA</code>start point into the sound</div><div><code>PAN</code>pan, 80 is centre</div></div>
 <h3>Track effects</h3>
 <p>Each track and the master have 4 effect slots (FX screen, or EDIT on the Mixer’s FX row): EQ, compressor, reverb, tape delay, saturation, tape, chorus, bitcrush, Rings and Clouds. Renders include them; stems skip the master effects and limiter.</p></section>
     <section id="hSynth"><h2>Synth page</h2><table><tr><td><kbd>Z</kbd>–<kbd>/</kbd> · <kbd>Q</kbd>–<kbd>P</kbd></td><td>Play the selected pad chromatically; C-4 is its own pitch. On a synth slot (9–16) notes hold while the keys are down, so you can play chords</td></tr><tr><td><kbd>−</kbd> <kbd>=</kbd></td><td>Octave down / up</td></tr><tr><td><kbd>Shift</kbd> <kbd>1</kbd>–<kbd>8</kbd> or <kbd>◀</kbd> <kbd>▶</kbd></td><td>Pick a pad (◀▶ go through all 16 slots)</td></tr><tr><td><kbd>Space</kbd></td><td>Play the pad as it is</td></tr><tr><td><kbd>Alt</kbd> <kbd>1</kbd>–<kbd>7</kbd></td><td>Jump into a tracker screen</td></tr></table><p><b>Kit ▾</b> saves and loads kits, <b>Export ▾</b> writes WAVs for Koala and SunVox, <b>MIDI ▾</b> connects a controller (notes not mapped to a pad play the selected synth slot, held until note-off), <b>Skin ▾</b> changes the look.</p><h2>Files and rendering</h2><p><b>Project</b> holds SAVE, SAVE AS and LOAD PROJECT, plus RENDER SONG (a stereo WAV) and RENDER STEMS (a zip with the mix and one WAV per track). In desktop Chrome and Edge, Save writes straight back to the file you opened or last saved; other browsers download a copy, and Save As asks for a name first. The song also saves itself in the browser as you work.</p><p>More detail in the <a href="https://github.com/matthettich/Thunder-#readme" target="_blank" rel="noopener">README on GitHub</a>.</p></section>
@@ -1837,19 +1871,19 @@ const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;', '<':'&lt;', '>
 const panS = v => v === 128 ? 'Pan centre' : v < 128 ? `Pan ${Math.round((128 - v) / 128 * 100)}% left` : `Pan ${Math.round((v - 128) / 127 * 100)}% right`;
 // The FX column, named and laid out like the M8's: its sequencer commands, then the sampler-style
 // instrument commands that make sense for a pad (no tables, filters or MIDI here).
-const FXC = ['ARP','ARC','CHA','DEL','GRV','GGR','HOP','INS','KIL','OFF','NTH','RET','REP','RND','RNL','PSL','PBN','PVB','SED','TPO','TSP','VOL','PIT','FIN','PLY','STA','PAN'];
+const FXC = ['ARP','ARC','CHA','DEL','GRV','GGR','HOP','INS','KIL','OFF','NTH','RET','REP','RND','RNL','PSL','PBN','PVB','SED','TPO','TSP','VOL','PIT','FIN','PLY','STA','PAN','TIC'];   // new commands go on the end, so saved songs keep their numbers
 const FXC_V1 = ['RET','DEL','CUT','CHA','PSL','RND','OFS','REV','PAN','TPO','HOP'];   // song files before v2
 const V1NAME = {CUT:'KIL', OFS:'STA', REV:'PLY'};
 const SIGNED = new Set(['PBN','TSP','PIT','FIN']);
 const s8 = v => v > 127 ? v - 256 : v;
-const RSTEP = {DEL:1, KIL:1, OFF:1, PSL:1, RET:1, PBN:1, TSP:1, PIT:1, FIN:4, ARP:1, HOP:1, INS:1};   // RND/RNL step per digit (else 17, so F = full range)
+const RSTEP = {TIC:1, DEL:1, KIL:1, OFF:1, PSL:1, RET:1, PBN:1, TSP:1, PIT:1, FIN:4, ARP:1, HOP:1, INS:1};   // RND/RNL step per digit (else 17, so F = full range)
 const ARCM = ['up', 'down', 'up-down', 'random'];
 const ticksS = v => `${v} tick${v === 1 ? '' : 's'}`;
 const FXI = {
   ARP:v => v ? `Arpeggio: the note, +${v >> 4} and +${v & 15} semitones, one per ARC step` : 'ARP XY: arpeggio through the note, +X and +Y semitones. ARC sets the pattern and speed',
   ARC:v => `Arpeggio setup: ${ARCM[(v >> 4) & 3]}, ${ticksS((v & 15) || 1)} a note (X: 0 up, 1 down, 2 up-down, 3 random; Y: ticks)`,
   CHA:v => `Play the note ${Math.round(v / 255 * 100)}% of the time`,
-  DEL:v => `Delay the note ${ticksS(v)} (6 ticks a step)`,
+  DEL:v => `Delay the note ${ticksS(v)} (${S.ticks || TICKS} ticks a step unless TIC changes it)`,
   GRV:v => v ? `Groove: ${(v >> 4) || 6} ticks on even steps, ${(v & 15) || 6} on odd. Here it sets the groove for all tracks` : 'Groove off: back to the project swing',
   GGR:v => v ? `Global groove: ${(v >> 4) || 6} ticks on even steps, ${(v & 15) || 6} on odd (6 6 is straight)` : 'Groove off: back to the project swing',
   HOP:v => `End this phrase here; the next phrase starts at row ${hx(v & 15, 1)}`,
@@ -1865,7 +1899,8 @@ const FXI = {
   PBN:v => `Bend the pitch ${sgn(s8(v))} semitones across the step`,
   PVB:v => v ? `Vibrato: speed ${v >> 4}, depth ${v & 15}` : 'PVB XY: vibrato, X speed, Y depth',
   SED:v => v ? `Seed the random numbers with ${hx(v)}, so CHA, RND and ARC random repeat the same way` : 'SED 00: truly random again',
-  TPO:v => v >= 40 ? `Set tempo to ${v} BPM` : 'Set tempo in BPM (hex, 28 = 40 BPM and up)',
+  TPO:v => v >= 40 ? `Set tempo to ${v} BPM from this row on` : 'Set tempo in BPM (hex, 28 = 40 BPM and up)',
+  TIC:v => v ? `Set ${ticksS(clamp(v, 1, 32))} a step from this row on (DEL, RET, KIL, OFF, ARC, PSL and GRV count in ticks)` : `TIC 00: back to the project’s ${S.ticks || TICKS} ticks a step`,
   TSP:v => `Transpose this track ${sgn(s8(v))} semitones from here on`,
   VOL:v => `Volume ${dB(curve(v))} (also changes a note that is already playing)`,
   PIT:v => `Pitch ${sgn(s8(v))} semitones (0C up an octave, F4 down)`,
@@ -2037,7 +2072,7 @@ function freshSong(){
   return {app:'thunder-song', v:3, name:'Song 1', bpm:120, swing:50, limiter:true, renderFrom:0, master:224,
     song:Array.from({length:256}, () => new Array(NT).fill(-1)), chains:new Array(256).fill(null), phrases:new Array(256).fill(null),
     insts:Array.from({length:NI}, (_, i) => freshInst(i)), mix:Array.from({length:NT}, freshMix),
-    tfx:Array.from({length:NT}, freshChainFx), mfx:freshChainFx(), lpb:4, plen:new Array(256).fill(16), plpb:new Array(256).fill(0)};
+    tfx:Array.from({length:NT}, freshChainFx), mfx:freshChainFx(), lpb:4, ticks:TICKS, dlen:16, plen:new Array(256).fill(16), plpb:new Array(256).fill(0)};
 }
 const int = (v, d) => Number.isFinite(+v) && v !== null && v !== '' ? Math.round(+v) : d;
 function normSong(j){
@@ -2059,8 +2094,9 @@ function normSong(j){
     if (old === 'HOP' && v === 255) v = 0;                             // was "end the phrase"
     return [FXC.indexOf(nm), v];
   };
-  S.lpb = clamp(int(j.lpb, 4), 1, 16);
-  if (Array.isArray(j.plen)) j.plen.slice(0, 256).forEach((v, i) => S.plen[i] = clamp(int(v, 16), 1, PROWS));
+  S.lpb = clamp(int(j.lpb, 4), 1, 16); S.ticks = clamp(int(j.ticks, TICKS), 1, 32); S.dlen = clamp(int(j.dlen, 16), 1, PROWS);
+  S.plen.fill(S.dlen);
+  if (Array.isArray(j.plen)) j.plen.slice(0, 256).forEach((v, i) => S.plen[i] = clamp(int(v, S.dlen), 1, PROWS));
   if (Array.isArray(j.plpb)) j.plpb.slice(0, 256).forEach((v, i) => S.plpb[i] = clamp(int(v, 0), 0, 16));
   const old1 = !(int(j.v, 1) >= 3);   // one note column: [note, vol, inst, fx…]
   if (Array.isArray(j.phrases)) j.phrases.slice(0, 256).forEach((p, i) => { if (Array.isArray(p)) S.phrases[i] = Array.from({length:PROWS}, (_, k) => {
@@ -2069,6 +2105,8 @@ function normSong(j){
       : Array.from({length:RW}, (_, m) => clamp(int(r[m], -1), -1, 255));
     for (let m = FX0; m < RW; m += 2){ const [c, v] = fxIdx(o[m], o[m + 1]); o[m] = c; o[m + 1] = c < 0 ? -1 : v; }
     return o; }); });
+  // Phrases with nothing in them take the project's default length, so a new one starts at that size.
+  for (let i = 0; i < 256; i++){ const p = S.phrases[i]; if (!p || p.every(r => r.every(v => v < 0))) S.plen[i] = S.dlen; }
   if (Array.isArray(j.insts)) j.insts.slice(0, NI).forEach((o, i) => { if (o && typeof o === 'object'){ const I = S.insts[i];
     I.pad = clamp(int(o.pad, I.pad), 0, NSLOT - 1); I.tsp = clamp(int(o.tsp, 0), -48, 48); I.vol = clamp(int(o.vol, 255), 0, 255);
     I.pan = clamp(int(o.pan, 128), 0, 255); I.rev = o.rev ? 1 : 0; I.ofs = clamp(int(o.ofs, 0), 0, 255); } });
@@ -2120,7 +2158,7 @@ document.addEventListener('visibilitychange', () => { if (document.hidden){ flus
 function saveS(){ snap(); clearTimeout(sT); sT = setTimeout(() => { try { localStorage.setItem(TK, JSON.stringify(S)); } catch(e){} }, 600); }
 const isEmptyChain = c => !c || c.every(r => r[0] < 0);
 const isEmptyPhrase = p => !p || p.every(r => r.every(v => v < 0));
-const plen = id => id >= 0 && S.plen ? clamp(S.plen[id] || 16, 1, PROWS) : 16;
+const plen = id => id >= 0 && S.plen ? clamp(S.plen[id] || S.dlen || 16, 1, PROWS) : (S.dlen || 16);
 const plpbOf = (Sx, id) => (id >= 0 && Sx.plpb && Sx.plpb[id]) || Sx.lpb || 4;
 const clone = o => JSON.parse(JSON.stringify(o));
 function freeChain(){
@@ -2140,7 +2178,7 @@ function makeSeq(S, mode, o){
   const once = !!o.once, tr = [];
   for (let t = 0; t < NT; t++) tr.push({on:false, empty:false, row:0, cr:0, step:0, inst:0, rate:1, tsp:0, next:-1, last:null, rnl:{}, rnlNote:0, nth:new Map(), arc:{mode:0, spd:1},
     rel:0, g:0, grv:null});
-  const api = {time:0, bpm:S.bpm, grv:null, base:null};
+  const api = {time:0, bpm:S.bpm, tks:clamp(S.ticks || TICKS, 1, 32), grv:null, base:null};
   const lenOf = id => id >= 0 && S.plen ? clamp(S.plen[id] || 16, 1, PROWS) : 16;
   // Random numbers: Math.random until a SED command seeds them, so a seeded song plays the same every time.
   let seeded = null;
@@ -2178,6 +2216,10 @@ function makeSeq(S, mode, o){
       out.push([tt, Math.pow(2, (m === 3 ? pat[Math.floor(rand() * 3)] : pat[k % pat.length]) / 12)]);
     return out;
   }
+  // The row a track is about to play, and the value of a TIC command on it (null when there is none).
+  const r0 = (T, pid) => { const ph = pid >= 0 ? S.phrases[pid] : null; return ph ? ph[T.step] : null; };
+  const TICI = FXC.indexOf('TIC');
+  const ticCmd = r => { let v = null; for (let k = FX0; k < RW; k += 2) if (r[k] === TICI) v = Math.max(0, r[k + 1]); return v; };
   // Each call plays the next line of every track that is due. Tracks keep their own clocks, so a phrase
   // can use its own lines per beat (LPB) and every track its own groove.
   api.step = () => {
@@ -2190,7 +2232,10 @@ function makeSeq(S, mode, o){
       const T = tr[t]; if (!T.on || T.rel > rel0 + 1e-9) continue;
       const cid = mode === 'phrase' ? -1 : chainId(T, t), ch = cid >= 0 ? S.chains[cid] : null;
       const pid = mode === 'phrase' ? o.phrase : (!T.empty && ch ? ch[T.cr][0] : -1);
-      const line = 60 / api.bpm / plpbOf(S, pid), tick = line / TICKS, gv = T.grv || api.grv;
+      const line = 60 / api.bpm / plpbOf(S, pid);
+      // TIC on this row changes the ticks a step from here on (for every track, like TPO), and counts already for this row.
+      if (r0(T, pid)){ const tc = ticCmd(r0(T, pid)); if (tc != null) api.tks = tc ? clamp(tc, 1, 32) : clamp(S.ticks || TICKS, 1, 32); }
+      const tick = line / api.tks, gv = T.grv || api.grv;
       const dur = gv ? gv[T.g % 2] * tick : T.g % 2 === 0 ? 2 * line * sw : 2 * line * (1 - sw);
       const ctsp = ch && !T.empty ? ch[T.cr][1] : 0;
       pos[t] = {row:T.row, cr:T.cr, step:T.step, chain:cid, phrase:pid};
@@ -2217,8 +2262,8 @@ function makeSeq(S, mode, o){
         }
         const fx = {}; for (const q of cmds) fx[q.c] = q.v;
         if (fx.TPO != null && fx.TPO >= 40) nb = fx.TPO;
-        if (fx.GRV != null) T.grv = fx.GRV ? [(fx.GRV >> 4) || 6, (fx.GRV & 15) || 6] : null;
-        if (fx.GGR != null) ngrv = fx.GGR ? [(fx.GGR >> 4) || 6, (fx.GGR & 15) || 6] : null;
+        if (fx.GRV != null) T.grv = fx.GRV ? [(fx.GRV >> 4) || api.tks, (fx.GRV & 15) || api.tks] : null;
+        if (fx.GGR != null) ngrv = fx.GGR ? [(fx.GGR >> 4) || api.tks, (fx.GGR & 15) || api.tks] : null;
         if (fx.SED != null) seeded = fx.SED ? {s:fx.SED * 2654435761 >>> 0} : null;
         if (fx.TSP != null) T.tsp = s8(fx.TSP);
         if (fx.ARC != null) T.arc = {mode:fx.ARC >> 4, spd:(fx.ARC & 15) || 1};
@@ -2281,7 +2326,7 @@ function makeSeq(S, mode, o){
     api.bpm = nb; api.grv = ngrv;
     let nx = Infinity; for (const T of tr) if (T.on && T.rel < nx) nx = T.rel;
     api.time = api.base + (nx === Infinity ? rel0 : nx);
-    return {t:t0, evs, pos};
+    return {t:t0, evs, pos, tks:api.tks, line:60 / api.bpm / (S.lpb || 4)};
   };
   return api;
 }
@@ -2425,7 +2470,7 @@ function rtFx(t){
 function rtAllFx(){ for (let t = 0; t <= NT; t++) rtFx(t); }
 function fxChanged(t){ saveS(); rtFx(t); }
 function mixChanged(){ if (rt) rt.pl.applyMix(); saveS(); }
-const tp = {on:false, mode:'', seq:null, timer:0, q:[], pos:null, bpm:120};
+const tp = {on:false, mode:'', seq:null, timer:0, q:[], pos:null, bpm:120, tks:TICKS, line:0.125, st:0};
 function tStart(mode, o){
   tStop(true);
   const r = rtInit();
@@ -2433,7 +2478,7 @@ function tStart(mode, o){
   if (!seq.alive()){ toast(mode === 'song' ? `Row ${hx(o.row)} is empty. Put a chain on it, or move to a row that has some.` : 'Nothing to play here yet.'); draw(); return; }
   for (let i = 0; i < NSLOT; i++) ensure(i);
   seq.time = ctx.currentTime + 0.08;
-  Object.assign(tp, {on:true, mode, seq, q:[], pos:null, bpm:seq.bpm});
+  Object.assign(tp, {on:true, mode, seq, q:[], pos:null, bpm:seq.bpm, tks:seq.tks, st:0});
   tp.timer = setInterval(pump, 25); pump(); draw();
   void r;
 }
@@ -2441,7 +2486,7 @@ function pump(){
   if (!tp.on) return;
   const s = tp.seq; let n = 0;
   while (s.alive() && s.time < ctx.currentTime + 0.15 && n++ < 64){
-    const r = s.step(); for (const e of r.evs) rt.pl.play(e); tp.q.push({t:r.t, pos:r.pos, bpm:s.bpm});
+    const r = s.step(); for (const e of r.evs) rt.pl.play(e); tp.q.push({t:r.t, pos:r.pos, bpm:s.bpm, tks:r.tks, line:r.line});
   }
 }
 function tStop(quiet){
@@ -2562,6 +2607,16 @@ let projFile = null;
 const canFS = !inClaude && typeof window.showSaveFilePicker === 'function';
 const PJT = [{description:'...Thunder project', accept:{'application/json':['.json']}}];
 const projBlob = () => new Blob([JSON.stringify({app:'thunder-project', v:1, song:S, kit:kitToJSON(false)})], {type:'application/json'});
+const projName = () => `${safe(S.name || 'Song')} project.json`;
+// Sharing the project file: the share sheet on phones (Drive, Gmail, Quick Share, Nearby…), so a song started on the
+// phone can be opened on the computer with LOAD PROJECT, and the other way round.
+const canShareProj = () => !inClaude && !!(navigator.canShare && window.File) && (() => { try { return navigator.canShare({files:[new File(['{}'], 'a.json', {type:'application/json'})]}); } catch(e){ return false; } })();
+async function shareProj(){
+  flushS();
+  const f = new File([projBlob()], projName(), {type:'application/json'});
+  try { await navigator.share({files:[f], title:S.name || '...Thunder project'}); }
+  catch(e){ if (e && e.name === 'AbortError') return; await deliver(f.name, projBlob()); toast('Sharing didn’t work here, so the project was saved to your downloads instead.'); }
+}
 async function writeTo(h){ const w = await h.createWritable(); await w.write(projBlob()); await w.close(); }
 let saving = false;
 async function saveProj(as){
@@ -2679,6 +2734,10 @@ function projRows(){
     {l:'NAME', show:() => S.name, tap:() => { const n = prompt('Song name', S.name); if (n != null){ S.name = n.trim().slice(0, 40) || 'Song'; saveS(); draw(); } }, info:() => 'EDIT renames the song'},
     {l:'TEMPO', get:() => S.bpm, set:v => S.bpm = v, min:40, max:300, big:10, d:120, fmt:v => v + ' BPM', after:rtAllFx, info:() => 'Beats per minute, 4 steps to a beat. Track delays follow it'},
     {l:'LPB', get:() => S.lpb, set:v => S.lpb = v, min:1, max:16, big:4, d:4, fmt:v => v + ' lines/beat · 1/' + (v * 4), info:() => 'Lines per beat, like Renoise: 4 makes each row a 16th, 8 a 32nd, 3 or 6 triplets. A phrase can set its own on its LEN line'},
+    {l:'TICKS', get:() => S.ticks || TICKS, set:v => S.ticks = v, min:1, max:32, big:4, d:TICKS, fmt:v => v + ' ticks a step', info:() => 'How many ticks each step is cut into for DEL, RET, KIL, OFF, ARC, PSL and GRV (6 like the M8). A TIC command in a phrase changes it from that row on'},
+    {l:'PATTERN LEN', get:() => S.dlen || 16, set:v => setDefLen(v), min:1, max:PROWS, big:4, d:16, fmt:v => v + (v === 1 ? ' row' : ' rows') + ' · new phrases', info:() => 'How many rows a new phrase starts with (empty phrases follow it too). Change one phrase with ROWS by the INPUT button, or its LEN line'},
+    {l:'› ALL PHRASES TO ' + (S.dlen || 16), dbl:true, act:() => { for (let i = 0; i < 256; i++) S.plen[i] = S.dlen || 16; saveS(); draw(); toast(`Every phrase now plays ${S.dlen || 16} rows. Notes past that are kept, just not played.`); },
+      info:() => `Sets every phrase, used or not, to ${S.dlen || 16} rows. Rows past the end keep their notes. Tap EDIT twice`},
     {l:'SWING', get:() => S.swing, set:v => S.swing = v, min:50, max:75, big:5, d:50, fmt:v => v + '%', info:() => '50% is straight; higher pushes every second step later'},
     {l:'LIMITER', get:() => S.limiter ? 1 : 0, set:v => S.limiter = !!v, min:0, max:1, tog:true, d:1, fmt:onOff, after:rtRoute, info:() => 'Catches peaks on the master. Renders use it on the mix only, so stems stay clean'},
     {l:'MASTER', get:() => S.master, set:v => S.master = v, min:0, max:255, big:16, d:224, after:rtRoute, info:v => 'Master level ' + dB(curve(v))},
@@ -2692,6 +2751,7 @@ function projRows(){
     {l:'› SAVE', act:() => saveProj(false), gap:true, info:() => (projFile ? 'Saves over ' + projFile.name : 'Saves the song and kit as one .json file') + ' · Ctrl/⌘+S'},
     {l:'› SAVE AS', act:() => saveProj(true), info:() => 'Saves to a new file, keeping the old one · Shift+Ctrl/⌘+S'},
     {l:'› LOAD PROJECT', act:openProj, info:() => 'Load a project file (song and kit) · Ctrl/⌘+O'},
+    ...(canShareProj() ? [{l:'› SHARE PROJECT', act:shareProj, info:() => 'Send the project file (song and kit) to Drive, email, a chat or your other device, then open it there with LOAD PROJECT'}] : []),
     {l:'› NEW SONG', dbl:true, act:() => setSong(freshSong(), 'New song. The kit is unchanged.'), info:() => 'Clears the song, keeps the kit. Tap EDIT twice'},
     {l:'› LOAD DEMO', dbl:true, act:() => setSong(demoSong(), 'Loaded the starter beat.'), info:() => 'Replaces the song with the starter beat. Tap EDIT twice'},
   ];
@@ -2792,7 +2852,7 @@ function editDouble(wasEmpty){
     if (id < 0) return toast('No free ' + (isS ? 'chains' : 'phrases') + ' left.');
     const fresh = wasEmpty || curV < 0;
     if (isS) S.chains[id] = fresh ? freshChain() : clone(S.chains[curV] || freshChain());
-    else { S.phrases[id] = fresh ? freshPhrase() : clone(S.phrases[curV] || freshPhrase()); S.plen[id] = fresh ? 16 : plen(curV); S.plpb[id] = fresh ? 0 : (S.plpb[curV] || 0); }
+    else { S.phrases[id] = fresh ? freshPhrase() : clone(S.phrases[curV] || freshPhrase()); S.plen[id] = fresh ? (S.dlen || 16) : plen(curV); S.plpb[id] = fresh ? 0 : (S.plpb[curV] || 0); }
     setCell(tv, c.x, c.y, id); after(isS ? 'chain' : 'phrase', tv, c.x, c.y, id);
     return toast((fresh ? 'New ' : 'Cloned to ') + (isS ? 'chain ' : 'phrase ') + hx(id));
   }
@@ -2888,6 +2948,29 @@ function move(dx, dy){
   c.y = clamp(c.y + dy, 0, d.h - 1); draw();
 }
 function psetGet(x){ return x === 0 ? plen(cPhrase) : (S.plpb[cPhrase] || 0); }
+function setDefLen(v){
+  const d = clamp(v, 1, PROWS); S.dlen = d;
+  for (let i = 0; i < 256; i++) if (isEmptyPhrase(S.phrases[i])) S.plen[i] = d;
+}
+// ROWS by the INPUT button: how many rows the open phrase plays.
+// On the chain screen it's the phrase on the cursor's row; elsewhere the phrase last opened.
+function rowsId(){ if (tv === 'chain'){ const ch = S.chains[cChain], r = ch && ch[cs.chain.y]; if (r && r[0] >= 0) return r[0]; } return cPhrase; }
+function setRows(v){ const id = rowsId(); S.plen[id] = clamp(v, 1, PROWS); if (id === cPhrase){ const c = cs.phrase; if (c.y >= S.plen[id]) c.y = S.plen[id] - 1; } saveS(); draw(); }
+function drawPat(){
+  const id = rowsId(); $('tRowsP').textContent = 'PH ' + hx(id); $('tRowsN').textContent = plen(id);
+  const live = tp.on, tk = live ? tp.tks : (S.ticks || TICKS);
+  $('tClkB').textContent = live ? tp.bpm : S.bpm; $('tClkT').textContent = tk; $('tClk').classList.toggle('live', live);
+  const D = $('tDots'), n = Math.min(tk, 16);
+  if (D.childElementCount !== n) D.innerHTML = '<i></i>'.repeat(n);
+}
+// Lights the dots up to the tick that is sounding now (only while playing).
+function tickDots(){
+  const D = $('tDots'); if (!D) return;
+  let k = -1;
+  if (tp.on && ctx && tp.st){ const per = tp.line / Math.max(1, tp.tks), el = ctx.currentTime - tp.st; if (el >= 0) k = Math.min(Math.floor(el / per), D.childElementCount - 1); }
+  if (D._k === k) return; D._k = k;
+  [...D.children].forEach((e, i) => e.classList.toggle('on', i <= k));
+}
 function psetSet(x, v){ if (x === 0) S.plen[cPhrase] = clamp(v, 1, PROWS); else S.plpb[cPhrase] = clamp(v, 0, 16); saveS(); draw(); }
 function go(v){
   if (v === 'chain'){ const id = S.song[cs.song.y][cs.song.x]; if (tv === 'song' && id >= 0){ cChain = id; cTrack = cs.song.x; } }
@@ -3058,8 +3141,15 @@ function fit(){
   if (view !== 'tracker') return;
   const W = scr.clientWidth - 24, H = scr.clientHeight - 16; if (W <= 0 || H <= 0) return;
   // Height: the phrase's LEN line, its column header and 16 rows (18 lines) must fit in the grid, with the
-  // title line and up to three info lines (0.8em each) around it: ~5.5em of extras.
-  scr.style.fontSize = Math.max(8, Math.min(30, W / (BASEW * CW), H / (FITROWS * 1.3 + 5.5))).toFixed(2) + 'px';
+  // title line and up to three info lines (0.8em each) around it: ~5.5em of extras. Then measure the grid
+  // itself and shrink until 18 lines really fit, since the buttons below can be tall on a phone.
+  let fs = Math.max(7, Math.min(30, W / (BASEW * CW), H / (FITROWS * 1.3 + 5.5)));
+  for (let i = 0; i < 6; i++){
+    scr.style.fontSize = fs.toFixed(2) + 'px';
+    const gh = grid.clientHeight, fit = gh / (fs * 1.3);
+    if (!gh || fit >= FITROWS + 0.2 || fs <= 7) break;
+    fs = Math.max(7, fs * fit / (FITROWS + 0.3));
+  }
 }
 // Song shows 16 rows like the M8, more when the screen is tall (unfolded in portrait).
 function songRows(){ const fs = parseFloat(scr.style.fontSize) || 14, h = grid.clientHeight; return h > 0 ? clamp(Math.floor(h / (fs * 1.3) + 0.05) - 1, 8, 48) : 16; }
@@ -3157,6 +3247,7 @@ function draw(){
   $('tTitle').textContent = title; $('tSub').textContent = sub;
   $('tInfo').textContent = info(); $('tHint').textContent = (tv === 'phrase' ? 'NOW ' + curS() + (inMode === 'keys' ? ' · oct ' + kOct + ' · step ' + kStep : '') + ' · ' : '') + (inMode === 'keys' ? HINTK : HINT)[tv];
   const km = inMode === 'keys'; $('tKp').hidden = !km; $('tPad').hidden = km; $('tLegKeys').hidden = !km; $('tLegPad').hidden = km;
+  drawPat();
   $('tMode').innerHTML = '<span class="mx">INPUT: </span>' + (km ? 'KEYS' : 'PAD'); $('tMode').classList.toggle('on', km);
   if (km) drawKeypad();
   document.querySelectorAll('#tTabs button').forEach(b => b.classList.toggle('on', b.dataset.v === tv));
@@ -3166,7 +3257,7 @@ function draw(){
   const sb = $('tCmd').querySelector('[data-c=song]'); if (sb){ sb.textContent = tp.on ? '■ STOP' : '▶ SONG'; sb.classList.toggle('on', tp.on); }
   const selB = $('tCmd').querySelector('[data-c=sel]'); if (selB) selB.classList.toggle('on', !!selA);
   $('tState').textContent = tp.on ? '▶ PLAYING ' + VNAME[tp.mode] : rendering ? '● RENDERING' : '■ STOPPED';
-  $('tBpm').textContent = (tp.on ? tp.bpm : S.bpm) + ' BPM' + (S.swing > 50 ? ' · SWING ' + S.swing + '%' : '');
+  $('tBpm').textContent = (tp.on ? tp.bpm : S.bpm) + ' BPM · ' + (tp.on ? tp.tks : S.ticks || TICKS) + ' TICKS' + (S.swing > 50 ? ' · SWING ' + S.swing + '%' : '');
   document.querySelectorAll('#tMeters .mtr').forEach((m, t) => m.classList.toggle('mu', !audible(t)));
   paintMeters();
 }
@@ -3220,9 +3311,10 @@ function frame(){
   raf = requestAnimationFrame(frame);
   if (tp.on && ctx){
     let ch = false;
-    while (tp.q.length && tp.q[0].t <= ctx.currentTime + 0.01){ const e = tp.q.shift(); if (!tp.pos) tp.pos = new Array(NT).fill(null); e.pos.forEach((q, i) => { if (q) tp.pos[i] = q; }); tp.bpm = e.bpm; ch = true; }
+    while (tp.q.length && tp.q[0].t <= ctx.currentTime + 0.01){ const e = tp.q.shift(); if (!tp.pos) tp.pos = new Array(NT).fill(null); e.pos.forEach((q, i) => { if (q) tp.pos[i] = q; }); tp.bpm = e.bpm; tp.tks = e.tks; tp.line = e.line; tp.st = e.t; ch = true; }
     if (!tp.seq.alive() && !tp.q.length && ctx.currentTime > tp.seq.time + 0.3) tStop(); else if (ch) draw();
   }
+  tickDots();
   cpuMeter();
   if (rt){
     let any = false;
@@ -3356,6 +3448,10 @@ document.addEventListener('keydown', e => {
 });
 document.addEventListener('keyup', e => { if (view !== 'tracker' || inMode === 'keys' || typing(e)) return; const b = KEYB[e.key]; if (b){ e.preventDefault(); release(b, true); } });
 window.addEventListener('blur', releaseAll);
+$('tRowsDn').addEventListener('click', () => setRows(plen(rowsId()) - 1));
+$('tRowsUp').addEventListener('click', () => setRows(plen(rowsId()) + 1));
+$('tRowsV').addEventListener('click', () => { const id = rowsId(), n = prompt(`Rows for phrase ${hx(id)} (1–${PROWS})`, plen(id)); if (n != null && Number.isFinite(+n) && n.trim() !== '') setRows(Math.round(+n)); });
+$('tClk').addEventListener('click', () => toast(`${tp.on ? tp.bpm : S.bpm} BPM, ${tp.on ? tp.tks : S.ticks || TICKS} ticks a step. Set them in Project (TEMPO, TICKS); TPO and TIC change them as the song plays.`));
 $('projIn').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) loadProjFile(f); });
 new ResizeObserver(() => { fit(); draw(); }).observe(scr);
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { measure(); fit(); });

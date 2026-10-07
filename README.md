@@ -23,17 +23,21 @@ An 8-pad drum synth and 16-track tracker for the browser, built for a Galaxy Z F
 
 **Skin ▾** in the top bar (or SKIN in the tracker's Project screen) switches between the ...Seeds skins: Pastel (follows your system), Pastel light, Minimal, Minimal colors, Monotone, Minimal black, Minimal colors black and Neon. The choice is remembered.
 
+## Playing pads from the computer keyboard
+
+On the synth page the keyboard plays the selected pad chromatically, Renoise style: Z to / is the lower octave (S D G H J for sharps), Q to P the upper (2 3 5 6 7 9 0 for sharps). C-4 is the pad at its own pitch; − and = (or numpad / and *) change the octave. Shift+1–8 or ◀ ▶ pick a pad, Space plays it as it is.
+
 ## Tracker
 
 Tap **Tracker** at the top for an M8-style sequencer that plays the kit. 16 tracks, built the M8 way:
 
 - **Song** – 256 rows × 16 tracks of chain numbers. Each track loops back to the top of its block of filled rows when it reaches an empty row.
 - **Chain** – up to 16 phrases in order, each with a transpose.
-- **Phrase** – 16 steps of note, volume, instrument and three effects.
+- **Phrase** – up to 32 rows of note, volume, instrument and three effects. Press ▲ on the top row to reach the phrase's LEN (how many rows it plays, 1–32, default 16) and LPB (lines per beat for this phrase; -- uses the song's).
 - **Inst** – 16 instruments. Each plays one of the 8 pads with its own transpose, volume, pan, reverse and start point. C-4 plays a pad at its own pitch.
 - **Mixer** – volume, pan, mute, solo and effects per track, level meters per track (green, yellow above −12 dB, red above −6 dB), and a stereo master meter with peak and CLIP.
 - **FX** – up to 4 effects per track and 4 on the master, running live as the song plays (see below).
-- **Project** – tempo, swing, limiter, render settings, renders, and project files (song and kit together).
+- **Project** – tempo, LPB (lines per beat, like Renoise: 4 = 16ths, 8 = 32nds, 3 or 6 = triplets), swing, limiter, render settings, renders, and project files (song and kit together).
 
 **FX column.** Named and laid out like the M8's. Sequencer commands:
 

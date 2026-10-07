@@ -255,6 +255,10 @@ input[type=range]{width:100%; accent-color:var(--ink); height:30px; margin:0; to
 .tscr .cur{background:var(--ts-cur-bg); color:var(--ts-cur)}
 .tinfo{flex:none; font-size:.8em; line-height:1.35; color:var(--ts-info); border-top:1px solid var(--ts-line); padding-top:.45em; margin-top:.3em}
 .tinfo>div{overflow:hidden; display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:2}
+#tInfo{height:2.7em}
+.kpc{display:flex; flex-direction:column; gap:5px; height:calc(var(--k) * 1.95 + 10px)}
+.kpc .kpr{flex:1; min-height:0}
+.kpc .kp{min-height:0; height:100%}
 .tinfo>.thint{-webkit-line-clamp:1; display:block; white-space:nowrap; text-overflow:ellipsis}
 .thint{color:var(--ts-hint)}
 .tside{width:236px; flex:none; border-left:1px solid var(--line); background:var(--side); padding:12px; display:flex; flex-direction:column; gap:12px; overflow:auto}
@@ -1018,6 +1022,13 @@ function stopVoice(i){
   const p = playing[i]; if (!p) return; playing[i] = null;
   const t = ctx.currentTime; try { p.g.gain.setTargetAtTime(0, t, 0.004); p.src.stop(t + 0.04); } catch(e){}
 }
+// One note of pad i at a pitch, from the computer keyboard: notes ring out on their own (polyphonic).
+function playNote(i, semis, vel = 1){
+  audio();
+  const src = ctx.createBufferSource(), g = ctx.createGain();
+  src.buffer = buffer(i); src.playbackRate.value = Math.pow(2, semis / 12); g.gain.value = vel;
+  src.connect(g); g.connect(master); src.start(); flash(i);
+}
 function play(i, vel = 1){
   audio();
   const v = kit.voices[i];
@@ -1272,8 +1283,17 @@ function refreshAll(){
 document.addEventListener('keydown', e => {
   if (view === 'tracker' || e.target.matches('input[type=text],select') || e.repeat || e.ctrlKey || e.metaKey) return;
   if (e.altKey && /^Digit[1-7]$/.test(e.code)){ e.preventDefault(); setView('tracker'); go(VIEWS[+e.code.slice(5) - 1]); return; }
-  const n = '12345678'.indexOf(e.key); if (n >= 0){ padPress(n); e.preventDefault(); }
-  else if (e.key === ' ' && !e.target.matches('button')){ play(cur); e.preventDefault(); }
+  // Keyboard: Renoise-style notes play the selected pad chromatically (C-4 = its own pitch);
+  // Shift+1–8 or ◀ ▶ pick a pad; − = (or numpad / *) change the octave; Space plays the pad.
+  if (e.altKey) return;
+  const pd = /^Digit[1-8]$/.test(e.code) ? +e.code.slice(5) - 1 : -1;
+  if (e.shiftKey && pd >= 0){ padPress(pd); e.preventDefault(); return; }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight'){ if (!e.target.matches('input[type=range]')){ select((cur + (e.key === 'ArrowRight' ? 1 : 7)) % 8); e.preventDefault(); } return; }
+  if (e.key === '-' || e.key === '=' || e.code === 'NumpadDivide' || e.code === 'NumpadMultiply'){
+    setOct(kOct + (e.key === '=' || e.code === 'NumpadMultiply' ? 1 : -1)); e.preventDefault(); return; }
+  const lo = e.key.length === 1 ? e.key.toLowerCase() : '';
+  if (lo in PIANO && !e.shiftKey){ playNote(cur, kOct * 12 + PIANO[lo] - ROOT); e.preventDefault(); return; }
+  if (e.key === ' ' && !e.target.matches('button')){ play(cur); e.preventDefault(); }
 });
 
 /* ---------- waveform ---------- */
@@ -1783,14 +1803,15 @@ function tfxNode(ac, chain){
 
 /* ---------- song data ---------- */
 const freshChain = () => Array.from({length:16}, () => [-1, 0]);
-const freshPhrase = () => Array.from({length:16}, () => [-1, -1, -1, -1, -1, -1, -1, -1, -1]);
+const PROWS = 32;   // rows stored per phrase; each phrase plays its own LEN (16 by default)
+const freshPhrase = () => Array.from({length:PROWS}, () => [-1, -1, -1, -1, -1, -1, -1, -1, -1]);
 const freshInst = i => ({pad:i % 8, tsp:0, vol:255, pan:128, rev:0, ofs:0});
 const freshMix = () => ({vol:224, pan:128, mute:false, solo:false});
 function freshSong(){
   return {app:'thunder-song', v:2, name:'Song 1', bpm:120, swing:50, limiter:true, renderFrom:0, master:224,
     song:Array.from({length:256}, () => new Array(NT).fill(-1)), chains:new Array(256).fill(null), phrases:new Array(256).fill(null),
     insts:Array.from({length:NI}, (_, i) => freshInst(i)), mix:Array.from({length:NT}, freshMix),
-    tfx:Array.from({length:NT}, freshChainFx), mfx:freshChainFx()};
+    tfx:Array.from({length:NT}, freshChainFx), mfx:freshChainFx(), lpb:4, plen:new Array(256).fill(16), plpb:new Array(256).fill(0)};
 }
 const int = (v, d) => Number.isFinite(+v) && v !== null && v !== '' ? Math.round(+v) : d;
 function normSong(j){
@@ -1812,7 +1833,10 @@ function normSong(j){
     if (old === 'HOP' && v === 255) v = 0;                             // was "end the phrase"
     return [FXC.indexOf(nm), v];
   };
-  if (Array.isArray(j.phrases)) j.phrases.slice(0, 256).forEach((p, i) => { if (Array.isArray(p)) S.phrases[i] = Array.from({length:16}, (_, k) => {
+  S.lpb = clamp(int(j.lpb, 4), 1, 16);
+  if (Array.isArray(j.plen)) j.plen.slice(0, 256).forEach((v, i) => S.plen[i] = clamp(int(v, 16), 1, PROWS));
+  if (Array.isArray(j.plpb)) j.plpb.slice(0, 256).forEach((v, i) => S.plpb[i] = clamp(int(v, 0), 0, 16));
+  if (Array.isArray(j.phrases)) j.phrases.slice(0, 256).forEach((p, i) => { if (Array.isArray(p)) S.phrases[i] = Array.from({length:PROWS}, (_, k) => {
     const r = Array.isArray(p[k]) ? p[k] : [], o = Array.from({length:9}, (_, m) => clamp(int(r[m], -1), -1, 255));
     for (let m = 3; m < 9; m += 2){ const [c, v] = fxIdx(o[m], o[m + 1]); o[m] = c; o[m + 1] = c < 0 ? -1 : v; }
     return o; }); });
@@ -1852,9 +1876,14 @@ function undoStep(dir){
   if (rt){ rtAllFx(); rtRoute(); rt.pl.applyMix(); }
   draw(); toast(dir < 0 ? 'Undo' : 'Redo');
 }
+function flushS(){ clearTimeout(sT); try { localStorage.setItem(TK, JSON.stringify(S)); } catch(e){} }
+addEventListener('pagehide', () => { flushS(); saveCur(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden){ flushS(); saveCur(); } });
 function saveS(){ snap(); clearTimeout(sT); sT = setTimeout(() => { try { localStorage.setItem(TK, JSON.stringify(S)); } catch(e){} }, 600); }
 const isEmptyChain = c => !c || c.every(r => r[0] < 0);
 const isEmptyPhrase = p => !p || p.every(r => r.every(v => v < 0));
+const plen = id => id >= 0 && S.plen ? clamp(S.plen[id] || 16, 1, PROWS) : 16;
+const plpbOf = (Sx, id) => (id >= 0 && Sx.plpb && Sx.plpb[id]) || Sx.lpb || 4;
 const clone = o => JSON.parse(JSON.stringify(o));
 function freeChain(){
   const used = new Set(); for (const r of S.song) for (const v of r) if (v >= 0) used.add(v);
@@ -1871,8 +1900,10 @@ const audible = t => { const any = S.mix.some(m => m.solo); return !S.mix[t].mut
 /* ---------- sequencer: turns the song into timed note events ---------- */
 function makeSeq(S, mode, o){
   const once = !!o.once, tr = [];
-  for (let t = 0; t < NT; t++) tr.push({on:false, empty:false, row:0, cr:0, step:0, inst:0, rate:1, tsp:0, next:-1, last:null, rnl:{}, rnlNote:0, nth:new Map(), arc:{mode:0, spd:1}});
-  const api = {time:0, bpm:S.bpm, g:0, grv:null};
+  for (let t = 0; t < NT; t++) tr.push({on:false, empty:false, row:0, cr:0, step:0, inst:0, rate:1, tsp:0, next:-1, last:null, rnl:{}, rnlNote:0, nth:new Map(), arc:{mode:0, spd:1},
+    rel:0, g:0, grv:null});
+  const api = {time:0, bpm:S.bpm, grv:null, base:null};
+  const lenOf = id => id >= 0 && S.plen ? clamp(S.plen[id] || 16, 1, PROWS) : 16;
   // Random numbers: Math.random until a SED command seeds them, so a seeded song plays the same every time.
   let seeded = null;
   const rand = () => { if (!seeded) return Math.random(); let x = seeded.s += 0x6D2B79F5; x = Math.imul(x ^ x >>> 15, x | 1); x ^= x + Math.imul(x ^ x >>> 7, x | 61); return ((x ^ x >>> 14) >>> 0) / 4294967296; };
@@ -1909,15 +1940,20 @@ function makeSeq(S, mode, o){
       out.push([tt, Math.pow(2, (m === 3 ? pat[Math.floor(rand() * 3)] : pat[k % pat.length]) / 12)]);
     return out;
   }
+  // Each call plays the next line of every track that is due. Tracks keep their own clocks, so a phrase
+  // can use its own lines per beat (LPB) and every track its own groove.
   api.step = () => {
-    const sd = 60 / api.bpm / 4, tick = sd / TICKS, sw = clamp(S.swing, 50, 75) / 100;
-    const dur = api.grv ? api.grv[api.g % 2] * tick : api.g % 2 === 0 ? 2 * sd * sw : 2 * sd * (1 - sw);
-    const t0 = api.time, evs = [], pos = new Array(NT).fill(null);
+    if (api.base == null) api.base = api.time;
+    let rel0 = Infinity; for (const T of tr) if (T.on && T.rel < rel0) rel0 = T.rel;
+    if (rel0 === Infinity) rel0 = api.time - api.base;
+    const t0 = api.base + rel0, evs = [], pos = new Array(NT).fill(null), sw = clamp(S.swing, 50, 75) / 100;
     let nb = api.bpm, ngrv = api.grv;
     for (let t = 0; t < NT; t++){
-      const T = tr[t]; if (!T.on) continue;
+      const T = tr[t]; if (!T.on || T.rel > rel0 + 1e-9) continue;
       const cid = mode === 'phrase' ? -1 : chainId(T, t), ch = cid >= 0 ? S.chains[cid] : null;
       const pid = mode === 'phrase' ? o.phrase : (!T.empty && ch ? ch[T.cr][0] : -1);
+      const line = 60 / api.bpm / plpbOf(S, pid), tick = line / TICKS, gv = T.grv || api.grv;
+      const dur = gv ? gv[T.g % 2] * tick : T.g % 2 === 0 ? 2 * line * sw : 2 * line * (1 - sw);
       const ctsp = ch && !T.empty ? ch[T.cr][1] : 0;
       pos[t] = {row:T.row, cr:T.cr, step:T.step, chain:cid, phrase:pid};
       const ph = pid >= 0 ? S.phrases[pid] : null, r = ph ? ph[T.step] : null;
@@ -1943,12 +1979,12 @@ function makeSeq(S, mode, o){
         }
         const fx = {}; for (const q of cmds) fx[q.c] = q.v;
         if (fx.TPO != null && fx.TPO >= 40) nb = fx.TPO;
-        if (fx.GRV != null) ngrv = fx.GRV ? [(fx.GRV >> 4) || 6, (fx.GRV & 15) || 6] : null;
+        if (fx.GRV != null) T.grv = fx.GRV ? [(fx.GRV >> 4) || 6, (fx.GRV & 15) || 6] : null;
         if (fx.GGR != null) ngrv = fx.GGR ? [(fx.GGR >> 4) || 6, (fx.GGR & 15) || 6] : null;
         if (fx.SED != null) seeded = fx.SED ? {s:fx.SED * 2654435761 >>> 0} : null;
         if (fx.TSP != null) T.tsp = s8(fx.TSP);
         if (fx.ARC != null) T.arc = {mode:fx.ARC >> 4, spd:(fx.ARC & 15) || 1};
-        if (fx.HOP != null) hop = fx.HOP & 15;
+        if (fx.HOP != null) hop = Math.min(fx.HOP, PROWS - 1);
         let play = true;
         if (fx.NTH != null){ const X = (fx.NTH >> 4) || 1, Y = (fx.NTH & 15) || 1, key = pid + ':' + T.step, n = T.nth.get(key) || 0;
           T.nth.set(key, n + 1); play = n % X === (Y - 1) % X; }
@@ -1992,11 +2028,16 @@ function makeSeq(S, mode, o){
           if (any) evs.push(m);
         }
       }
-      if (hop >= 0){ T.step = 16; T.next = hop; } else T.step++;
-      if (T.step >= 16){ T.step = T.next >= 0 ? T.next : 0; T.next = -1; if (mode !== 'phrase'){ T.cr++; settle(T, t); } }
+      const L = lenOf(pid);
+      if (hop >= 0){ T.step = L; T.next = hop; } else T.step++;
+      if (T.step >= L){ T.step = T.next >= 0 ? T.next : 0; T.next = -1; if (mode !== 'phrase'){ T.cr++; settle(T, t); } }
+      { const np = mode === 'phrase' ? o.phrase : T.on && !T.empty ? ((S.chains[chainId(T, t)] || [])[T.cr] || [-1])[0] : -1; if (T.step >= lenOf(np)) T.step = 0; }
+      T.rel += dur; T.g++;
     }
-    api.bpm = nb; api.grv = ngrv; api.time += dur; api.g++;
-    return {t:t0, dur, evs, pos};
+    api.bpm = nb; api.grv = ngrv;
+    let nx = Infinity; for (const T of tr) if (T.on && T.rel < nx) nx = T.rel;
+    api.time = api.base + (nx === Infinity ? rel0 : nx);
+    return {t:t0, evs, pos};
   };
   return api;
 }
@@ -2263,6 +2304,16 @@ async function shareLast(){
 function saveProj(){
   deliver(`${safe(S.name || 'Song')} project.json`, new Blob([JSON.stringify({app:'thunder-project', v:1, song:S, kit:kitToJSON(false)})], {type:'application/json'}));
 }
+const CUK = 'thunder-cursor-v1';
+function saveCur(){ try { localStorage.setItem(CUK, JSON.stringify({tv, midV, cChain, cPhrase, cInst, cTrack, cFxT, cs})); } catch(e){} }
+function loadCur(){
+  try { const o = JSON.parse(localStorage.getItem(CUK) || 'null'); if (!o) return;
+    if (VIEWS.includes(o.tv)) tv = o.tv; if (MID.includes(o.midV)) midV = o.midV;
+    cChain = clamp(int(o.cChain, 0), 0, 255); cPhrase = clamp(int(o.cPhrase, 0), 0, 255); cInst = clamp(int(o.cInst, 0), 0, NI - 1);
+    cTrack = clamp(int(o.cTrack, 0), 0, NT - 1); cFxT = clamp(int(o.cFxT, 0), 0, NT);
+    if (o.cs) for (const k in cs) if (o.cs[k]) Object.assign(cs[k], {x:int(o.cs[k].x, 0), y:int(o.cs[k].y, 0)});
+  } catch(e){}
+}
 function resetCursors(){ cChain = cPhrase = cInst = cTrack = cFxT = cFxS = 0; for (const k in cs) Object.assign(cs[k], {x:0, y:0, top:0}); selA = null; }
 function setSong(s, msg){ tStop(true); S = s; resetCursors(); if (rt){ rtAllFx(); rtRoute(); rt.pl.applyMix(); } saveS(); draw(); if (msg) toast(msg); }
 
@@ -2270,7 +2321,7 @@ function setSong(s, msg){ tStop(true); S = s; resetCursors(); if (rt){ rtAllFx()
 const MID = ['song', 'chain', 'phrase', 'inst'], VIEWS = ['song', 'chain', 'phrase', 'inst', 'mixer', 'fx', 'project'], GRIDV = new Set(['song', 'chain', 'phrase']);
 const VNAME = {song:'SONG', chain:'CHAIN', phrase:'PHRASE', inst:'INST', mixer:'MIXER', fx:'FX', project:'PROJECT'};
 let tv = 'song', midV = 'song';
-const cs = {song:{x:0, y:0, top:0}, chain:{x:0, y:0}, phrase:{x:0, y:0}, inst:{x:0, y:0}, mixer:{x:0, y:0}, fx:{x:0, y:0}, project:{x:0, y:0}};
+const cs = {song:{x:0, y:0, top:0}, chain:{x:0, y:0}, phrase:{x:0, y:0, top:0}, inst:{x:0, y:0}, mixer:{x:0, y:0}, fx:{x:0, y:0}, project:{x:0, y:0}};
 let cChain = 0, cPhrase = 0, cInst = 0, cTrack = 0, cFxT = 0, cFxS = 0, lastFxType = 'eq', selA = null, clip = null;
 const last = {chain:0, phrase:0, note:ROOT, vol:255, inst:0, fxc:0, fxv:0};
 const PK = ['note', 'vol', 'inst', 'fxc', 'fxv', 'fxc', 'fxv', 'fxc', 'fxv'];
@@ -2332,6 +2383,7 @@ function projRows(){
     {l:'SKIN', get:() => SKINS.findIndex(k => k.id === skin), set:v => applySkin(SKINS[v].id), min:0, max:SKINS.length - 1, fmt:v => SKINS[v].name.toUpperCase(), info:() => 'The look of the whole app: the ...Seeds skins'},
     {l:'NAME', show:() => S.name, tap:() => { const n = prompt('Song name', S.name); if (n != null){ S.name = n.trim().slice(0, 40) || 'Song'; saveS(); draw(); } }, info:() => 'EDIT renames the song'},
     {l:'TEMPO', get:() => S.bpm, set:v => S.bpm = v, min:40, max:300, big:10, d:120, fmt:v => v + ' BPM', after:rtAllFx, info:() => 'Beats per minute, 4 steps to a beat. Track delays follow it'},
+    {l:'LPB', get:() => S.lpb, set:v => S.lpb = v, min:1, max:16, big:4, d:4, fmt:v => v + ' lines/beat · 1/' + (v * 4), info:() => 'Lines per beat, like Renoise: 4 makes each row a 16th, 8 a 32nd, 3 or 6 triplets. A phrase can set its own on its LEN line'},
     {l:'SWING', get:() => S.swing, set:v => S.swing = v, min:50, max:75, big:5, d:50, fmt:v => v + '%', info:() => '50% is straight; higher pushes every second step later'},
     {l:'LIMITER', get:() => S.limiter ? 1 : 0, set:v => S.limiter = !!v, min:0, max:1, tog:true, d:1, fmt:onOff, after:rtRoute, info:() => 'Catches peaks on the master. Renders use it on the mix only, so stems stay clean'},
     {l:'MASTER', get:() => S.master, set:v => S.master = v, min:0, max:255, big:16, d:224, after:rtRoute, info:v => 'Master level ' + dB(curve(v))},
@@ -2352,7 +2404,7 @@ const rowsOf = v => v === 'inst' ? instRows() : v === 'project' ? projRows() : v
 function dims(v){
   if (v === 'song') return {w:NT, h:256};
   if (v === 'chain') return {w:2, h:16};
-  if (v === 'phrase') return {w:9, h:16};
+  if (v === 'phrase') return {w:9, h:plen(cPhrase)};
   if (v === 'mixer') return {w:NT, h:6};
   return {w:1, h:rowsOf(v).length};
 }
@@ -2376,6 +2428,7 @@ function insertAt(x, y, k){
 }
 function bump(d, big){
   const c = cs[tv];
+  if (onPset()) return psetSet(c.x, psetGet(c.x) + d * (big ? (c.x ? 4 : 8) : 1));
   if (GRIDV.has(tv)){
     const k = kindAt(tv, c.x); let v = getCell(tv, c.x, c.y);
     if (k !== 'tsp' && v < 0) return insertAt(c.x, c.y, k);
@@ -2406,6 +2459,7 @@ function editTap(){
   const c = cs[tv], key = tv + c.x + ':' + c.y + ':' + cChain + ':' + cPhrase, now = performance.now();
   if (now - lastTap.t < 380 && lastTap.key === key){ const e = lastTap.empty; lastTap = {t:0, key:'', empty:false}; return editDouble(e); }
   lastTap = {t:now, key, empty:false};
+  if (onPset()) return toast(c.x ? 'EDIT+arrows change the lines per beat (-- = the song’s)' : 'EDIT+arrows change how many rows this phrase plays (1–32)');
   if (GRIDV.has(tv)){
     const k = kindAt(tv, c.x), v = getCell(tv, c.x, c.y);
     if (k !== 'tsp' && v < 0){ lastTap.empty = true; insertAt(c.x, c.y, k); }
@@ -2425,7 +2479,7 @@ function editDouble(wasEmpty){
     if (id < 0) return toast('No free ' + (isS ? 'chains' : 'phrases') + ' left.');
     const fresh = wasEmpty || curV < 0;
     if (isS) S.chains[id] = fresh ? freshChain() : clone(S.chains[curV] || freshChain());
-    else S.phrases[id] = fresh ? freshPhrase() : clone(S.phrases[curV] || freshPhrase());
+    else { S.phrases[id] = fresh ? freshPhrase() : clone(S.phrases[curV] || freshPhrase()); S.plen[id] = fresh ? 16 : plen(curV); S.plpb[id] = fresh ? 0 : (S.plpb[curV] || 0); }
     setCell(tv, c.x, c.y, id); after(isS ? 'chain' : 'phrase', tv, c.x, c.y, id);
     return toast((fresh ? 'New ' : 'Cloned to ') + (isS ? 'chain ' : 'phrase ') + hx(id));
   }
@@ -2433,6 +2487,7 @@ function editDouble(wasEmpty){
   const r = rowsOf(tv)[c.y]; if (r && r.act && r.dbl) r.act();
 }
 function del(){
+  if (onPset()) return psetSet(cs.phrase.x, cs.phrase.x ? 0 : 16);
   if (selA) return copySel(true);
   const c = cs[tv];
   if (GRIDV.has(tv)){
@@ -2451,6 +2506,7 @@ function rowsArr(v){
   return null;
 }
 function rowOp(op){
+  if (onPset()) return del();
   const c = cs[tv];
   if (selA){ copySel(true); return; }
   if (tv === 'song'){
@@ -2470,6 +2526,7 @@ function rowOp(op){
   saveS(); draw();
 }
 function toggleSel(){
+  if (onPset()) return;
   if (!GRIDV.has(tv)) return toast('Selecting works in Song, Chain and Phrase.');
   if (selA){ selA = null; toast('Selection off'); } else { selA = {x:cs[tv].x, y:cs[tv].y, v:tv}; toast('Selecting: arrows extend · OPTION copies · OPTION+EDIT cuts'); }
   draw();
@@ -2488,14 +2545,25 @@ function paste(){
   clip.d.forEach((row, j) => row.forEach((val, i) => { const x = x0 + i, y = c.y + j; if (x < dm.w && y < dm.h) setCell(tv, x, y, val); }));
   toast('Pasted'); draw();
 }
-function move(dx, dy){ const c = cs[tv], d = dims(tv); c.x = clamp(c.x + dx, 0, d.w - 1); c.y = clamp(c.y + dy, 0, d.h - 1); draw(); }
+// The phrase's LEN / LPB line sits above row 0 (y = -2): ▲ from row 0 reaches it, ▼ goes back.
+const onPset = () => tv === 'phrase' && cs.phrase.y === -2;
+function move(dx, dy){
+  const c = cs[tv], d = dims(tv);
+  if (tv === 'phrase' && c.y === -2){ if (dy > 0){ c.y = 0; c.x = 0; } else c.x = clamp(c.x + dx, 0, 1); return draw(); }
+  if (tv === 'phrase' && dy === -1 && c.y === 0){ c.y = -2; c.x = c.x > 0 ? 1 : 0; return draw(); }
+  c.x = clamp(c.x + dx, 0, d.w - 1); c.y = clamp(c.y + dy, 0, d.h - 1); draw();
+}
+function psetGet(x){ return x === 0 ? plen(cPhrase) : (S.plpb[cPhrase] || 0); }
+function psetSet(x, v){ if (x === 0) S.plen[cPhrase] = clamp(v, 1, PROWS); else S.plpb[cPhrase] = clamp(v, 0, 16); saveS(); draw(); }
 function go(v){
   if (v === 'chain'){ const id = S.song[cs.song.y][cs.song.x]; if (tv === 'song' && id >= 0){ cChain = id; cTrack = cs.song.x; } }
+  if (v === 'phrase' && tv === 'song'){ const cid = S.song[cs.song.y][cs.song.x];
+    if (cid >= 0){ cChain = cid; cTrack = cs.song.x; const ch = S.chains[cid]; const r = ch ? ch.findIndex(q => q[0] >= 0) : -1; if (r >= 0){ cs.chain.y = r; cPhrase = ch[r][0]; } } }
   if (v === 'phrase' && tv === 'chain'){ const ch = S.chains[cChain], id = ch ? ch[cs.chain.y][0] : -1; if (id >= 0) cPhrase = id; }
   if (v === 'inst' && tv === 'phrase'){ const p = S.phrases[cPhrase], r = p && p[cs.phrase.y]; if (r && r[2] >= 0) cInst = r[2]; }
   if (v === 'fx' && tv === 'mixer') cFxT = cs.mixer.y === 5 ? NT : cs.mixer.x;
   if (v === 'fx' && GRIDV.has(tv)) cFxT = tv === 'song' ? cs.song.x : cTrack;
-  tv = v; if (MID.includes(v)) midV = v; selA = null; draw();
+  tv = v; if (MID.includes(v)) midV = v; selA = null; draw(); saveCur();
 }
 function nav(dir){
   if (dir === 'up') return tv === 'mixer' ? go(midV) : tv !== 'project' ? go('project') : null;
@@ -2609,7 +2677,7 @@ const MH = 8, MW = 36;
 const HINT = {
   song:'EDIT add · EDIT×2 new chain · OPT+EDIT clear · EDIT+◀▶ ±1 ▲▼ ±16 · SHIFT+▶ open · OPT+▲▼ page',
   chain:'EDIT add phrase · EDIT×2 new · EDIT+arrows change · SHIFT+▶ open · SHIFT+◀ song · OPT+◀▶ other chain',
-  phrase:'EDIT add note · EDIT×2 note off · EDIT+◀▶ ±1 ▲▼ ±octave · OPT+EDIT clear · SHIFT+▶ instrument',
+  phrase:'EDIT add note · EDIT×2 note off · EDIT+◀▶ ±1 ▲▼ ±octave · OPT+EDIT clear · ▲ from row 0: LEN/LPB · SHIFT+▶ inst',
   inst:'EDIT+◀▶ ±1 ▲▼ ±more · EDIT on › runs it · OPT+◀▶ other instrument · SHIFT+◀ phrase',
   mixer:'EDIT+◀▶ ±1 ▲▼ ±16 · EDIT mutes, solos or opens FX · OPT+EDIT reset · SHIFT+▶ FX · SHIFT+▲ back',
   fx:'EDIT adds · EDIT+◀▶ change · OPT+EDIT remove or reset · OPT+◀▶ other track · SHIFT+◀ mixer',
@@ -2621,6 +2689,9 @@ function info(){
   if (tv === 'song'){ const v = S.song[c.y][c.x]; return `TRACK ${d2(c.x + 1)} · ROW ${hx(c.y)} · ` + (v < 0 ? 'empty' : `chain ${hx(v)}` + (isEmptyChain(S.chains[v]) ? ' (empty)' : '')); }
   if (tv === 'chain'){ const ch = S.chains[cChain], r = ch ? ch[c.y] : [-1, 0];
     return c.x === 0 ? (r[0] < 0 ? 'No phrase. The chain ends at the first empty row.' : `Phrase ${hx(r[0])}` + (isEmptyPhrase(S.phrases[r[0]]) ? ' (empty)' : '')) : `Transpose ${sgn(r[1])} semitones for this row`; }
+  if (onPset()){ const len = plen(cPhrase), lpb = S.plpb[cPhrase] || 0, e2 = lpb || S.lpb;
+    return c.x === 0 ? `Phrase length: plays ${len} row${len > 1 ? 's' : ''} (1–32), then the chain moves on`
+      : `Lines per beat for this phrase: ${lpb || '-- (the song’s ' + S.lpb + ')'} · each row is a 1/${e2 * 4} note` + (e2 % 3 === 0 ? ' (triplet feel)' : ''); }
   if (tv === 'phrase'){
     const p = S.phrases[cPhrase], r = p ? p[c.y] : freshPhrase()[0], k = PK[c.x], v = r[c.x];
     if (k === 'note') return v < 0 ? 'No note' : v === OFF ? 'Note off: stops this track' : `${noteS(v)} · ` + (v === ROOT ? 'the pad’s own pitch' : `${sgn(v - ROOT)} st from the pad’s pitch`);
@@ -2654,7 +2725,8 @@ const lvl = p => p <= 0.0001 ? 0 : clamp((20 * Math.log10(p) + 48) / 48, 0, 1);
 function draw(){
   if (view !== 'tracker') return;
   if (selA && selA.v !== tv) selA = null;
-  const c = cs[tv], dm = dims(tv); c.x = clamp(c.x, 0, dm.w - 1); c.y = clamp(c.y, 0, dm.h - 1);
+  const c = cs[tv], dm = dims(tv);
+  if (onPset()) c.x = clamp(c.x, 0, 1); else { c.x = clamp(c.x, 0, dm.w - 1); c.y = clamp(c.y, 0, dm.h - 1); }
   const P = tp.on ? tp.pos : null, L = [];
   let title = VNAME[tv], sub = '';
   const sr = selA ? selRect() : null;
@@ -2679,11 +2751,16 @@ function draw(){
       L.push([{t:hx(y, 1), cls:'rn' + (y % 4 ? '' : ' rn4') + (pr.has(y) ? ' pl' : '')}, ' ', {t:h2(r[0]), cls:cc(0, y, r[0] < 0 ? 'e' : 'v'), x:0, y}, ' ', {t:hx(r[1]), cls:cc(1, y, r[1] ? 'v' : 'e'), x:1, y}]); }
   } else if (tv === 'phrase'){
     title = 'PHRASE ' + hx(cPhrase); sub = 'TRACK ' + d2(cTrack + 1);
-    const p = S.phrases[cPhrase], pr = playRows(q => q.phrase === cPhrase ? q.step : null);
-    L.push(['  ', {t:'N  ', cls:'th'}, ' ', {t:'V ', cls:'th'}, ' ', {t:'I ', cls:'th'}, ' ', {t:'FX1   ', cls:'th'}, ' ', {t:'FX2   ', cls:'th'}, ' ', {t:'FX3', cls:'th'}]);
-    for (let y = 0; y < 16; y++){
+    const p = S.phrases[cPhrase], pr = playRows(q => q.phrase === cPhrase ? q.step : null), len = plen(cPhrase), lpb = S.plpb[cPhrase] || 0, el2 = lpb || S.lpb;
+    L.push([{t:'LEN ', cls:'lb'}, {t:d2(len), cls:cc(0, -2, 'v'), x:0, y:-2}, {t:'  LPB ', cls:'lb'}, {t:lpb ? d2(lpb) : '--', cls:cc(1, -2, lpb ? 'v' : 'e'), x:1, y:-2},
+      {t:'  1/' + (el2 * 4) + (el2 % 3 === 0 ? ' (triplets)' : '') + (lpb ? '' : ' song'), cls:'lb'}]);
+    L.push(['   ', {t:'N  ', cls:'th'}, ' ', {t:'V ', cls:'th'}, ' ', {t:'I ', cls:'th'}, ' ', {t:'FX1   ', cls:'th'}, ' ', {t:'FX2   ', cls:'th'}, ' ', {t:'FX3', cls:'th'}]);
+    const VR = Math.max(4, songRows() - 1); if (c.top == null) c.top = 0;
+    if (c.y >= 0){ if (c.y < c.top) c.top = c.y; if (c.y > c.top + VR - 1) c.top = c.y - VR + 1; }
+    c.top = clamp(c.top, 0, Math.max(0, len - VR));
+    for (let y = c.top; y < Math.min(len, c.top + VR); y++){
       const r = p ? p[y] : [-1, -1, -1, -1, -1, -1, -1, -1, -1];
-      const ln = [{t:hx(y, 1), cls:'rn' + (y % 4 ? '' : ' rn4') + (pr.has(y) ? ' pl' : '')}, ' ',
+      const ln = [{t:hx(y), cls:'rn' + (y % 4 ? '' : ' rn4') + (pr.has(y) ? ' pl' : '')}, ' ',
         {t:noteS(r[0]), cls:cc(0, y, r[0] < 0 ? 'e' : 'cn'), x:0, y}, ' ', {t:h2(r[1]), cls:cc(1, y, r[1] < 0 ? 'e' : 'cv'), x:1, y}, ' ',
         {t:h2(r[2]), cls:cc(2, y, r[2] < 0 ? 'e' : 'ci'), x:2, y}];
       for (let k = 3; k < 9; k += 2) ln.push(' ', {t:r[k] < 0 ? '---' : (FXC[r[k]] || '???'), cls:cc(k, y, r[k] < 0 ? 'e' : 'cf'), x:k, y}, ' ', {t:h2(r[k + 1]), cls:cc(k + 1, y, r[k + 1] < 0 ? 'e' : 'v'), x:k + 1, y});
@@ -2791,7 +2868,7 @@ function frame(){
   raf = requestAnimationFrame(frame);
   if (tp.on && ctx){
     let ch = false;
-    while (tp.q.length && tp.q[0].t <= ctx.currentTime + 0.01){ const e = tp.q.shift(); tp.pos = e.pos; tp.bpm = e.bpm; ch = true; }
+    while (tp.q.length && tp.q[0].t <= ctx.currentTime + 0.01){ const e = tp.q.shift(); if (!tp.pos) tp.pos = new Array(NT).fill(null); e.pos.forEach((q, i) => { if (q) tp.pos[i] = q; }); tp.bpm = e.bpm; ch = true; }
     if (!tp.seq.alive() && !tp.q.length && ctx.currentTime > tp.seq.time + 0.3) tStop(); else if (ch) draw();
   }
   cpuMeter();
@@ -2914,20 +2991,21 @@ let kOct = 4, hexBuf = {key:'', n:0, t:0}, kpSig = '';
 const PIANO = {z:0, s:1, x:2, d:3, c:4, v:5, g:6, b:7, h:8, n:9, j:10, m:11, ',':12, l:13, '.':14, ';':15, '/':16,
   q:12, 2:13, w:14, 3:15, e:16, r:17, 5:18, t:19, 6:20, y:21, 7:22, u:23, i:24, 9:25, o:26, 0:27, p:28};
 const HEXK = '0123456789abcdef';
-function curKind(){ const c = cs[tv]; if (GRIDV.has(tv)) return kindAt(tv, c.x); if (tv === 'mixer') return 'mix'; return 'param'; }
+function curKind(){ const c = cs[tv]; if (onPset()) return 'param'; if (GRIDV.has(tv)) return kindAt(tv, c.x); if (tv === 'mixer') return 'mix'; return 'param'; }
 function down1(){ const c = cs[tv], d = dims(tv); c.y = clamp(c.y + (GRIDV.has(tv) ? kStep : 1), 0, d.h - 1); }
 function typeNote(semi){
-  const c = cs[tv]; if (tv !== 'phrase' || c.x !== 0) return;
+  const c = cs[tv]; if (tv !== 'phrase' || c.x !== 0 || c.y < 0) return;
   const n = clamp(kOct * 12 + semi, 0, 119);
   setCell('phrase', 0, c.y, n); const y = c.y; down1(); after('note', 'phrase', 0, y, n);
 }
-function typeOff(){ const c = cs[tv]; if (tv !== 'phrase' || c.x !== 0) return; setCell('phrase', 0, c.y, OFF); const y = c.y; down1(); after('note', 'phrase', 0, y, OFF); }
+function typeOff(){ const c = cs[tv]; if (tv !== 'phrase' || c.x !== 0 || c.y < 0) return; setCell('phrase', 0, c.y, OFF); const y = c.y; down1(); after('note', 'phrase', 0, y, OFF); }
 function typeHex(d){
   const c = cs[tv], k = curKind(), now = performance.now(), key = tv + c.x + ':' + c.y + ':' + cChain + ':' + cPhrase;
   const fresh = hexBuf.key !== key || now - hexBuf.t > 1500 || hexBuf.n >= 2;
   const v = fresh ? d : ((hexBuf.v << 4) | d) & 255;
   hexBuf = {key, n:fresh ? 1 : hexBuf.n + 1, v, t:now};
   const done = hexBuf.n >= 2 || k === 'inst';
+  if (onPset()){ psetSet(c.x, v); if (done) hexBuf.key = ''; return; }
   if (GRIDV.has(tv)){
     if (k === 'note' || k === 'fxc') return;
     if (k === 'fxv' && getCell(tv, c.x - 1, c.y) < 0) return toast('Pick an effect in the column to the left first.');
@@ -2950,7 +3028,7 @@ function fxLetter(ch){
   const curV = getCell(tv, c.x, c.y), at = list.findIndex(([, i]) => i === curV);
   typeFx(list[(at + 1) % list.length][1]); return true;
 }
-function setOct(o){ kOct = clamp(o, 0, 8); toast('Octave ' + kOct); kpSig = ''; draw(); }
+function setOct(o){ kOct = clamp(o, 0, 8); toast('Octave ' + kOct + (view === 'synth' ? ' · Z plays C-' + kOct : '')); kpSig = ''; draw(); }
 function setInput(m){
   inMode = m === 'keys' ? 'keys' : 'pad'; try { localStorage.setItem(IK, inMode); } catch(e){}
   releaseAll(); kpSig = ''; draw(); fit();
@@ -3014,7 +3092,7 @@ function kpButtons(kind){
   let ctxRow = [];
   if (kind === 'note') ctxRow = [NNAME.map((n, i) => B('n:' + i, n, n.length > 1 ? 'blk' : 'wht')),
     [B('oct:-1', 'OCT −'), B('noop', 'OCT ' + kOct, 'lbl'), B('oct:1', 'OCT +'), B('off', 'OFF'), B('n:12', 'C' + (kOct + 1))]];
-  else if (kind === 'fxc'){ for (let i = 0; i < FXC.length; i += 7) ctxRow.push(FXC.slice(i, i + 7).map((f, k) => B('f:' + (i + k), f))); }
+  else if (kind === 'fxc'){ const per = Math.ceil(FXC.length / 3); for (let i = 0; i < FXC.length; i += per) ctxRow.push(FXC.slice(i, i + per).map((f, k) => B('f:' + (i + k), f))); }
   else if (kind === 'param' || kind === 'mix' && cs.mixer.y >= 2) ctxRow = [[B('b:-16', '−−'), B('b:-1', '−'), B('b:1', '+'), B('b:16', '++')]];
   else ctxRow = [HEXK.slice(0, 8).split('').map((h, i) => B('h:' + i, h.toUpperCase())), HEXK.slice(8).split('').map((h, i) => B('h:' + (i + 8), h.toUpperCase()))];
   const common = [B('mv:left', '◀'), B('mv:up', '▲'), B('mv:down', '▼'), B('mv:right', '▶'), B('ent', 'ENTER'), B('clr', 'CLEAR'), B('play', tp.on ? 'STOP' : 'PLAY', 'play')];
@@ -3024,11 +3102,14 @@ function drawKeypad(){
   const host = $('tKp'), kind = curKind(), sig = kind + (kind === 'note' ? kOct : '') + (kind === 'mix' ? (cs.mixer.y >= 2 ? 'b' : 'h') : '') + tp.on;
   if (sig === kpSig) return; kpSig = sig;
   host.innerHTML = '';
-  for (const row of kpButtons(kind)){
+  // The context rows share one fixed-height box, so moving between columns never changes the layout.
+  const rows = kpButtons(kind), box = el('div', 'kpc');
+  rows.forEach((row, i) => {
     const r = el('div', 'kpr'); r.style.setProperty('--n', row.length);
     for (const b of row){ const k = el('button', 'kp ' + b.cls, b.t); k.type = 'button'; k.dataset.a = b.a; if (b.a === 'noop') k.disabled = true; r.append(k); }
-    host.append(r);
-  }
+    (i < rows.length - 1 ? box : host).append(r);
+    if (i === rows.length - 2) host.append(box);
+  });
 }
 function kpAction(a){
   const [cmd, arg] = a.split(':'), n = +arg;
@@ -3074,12 +3155,24 @@ function setView(v){
   if (tr){ releaseAll(); measure(); fit(); draw(); if (!raf) raf = requestAnimationFrame(frame); }
   else { releaseAll(); refreshAll(); }
 }
+const trap = () => { try { history.pushState({thunder:1}, ''); } catch(e){} };
+trap();
+addEventListener('popstate', () => {
+  flushS(); saveCur();
+  if (view === 'tracker'){
+    if (tv === 'chain' || tv === 'phrase' || tv === 'inst') nav('left');
+    else if (tv !== 'song') go(midV === 'song' || !MID.includes(midV) ? 'song' : midV);
+    else setView('synth');
+    trap();
+  } else toast('Back again to leave ...Thunder');
+});
 updView = makeSeg($('segView'), [['synth', 'Synth'], ['tracker', 'Tracker']], () => view, setView);
 /* ===TRACKER END=== */
 
 /* ---------- boot ---------- */
 buildPads();
 refreshAll();
+loadCur();
 try { if (localStorage.getItem(VK) === 'tracker') setView('tracker'); } catch(e){}
 })();
 </script>

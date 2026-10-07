@@ -43,7 +43,7 @@ Effects: `RET` retrigger, `DEL` delay, `CUT`, `CHA` chance, `PSL` pitch slide, `
 - **CHOR** – DaisySP chorus · **CRSH** – DaisySP bitcrush
 - **RING** – Mutable Instruments Rings resonator · **CLDS** – Mutable Instruments Clouds
 
-Renders include the effects and let reverb and delay tails ring out. Stems skip the master effects and the limiter, so they add up to the mix when the master chain is empty. Each effect costs some phone CPU; Clouds and Rings are the heaviest.
+Renders include the effects and let reverb and delay tails ring out. Stems skip the master effects and the limiter, so they add up to the mix when the master chain is empty. Each effect costs some phone CPU; Clouds and Rings are the heaviest. The **CPU** meter in the tab bar shows the load (Chrome's own audio load where it reports one, otherwise the share of real time the track effects take); it turns gold past 50% and red past 80% or on dropouts. Tap it to see which tracks cost the most.
 
 **One finger is enough.** Every M8 combination works without holding two buttons:
 

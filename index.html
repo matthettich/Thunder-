@@ -231,6 +231,11 @@ body.trkv.cmdv .toast{bottom:calc(var(--k) * 3.3 + 60px + env(safe-area-inset-bo
 .ttabbar .ttabs{border-bottom:0; flex:1; min-width:0}
 .tmode{border:0; border-left:1px solid var(--ink); min-height:36px; padding:0 12px; font-size:12px; font-weight:600; letter-spacing:.04em; flex:none; white-space:nowrap}
 .tmode.on{background:var(--ink); color:var(--inv)}
+.tcpu{border:0; border-left:1px solid var(--ink); min-height:36px; padding:0 10px; font-size:12px; font-weight:600; letter-spacing:.04em; flex:none; white-space:nowrap;
+  font-variant-numeric:tabular-nums; position:relative; min-width:84px; text-align:left; background:var(--side)}
+.tcpu i{position:absolute; left:0; bottom:0; height:4px; width:0; background:var(--ink); transition:width .3s}
+.tcpu.warn i{background:var(--pl)}
+.tcpu.hot{color:var(--rec)} .tcpu.hot i{background:var(--rec)}
 .tpad{display:flex; justify-content:space-between; align-items:center; gap:16px; flex:1}
 .tkp{flex:1; min-width:0; display:flex; flex-direction:column; gap:5px}
 .kpr{display:grid; grid-template-columns:repeat(var(--n),minmax(0,1fr)); gap:5px}
@@ -369,7 +374,7 @@ body.trkv .toast{bottom:calc(var(--k) * 2 + 40px + env(safe-area-inset-bottom,0p
 </div>
 
 <div class="trk" id="trk" hidden>
-  <div class="ttabbar"><nav class="ttabs" id="tTabs" aria-label="Tracker screens"></nav><button type="button" class="tmode" id="tMode" aria-label="Switch input mode">INPUT: PAD</button></div>
+  <div class="ttabbar"><nav class="ttabs" id="tTabs" aria-label="Tracker screens"></nav><button type="button" class="tcpu" id="tCpu" aria-label="Audio load"><span>CPU --</span><i></i></button><button type="button" class="tmode" id="tMode" aria-label="Switch input mode">INPUT: PAD</button></div>
   <div class="tbody">
     <div class="tscr" id="tScr">
       <div class="thd"><span id="tTitle">SONG</span><span class="tsub" id="tSub"></span></div>
@@ -904,11 +909,13 @@ const Lc = () => V().layers[V().sel];
 
 /* ---------- audio ---------- */
 let ctx = null, master = null;
+const cpu = {cap:null, t:0};
 const playing = new Array(8).fill(null);
 function audio(){
   if (!ctx){
     const AC = window.AudioContext || window.webkitAudioContext;
     ctx = new AC({latencyHint:'interactive'});
+    try { if (ctx.renderCapacity){ ctx.renderCapacity.addEventListener('update', e => { cpu.cap = {avg:e.averageLoad, peak:e.peakLoad, under:e.underrunRatio, t:performance.now()}; }); ctx.renderCapacity.start({updateInterval:0.5}); } } catch(e){}
     master = ctx.createGain(); master.gain.value = 0.9; master.connect(ctx.destination);
     for (let i = 0; i < 8; i++) dirty[i] = true;
     setTimeout(prerender, 30);
@@ -1580,7 +1587,7 @@ class ThunderFx extends AudioWorkletProcessor {
     const z = () => 0;
     this.x = new WebAssembly.Instance(globalThis.__tfxMod, {wasi_snapshot_preview1:{fd_close:z, fd_seek:z, fd_write:z, proc_exit:z}}).exports;
     if (this.x._initialize) this.x._initialize();
-    this.slots = []; this.dead = false; this.buf = null;
+    this.slots = []; this.dead = false; this.buf = null; this.ms = 0; this.fr = 0;
     this.set(op.chain || []);
     this.port.onmessage = e => { if (e.data === null){ this.dead = true; for (const s of this.slots) this.x.tfx_free(s.h); this.slots = []; } else this.set(e.data); };
   }
@@ -1601,7 +1608,11 @@ class ThunderFx extends AudioWorkletProcessor {
     if (this.buf !== x.memory.buffer){ this.buf = x.memory.buffer; this.L = new Float32Array(this.buf, x.tfx_l(), 128); this.R = new Float32Array(this.buf, x.tfx_r(), 128); }
     const L = this.L, R = this.R;
     if (i && i.length){ L.set(i[0]); R.set(i[1] || i[0]); } else { L.fill(0); R.fill(0); }
+    const t0 = Date.now();
     for (const s of this.slots) x.tfx_process(s.h, n);
+    // Date.now() is coarse, but its average over many blocks is the real cost: report it as a share of real time.
+    this.ms += Date.now() - t0; this.fr += n;
+    if (this.fr >= sampleRate / 2){ this.port.postMessage({load:this.ms / (this.fr / sampleRate * 1000)}); this.ms = 0; this.fr = 0; }
     o[0].set(L.subarray(0, n)); if (o[1]) o[1].set(R.subarray(0, n));
     return true;
   }
@@ -1630,8 +1641,10 @@ function tfxReady(ac){
   return tfxLoaded.get(ac);
 }
 function tfxNode(ac, chain){
-  return new AudioWorkletNode(ac, 'thunder-tfx', {numberOfInputs:1, numberOfOutputs:1, outputChannelCount:[2], channelCount:2,
+  const n = new AudioWorkletNode(ac, 'thunder-tfx', {numberOfInputs:1, numberOfOutputs:1, outputChannelCount:[2], channelCount:2,
     channelCountMode:'explicit', channelInterpretation:'speakers', processorOptions:{bytes:tfxBin(), chain}});
+  n.load = 0; n.port.onmessage = e => { if (e.data && typeof e.data.load === 'number') n.load = n.load * 0.6 + e.data.load * 0.4; };
+  return n;
 }
 
 /* ---------- song data ---------- */
@@ -2445,6 +2458,30 @@ function paintMeters(){
 }
 let raf = 0;
 const mbuf = new Float32Array(512);
+// CPU meter: the browser's own audio load where it reports one (Chrome's renderCapacity), otherwise
+// the time the track effects take, which is most of what the tracker adds.
+function fxLoads(){
+  const L = []; if (!rt) return L;
+  rt.pl.buses.forEach((b, t) => { if (t < NT && b.fx) L.push([d2(t + 1), b.fx.load || 0]); });
+  if (rt.mfx) L.push(['MST', rt.mfx.load || 0]);
+  return L;
+}
+function cpuMeter(){
+  const now = performance.now(); if (now - cpu.t < 500) return; cpu.t = now;
+  const b = $('tCpu'); if (!b) return;
+  const fx = fxLoads().reduce((a, x) => a + x[1], 0), cap = cpu.cap && now - cpu.cap.t < 3000 ? cpu.cap : null;
+  const v = !ctx ? null : cap ? cap.avg : fx;
+  b.querySelector('span').textContent = v == null ? 'CPU --' : 'CPU ' + Math.round(v * 100) + '%';
+  b.querySelector('i').style.width = v == null ? '0' : Math.min(100, v * 100).toFixed(0) + '%';
+  b.classList.toggle('warn', v != null && v > 0.5); b.classList.toggle('hot', v != null && (v > 0.8 || (cap && cap.under > 0)));
+}
+$('tCpu').addEventListener('click', () => {
+  const cap = cpu.cap, L = fxLoads().filter(x => x[1] > 0.0005).sort((a, b) => b[1] - a[1]);
+  const fx = L.length ? 'Effects: ' + L.map(([n, v]) => `${n} ${(v * 100).toFixed(1)}%`).join(' · ') : 'No track effects running.';
+  if (!ctx) return toast('Play something first; the meter starts with the sound.');
+  toast((cap ? `Audio load ${Math.round(cap.avg * 100)}%, peak ${Math.round(cap.peak * 100)}%` + (cap.under > 0 ? `, ${(cap.under * 100).toFixed(1)}% dropouts` : '') + '. '
+    : `Track effects use ${Math.round(L.reduce((a, x) => a + x[1], 0) * 100)}% of real time (this browser doesn’t report the total audio load, so that’s what the meter shows). `) + fx);
+});
 function frame(){
   raf = 0; if (view !== 'tracker') return;
   raf = requestAnimationFrame(frame);
@@ -2453,6 +2490,7 @@ function frame(){
     while (tp.q.length && tp.q[0].t <= ctx.currentTime + 0.01){ const e = tp.q.shift(); tp.pos = e.pos; tp.bpm = e.bpm; ch = true; }
     if (!tp.seq.alive() && !tp.q.length && ctx.currentTime > tp.seq.time + 0.3) tStop(); else if (ch) draw();
   }
+  cpuMeter();
   if (rt){
     let any = false;
     for (let t = 0; t < NT; t++){ const b = rt.pl.buses[t]; b.an.getFloatTimeDomainData(mbuf);

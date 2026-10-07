@@ -3442,7 +3442,7 @@ function paintMeters(){
 /* ---------- ARRANGE: the song overview beside the screen ---------- */
 // Every filled row of the song as blocks, one column per track. A block shows its phrase (or its chain with
 // CHAINS shown); muted blocks are hatched and keep their number, so the structure stays readable.
-let arrSig = '', arrTap = {t:0, k:''}, arrCurY = -1, arrMuteMode = false;
+let arrLit = [], arrSig = '', arrTap = {t:0, k:''}, arrCurY = -1, arrMuteMode = false;
 const arrEl = $('tArr'), arrGrid = $('tArrGrid');
 const arrShown = () => arrMode > 0 && arrEl.offsetWidth > 0;
 function drawArr(P){
@@ -3455,7 +3455,7 @@ function drawArr(P){
   const anySolo = S.mix.some(m => m.solo);
   let h = '';
   for (let y = 0; y < N; y++){
-    h += `<div class="ar"><span class="rn${y % 4 ? '' : ' r4'}${play.includes(y) ? ' pl' : ''}" data-ry="${y}">${hx(y)}</span>`;
+    h += `<div class="ar"><span class="rn${y % 4 ? '' : ' r4'}" data-ry="${y}">${hx(y)}</span>`;
     for (let t = 0; t < NT; t++){
       if (t === 8) h += '<span></span>';
       const v = S.song[y][t];
@@ -3464,7 +3464,6 @@ function drawArr(P){
         const empty = isEmptyChain(S.chains[v]), ph = firstPhrase(v);
         cls = empty ? 'z' : 'f'; lab = chainsOn || ph < 0 ? hx(v) : hx(ph);
         if (blockMuted(S, y, t)) cls = 'm';
-        if (play[t] === y) cls += ' p';
       }
       if (S.mix[t].mute || (anySolo && !S.mix[t].solo)) cls += ' tm';
       if (cs.song.x === t && cs.song.y === y) cls += ' c';
@@ -3477,7 +3476,13 @@ function drawArr(P){
   if (sig !== arrSig){
     arrSig = sig; arrGrid.innerHTML = h; $('tArrTh').innerHTML = th;
     $('tArrMode').textContent = arrMuteMode ? 'TAP: MUTE' : 'TAP: GO'; $('tArrMode').classList.toggle('on', arrMuteMode);
+    arrLit = [];
   }
+  // The playhead is lit in place, so the blocks are only rebuilt when the song changes, never under a finger mid-press.
+  for (const e of arrLit) e.classList.remove('p', 'pl'); arrLit = [];
+  play.forEach((y, t) => { if (y < 0) return; const row = arrGrid.children[y]; if (!row) return;
+    const rn = row.firstElementChild; if (!rn.classList.contains('pl')){ rn.classList.add('pl'); arrLit.push(rn); }
+    const b = row.querySelector(`b[data-t="${t}"]`); if (b && S.song[y][t] >= 0){ b.classList.add('p'); arrLit.push(b); } });
   const nm = S.smute.reduce((a, m) => { for (; m; m &= m - 1) a++; return a; }, 0);
   $('tArrSub').textContent = (lastR + 1) + (lastR ? ' rows' : ' row') + (nm ? ` · ${nm} muted` : '');
   // Keep the cursor's row in view when it moves, and the play row while the song plays.
@@ -3503,6 +3508,7 @@ arrGrid.addEventListener('pointerdown', e => {
   const b = e.target.closest('b[data-y]'); if (!b) return;
   const y = +b.dataset.y, t = +b.dataset.t;
   if (e.altKey || arrMuteMode){ e.preventDefault(); toggleBlockMute(y, t); return; }
+  try { arrGrid.setPointerCapture(e.pointerId); } catch(_){}   // keep the press even if the panel redraws under it
   arrPress = {id:e.pointerId, y, t, x0:e.clientX, y0:e.clientY, done:false,
     tm:setTimeout(() => { if (arrPress && !arrPress.done){ arrPress.done = true; if (navigator.vibrate) try { navigator.vibrate(12); } catch(_){} toggleBlockMute(y, t); } }, 450)};
 });

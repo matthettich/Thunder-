@@ -163,13 +163,18 @@ input[type=range]{width:100%; accent-color:var(--ink); height:30px; margin:0; to
 .pad .pn{white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%}
 .pad.sel{border-width:3.5px; padding:3.5px 5.5px}
 .pad.hit{background:var(--ink); color:var(--inv)}
+.pad.syn{background:var(--panel2)}
+.pad.syn b::after{content:" SYN"; font-size:10px; font-weight:500; letter-spacing:.06em; color:var(--muted)}
+.pad.syn.hit b::after{color:var(--inv)}
 
 .toast{position:fixed; left:50%; transform:translateX(-50%); bottom:calc(110px + env(safe-area-inset-bottom,0px));
   background:var(--ink); color:var(--inv); padding:9px 15px; font-size:13px; z-index:9; max-width:calc(100% - 32px)}
 
 @media (max-width:600px){
-  .strip,.pads{grid-template-columns:repeat(4,minmax(0,1fr))}
-  .pad{height:56px}
+  .strip{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .pads{grid-template-columns:repeat(8,minmax(0,1fr)); gap:4px}
+  .pad{height:46px; padding:4px 5px; font-size:10.5px} .pad b{font-size:13px} .pad.syn b::after{content:""} .pad .pm{display:none}
+  .pad.sel{padding:2px 3px}
   .top{gap:6px}
   .brand{font-size:19px}
   .kitname{width:auto; flex:1 1 60px; min-width:0}
@@ -369,7 +374,7 @@ body.trkv .toast{bottom:calc(var(--k) * 2 + 40px + env(safe-area-inset-bottom,0p
         <button id="bLoadKit">Load kit…</button>
         <input type="file" id="kitIn" accept=".json,application/json" hidden>
         <button id="bFactory">Factory kit</button>
-        <button id="bClearKit">Clear all pads</button>
+        <button id="bClearKit">Clear all slots</button>
       </div>
       <div class="btnrow" id="confirmRow" hidden>
         <span id="confirmMsg"></span><button id="bYes" class="on">Yes</button><button id="bNo">Cancel</button>
@@ -565,18 +570,22 @@ body.trkv .toast{bottom:calc(var(--k) * 2 + 40px + env(safe-area-inset-bottom,0p
 <h3>How a song fits together</h3>
 <p><b>Song</b> (256 rows × 16 tracks of chain numbers) → <b>Chain</b> (up to 16 phrases, each with a transpose) → <b>Phrase</b> (up to 32 rows of note, volume, instrument and three effects) → <b>Inst</b> (which pad a note plays, with transpose, volume, pan, reverse and start). <b>Mixer</b>, <b>FX</b> and <b>Project</b> sit around them.</p>
 <p>The screens are laid out like the M8's map: Song ▶ Chain ▶ Phrase ▶ Inst left to right, Project above, Mixer below, FX to the right of the Mixer. You move between them with the screen keys below, the tabs, or the map in the side panel.</p>
+<h3>Drum pads and synths</h3>
+<p>The kit has 16 slots. <b>1–8</b> are drum pads: one-shots that play their whole sound. <b>9–16</b> are synths for melodies and chords (Bass, Pluck, Keys, Pad, Lead, Bell, Organ, Sub to start): a note holds at its sustain level for as long as you hold it, up to the slot’s Max len, then fades over its release when you let go. C-4 plays middle C. In the tracker, instruments 08–0F play the synth slots in a new song.</p>
+<h3>Chords and polyphony</h3>
+<p><b>Tracks 9–16 are polyphonic.</b> Open a phrase from one of them and it shows four note columns, N1–N4, so a row can hold a chord. Notes on these tracks ring over each other, up to 4 at a time per track; a fifth steals the oldest. A note OFF in any note column releases everything on the track. Tracks 1–8 stay one note at a time, and a phrase played there uses only N1.</p>
 <h3>Two input modes</h3>
 <p><b>PAD</b> is the M8 way: a d-pad plus SHIFT, PLAY, OPTION and EDIT, good with a thumb. <b>KEYS</b> is direct entry: type notes, hex and effects, Renoise style, with an on-screen keypad on touch screens. Switch with the <b>INPUT</b> button beside the tabs or Project → INPUT.</p>
 </section>
     <section id="hAll"><h2>Keys that work everywhere</h2><table><tr><td><kbd>?</kbd> or <kbd>F1</kbd></td><td>Open or close this help</td></tr><tr><td><kbd>Ctrl/⌘</kbd> <kbd>S</kbd></td><td>Save the project (writes back to the same file where the browser allows)</td></tr><tr><td><kbd>Shift</kbd> <kbd>Ctrl/⌘</kbd> <kbd>S</kbd></td><td>Save As: a new file</td></tr><tr><td><kbd>Ctrl/⌘</kbd> <kbd>O</kbd></td><td>Open a project file</td></tr><tr><td><kbd>Ctrl/⌘</kbd> <kbd>Z</kbd> / <kbd>Ctrl/⌘</kbd> <kbd>Y</kbd></td><td>Undo / redo in the tracker (also <kbd>Shift</kbd> <kbd>Ctrl/⌘</kbd> <kbd>Z</kbd>). A paste or cut undoes in one step</td></tr><tr><td><kbd>Alt</kbd> <kbd>1</kbd>–<kbd>7</kbd></td><td>Song, Chain, Phrase, Inst, Mixer, FX, Project · <kbd>Alt</kbd> <kbd>0</kbd> back to the synth</td></tr><tr><td><kbd>Ctrl/⌘</kbd> <kbd>Shift</kbd> <kbd>arrows</kbd></td><td>Change screen, M8 style (▲ Project, ▼ Mixer, ◀▶ along every screen: Song, Chain, Phrase, Inst, Mixer, FX, Project)</td></tr><tr><td><kbd>F2</kbd> <kbd>F3</kbd> <kbd>F4</kbd></td><td>Phrase, Mixer, Inst</td></tr><tr><td><kbd>F5</kbd> <kbd>F6</kbd> <kbd>F7</kbd> <kbd>F8</kbd></td><td>Play song from the top · play this screen · song from the cursor row · stop</td></tr></table></section>
-    <section id="hKeys"><h2>Tracker · KEYS mode</h2><h3>Moving</h3><table><tr><td><kbd>arrows</kbd></td><td>Move the cursor (drops a line selection)</td></tr><tr><td><kbd>Shift</kbd> <kbd>◀</kbd> <kbd>Shift</kbd> <kbd>▶</kbd></td><td>Previous / next screen, in tab order (Song → … → Inst → Mixer → FX → Project)</td></tr><tr><td><kbd>Tab</kbd> / <kbd>Shift</kbd> <kbd>Tab</kbd></td><td>Next / previous column (phrase) or track</td></tr><tr><td><kbd>Home</kbd> <kbd>End</kbd> <kbd>PgUp</kbd> <kbd>PgDn</kbd></td><td>Top, bottom, 16 rows up or down</td></tr><tr><td><kbd>[</kbd> <kbd>]</kbd> or <kbd>Ctrl/⌘</kbd> <kbd>▲▼</kbd></td><td>Previous / next chain, phrase, instrument or FX track</td></tr><tr><td>Mouse wheel</td><td>Scroll the screen a row at a time</td></tr></table><h3>Typing</h3><table><tr><td><kbd>Z</kbd> <kbd>S</kbd> <kbd>X</kbd> … <kbd>/</kbd></td><td>Notes, lower octave (S D G H J are the sharps)</td></tr><tr><td><kbd>Q</kbd> <kbd>2</kbd> <kbd>W</kbd> … <kbd>P</kbd></td><td>Notes, upper octave</td></tr><tr><td><kbd>1</kbd> or <kbd>Caps Lock</kbd></td><td>Note off</td></tr><tr><td><kbd>−</kbd> <kbd>=</kbd> or numpad <kbd>/</kbd> <kbd>*</kbd></td><td>Octave down / up</td></tr><tr><td><kbd>0</kbd>–<kbd>9</kbd> <kbd>A</kbd>–<kbd>F</kbd></td><td>Hex values: two digits, or one for an instrument</td></tr><tr><td>Letters</td><td>Commands in FX columns (press again to cycle: R gives RET, REP, RND, RNL)</td></tr><tr><td><kbd>{</kbd> <kbd>}</kbd></td><td>Edit step down / up: how far the cursor moves after you type</td></tr><tr><td><kbd>Alt</kbd> <kbd>arrows</kbd></td><td>Change the value (◀▶ by 1, ▲▼ by more)</td></tr><tr><td><kbd>Enter</kbd></td><td>Add, open, or run a › row · twice for a new chain or phrase · in a phrase, picks up what’s there as the current values: the row’s instrument, plus the note, volume, or effect and its value under the cursor (shown after NOW on the hint line)</td></tr></table><h3>Rows</h3><table><tr><td><kbd>Delete</kbd></td><td>Clear the row and step down · <kbd>Shift</kbd> <kbd>Delete</kbd> just the cell</td></tr><tr><td><kbd>Insert</kbd></td><td>Add a blank row (rows below move down)</td></tr><tr><td><kbd>Backspace</kbd></td><td>Same as Delete: clear the row and step down; rows below stay where they are</td></tr><tr><td><kbd>Ctrl/⌘</kbd> <kbd>Backspace</kbd></td><td>Remove the row (rows below move up)</td></tr></table><h3>Selecting, copy and paste</h3><table><tr><td><kbd>Shift</kbd> <kbd>▲</kbd> <kbd>Shift</kbd> <kbd>▼</kbd></td><td>Select whole lines in Song, Chain and Phrase. The first press takes the cursor’s line, the next ones grow it</td></tr><tr><td><kbd>Ctrl/⌘</kbd> <kbd>A</kbd></td><td>Select every line</td></tr><tr><td><kbd>Ctrl/⌘</kbd> <kbd>B</kbd></td><td>Start a block selection; arrows grow it</td></tr><tr><td><kbd>Ctrl/⌘</kbd> <kbd>C</kbd> <kbd>Ctrl/⌘</kbd> <kbd>X</kbd></td><td>Copy / cut the selection</td></tr><tr><td><kbd>Ctrl/⌘</kbd> <kbd>V</kbd></td><td>Paste at the cursor row, or over a selection from its top. Lines paste into any phrase</td></tr><tr><td><kbd>Esc</kbd></td><td>Drop the selection</td></tr><tr><td>Row numbers</td><td>Tap or click one to select that line; another to grow the selection to it</td></tr></table><h3>Playing</h3><table><tr><td><kbd>Space</kbd></td><td>Play or stop this screen (phrase, chain or song)</td></tr><tr><td><kbd>Shift</kbd> <kbd>Space</kbd></td><td>Play the song from the cursor row</td></tr></table></section>
+    <section id="hKeys"><h2>Tracker · KEYS mode</h2><h3>Moving</h3><table><tr><td><kbd>arrows</kbd></td><td>Move the cursor (drops a line selection)</td></tr><tr><td><kbd>Shift</kbd> <kbd>◀</kbd> <kbd>Shift</kbd> <kbd>▶</kbd></td><td>Previous / next screen, in tab order (Song → … → Inst → Mixer → FX → Project)</td></tr><tr><td><kbd>Tab</kbd> / <kbd>Shift</kbd> <kbd>Tab</kbd></td><td>Next / previous column (phrase) or track</td></tr><tr><td><kbd>Home</kbd> <kbd>End</kbd> <kbd>PgUp</kbd> <kbd>PgDn</kbd></td><td>Top, bottom, 16 rows up or down</td></tr><tr><td><kbd>[</kbd> <kbd>]</kbd> or <kbd>Ctrl/⌘</kbd> <kbd>▲▼</kbd></td><td>Previous / next chain, phrase, instrument or FX track</td></tr><tr><td>Mouse wheel</td><td>Scroll the screen a row at a time</td></tr></table><h3>Typing</h3><table><tr><td><kbd>Z</kbd> <kbd>S</kbd> <kbd>X</kbd> … <kbd>/</kbd></td><td>Notes, lower octave (S D G H J are the sharps); on tracks 9–16, Tab to N2–N4 to add chord notes</td></tr><tr><td><kbd>Q</kbd> <kbd>2</kbd> <kbd>W</kbd> … <kbd>P</kbd></td><td>Notes, upper octave</td></tr><tr><td><kbd>1</kbd> or <kbd>Caps Lock</kbd></td><td>Note off</td></tr><tr><td><kbd>−</kbd> <kbd>=</kbd> or numpad <kbd>/</kbd> <kbd>*</kbd></td><td>Octave down / up</td></tr><tr><td><kbd>0</kbd>–<kbd>9</kbd> <kbd>A</kbd>–<kbd>F</kbd></td><td>Hex values: two digits, or one for an instrument</td></tr><tr><td>Letters</td><td>Commands in FX columns (press again to cycle: R gives RET, REP, RND, RNL)</td></tr><tr><td><kbd>{</kbd> <kbd>}</kbd></td><td>Edit step down / up: how far the cursor moves after you type</td></tr><tr><td><kbd>Alt</kbd> <kbd>arrows</kbd></td><td>Change the value (◀▶ by 1, ▲▼ by more)</td></tr><tr><td><kbd>Enter</kbd></td><td>Add, open, or run a › row · twice for a new chain or phrase · in a phrase, picks up what’s there as the current values: the row’s instrument, plus the note, volume, or effect and its value under the cursor (shown after NOW on the hint line)</td></tr></table><h3>Rows</h3><table><tr><td><kbd>Delete</kbd></td><td>Clear the row and step down · <kbd>Shift</kbd> <kbd>Delete</kbd> just the cell</td></tr><tr><td><kbd>Insert</kbd></td><td>Add a blank row (rows below move down)</td></tr><tr><td><kbd>Backspace</kbd></td><td>Same as Delete: clear the row and step down; rows below stay where they are</td></tr><tr><td><kbd>Ctrl/⌘</kbd> <kbd>Backspace</kbd></td><td>Remove the row (rows below move up)</td></tr></table><h3>Selecting, copy and paste</h3><table><tr><td><kbd>Shift</kbd> <kbd>▲</kbd> <kbd>Shift</kbd> <kbd>▼</kbd></td><td>Select whole lines in Song, Chain and Phrase. The first press takes the cursor’s line, the next ones grow it</td></tr><tr><td><kbd>Ctrl/⌘</kbd> <kbd>A</kbd></td><td>Select every line</td></tr><tr><td><kbd>Ctrl/⌘</kbd> <kbd>B</kbd></td><td>Start a block selection; arrows grow it</td></tr><tr><td><kbd>Ctrl/⌘</kbd> <kbd>C</kbd> <kbd>Ctrl/⌘</kbd> <kbd>X</kbd></td><td>Copy / cut the selection</td></tr><tr><td><kbd>Ctrl/⌘</kbd> <kbd>V</kbd></td><td>Paste at the cursor row, or over a selection from its top. Lines paste into any phrase</td></tr><tr><td><kbd>Esc</kbd></td><td>Drop the selection</td></tr><tr><td>Row numbers</td><td>Tap or click one to select that line; another to grow the selection to it</td></tr></table><h3>Playing</h3><table><tr><td><kbd>Space</kbd></td><td>Play or stop this screen (phrase, chain or song)</td></tr><tr><td><kbd>Shift</kbd> <kbd>Space</kbd></td><td>Play the song from the cursor row</td></tr></table></section>
     <section id="hPad"><h2>Tracker · PAD mode</h2><table><tr><td>Arrows</td><td>Move</td></tr><tr><td>SHIFT + arrows</td><td>Change screen (◀▶ go through every screen in tab order)</td></tr><tr><td>EDIT</td><td>Add, or run a › row · in a phrase, picks up the row’s instrument and the note, volume or effect under the cursor · tap twice for a new chain or phrase, or a note off</td></tr><tr><td>EDIT + arrows</td><td>Change the value (◀▶ by 1, ▲▼ by more)</td></tr><tr><td>OPTION + EDIT</td><td>Clear (with a selection: cut)</td></tr><tr><td>OPTION + arrows</td><td>Other chain, phrase, instrument or FX track · in Song, page up/down</td></tr><tr><td>SHIFT + OPTION</td><td>Start or cancel a selection; arrows grow it, OPTION copies</td></tr><tr><td>SHIFT + EDIT</td><td>Paste</td></tr><tr><td>PLAY · SHIFT + PLAY</td><td>Play this screen · play the song</td></tr><tr><td>Row numbers</td><td>Tap to select whole lines, then COPY and PASTE</td></tr></table><p><b>One finger is enough.</b> With <b>Sticky keys</b> on, tap SHIFT or OPTION alone and it stays lit for the next button. The <b>command row</b> (Project → COMMANDS) gives every two-key command its own button: change, prev/next, clear, select, copy, cut, paste, play song.</p><p>On a computer keyboard in PAD mode: arrows, <kbd>Shift</kbd>, <kbd>Z</kbd> = OPTION, <kbd>X</kbd> = EDIT, <kbd>Space</kbd> = PLAY.</p><h3>Touch</h3><p>Tap a cell to move there; tap it again to open or add. Drag up or down on the cursor’s cell to change its value; drag elsewhere to scroll.</p></section>
     <section id="hFx"><h2>FX column commands</h2>
 <p>Each phrase row has three effect columns: a command and a hex value. The info line at the bottom of the screen explains the one under the cursor.</p>
 <div class="fxg"><div><code>ARP</code>arpeggio: the note, +X, +Y semitones</div><div><code>ARC</code>arpeggio pattern (X) and speed in ticks (Y)</div><div><code>CHA</code>chance the note plays</div><div><code>DEL</code>delay the note by XX ticks</div><div><code>GRV</code>groove for this track: X ticks even, Y odd</div><div><code>GGR</code>groove for every track</div><div><code>HOP</code>end the phrase; the next starts at row Y</div><div><code>INS</code>play with instrument XX</div><div><code>KIL</code>stop the note after XX ticks</div><div><code>OFF</code>fade the note out after XX ticks</div><div><code>NTH</code>play on pass Y of every X</div><div><code>RET</code>retrigger every Y ticks, X fades</div><div><code>REP</code>repeat the last command, adding XX</div><div><code>RND</code>randomise the command to the left</div><div><code>RNL</code>RND as a random walk</div><div><code>PSL</code>slide from the last pitch</div><div><code>PBN</code>bend the pitch across the step</div><div><code>PVB</code>vibrato: X speed, Y depth</div><div><code>SED</code>seed the random numbers</div><div><code>TPO</code>tempo in BPM</div><div><code>TSP</code>transpose the track from here on</div><div><code>VOL</code>volume</div><div><code>PIT</code>pitch in semitones (signed)</div><div><code>FIN</code>fine tune in cents</div><div><code>PLY</code>00 forwards, 01 reversed</div><div><code>STA</code>start point into the sound</div><div><code>PAN</code>pan, 80 is centre</div></div>
 <h3>Track effects</h3>
 <p>Each track and the master have 4 effect slots (FX screen, or EDIT on the Mixer’s FX row): EQ, compressor, reverb, tape delay, saturation, tape, chorus, bitcrush, Rings and Clouds. Renders include them; stems skip the master effects and limiter.</p></section>
-    <section id="hSynth"><h2>Synth page</h2><table><tr><td><kbd>Z</kbd>–<kbd>/</kbd> · <kbd>Q</kbd>–<kbd>P</kbd></td><td>Play the selected pad chromatically; C-4 is its own pitch</td></tr><tr><td><kbd>−</kbd> <kbd>=</kbd></td><td>Octave down / up</td></tr><tr><td><kbd>Shift</kbd> <kbd>1</kbd>–<kbd>8</kbd> or <kbd>◀</kbd> <kbd>▶</kbd></td><td>Pick a pad</td></tr><tr><td><kbd>Space</kbd></td><td>Play the pad as it is</td></tr><tr><td><kbd>Alt</kbd> <kbd>1</kbd>–<kbd>7</kbd></td><td>Jump into a tracker screen</td></tr></table><p><b>Kit ▾</b> saves and loads kits, <b>Export ▾</b> writes WAVs for Koala and SunVox, <b>MIDI ▾</b> connects a controller, <b>Skin ▾</b> changes the look.</p><h2>Files and rendering</h2><p><b>Project</b> holds SAVE, SAVE AS and LOAD PROJECT, plus RENDER SONG (a stereo WAV) and RENDER STEMS (a zip with the mix and one WAV per track). In desktop Chrome and Edge, Save writes straight back to the file you opened or last saved; other browsers download a copy, and Save As asks for a name first. The song also saves itself in the browser as you work.</p><p>More detail in the <a href="https://github.com/matthettich/Thunder-#readme" target="_blank" rel="noopener">README on GitHub</a>.</p></section>
+    <section id="hSynth"><h2>Synth page</h2><table><tr><td><kbd>Z</kbd>–<kbd>/</kbd> · <kbd>Q</kbd>–<kbd>P</kbd></td><td>Play the selected pad chromatically; C-4 is its own pitch. On a synth slot (9–16) notes hold while the keys are down, so you can play chords</td></tr><tr><td><kbd>−</kbd> <kbd>=</kbd></td><td>Octave down / up</td></tr><tr><td><kbd>Shift</kbd> <kbd>1</kbd>–<kbd>8</kbd> or <kbd>◀</kbd> <kbd>▶</kbd></td><td>Pick a pad (◀▶ go through all 16 slots)</td></tr><tr><td><kbd>Space</kbd></td><td>Play the pad as it is</td></tr><tr><td><kbd>Alt</kbd> <kbd>1</kbd>–<kbd>7</kbd></td><td>Jump into a tracker screen</td></tr></table><p><b>Kit ▾</b> saves and loads kits, <b>Export ▾</b> writes WAVs for Koala and SunVox, <b>MIDI ▾</b> connects a controller (notes not mapped to a pad play the selected synth slot, held until note-off), <b>Skin ▾</b> changes the look.</p><h2>Files and rendering</h2><p><b>Project</b> holds SAVE, SAVE AS and LOAD PROJECT, plus RENDER SONG (a stereo WAV) and RENDER STEMS (a zip with the mix and one WAV per track). In desktop Chrome and Edge, Save writes straight back to the file you opened or last saved; other browsers download a copy, and Save As asks for a name first. The song also saves itself in the browser as you work.</p><p>More detail in the <a href="https://github.com/matthettich/Thunder-#readme" target="_blank" rel="noopener">README on GitHub</a>.</p></section>
   </div></div>
 </div>
 <div class="toast" id="toast" hidden></div>
@@ -953,7 +962,12 @@ const VUB = 256;
 function blockPeaks(a){ const n = Math.ceil(a.length / VUB), e = new Float32Array(n);
   for (let b = 0; b < n; b++){ let m = 0; const end = Math.min(a.length, (b + 1) * VUB); for (let i = b * VUB; i < end; i++){ const v = a[i] < 0 ? -a[i] : a[i]; if (v > m) m = v; } e[b] = m; }
   return e; }
-function renderVoice(V, sr, stages){
+// Slots 9–16 are synths: notes hold until released. They render with the gate held for the voice's
+// Max len (`hold`, in seconds), and letting go fades the sound over the voice's release (relOf).
+const NPAD = 8, NSLOT = 16, isSyn = i => i >= NPAD;
+function relOf(V){ let r = 0; for (const L of V.layers) if (L.on && L.level > 0 && L.mode === 'ADSR') r = Math.max(r, L.rel); return Math.max(30, r) / 1000; }
+function renderVoice(V, sr, stages, hold){
+  if (hold) V = Object.assign({}, V, {gate:hold * 1000, len:hold});
   const N = Math.max(1, Math.ceil(voiceLen(V) * sr)), out = new Float32Array(N);
   for (const L of V.layers) if (L.on && L.level > 0) renderLayer(L, V, sr, out, N);
   const g = Math.pow(10, V.level / 20), dr = V.drive;
@@ -988,7 +1002,7 @@ function mkVoice(name, layers, o){
   while (ls.length < 8) ls.push(freshLayer());
   return Object.assign({name, level:0, tune:0, drive:0, gate:200, len:4, choke:0, sel:0, layers:ls, fx:[], tail:2}, o || {});
 }
-const rA = r => RATIOS.indexOf(r) / (RATIOS.length - 1);
+const rA = r => Math.max(0, RATIOS.indexOf(r)) / (RATIOS.length - 1);
 const cA = n => CHORDS.findIndex(c => c[0] === n) / (CHORDS.length - 1);
 function factoryKit(){
   return {name:'Thunder 1', voices:[
@@ -1019,7 +1033,30 @@ function factoryKit(){
     mkVoice('Chord', [
       {type:'chord', a:cA('Minor 9'), b:0.25, tune:24, atk:2, dec:900, lpCut:1800, lpRes:0.3, lpEnv:0.35, fDec:260, level:0.7},
       {type:'fm2', a:rA(3.5), b:0.3, tune:36, atk:0.5, dec:300, level:0.25}]),
-  ]};
+  ].concat(factorySynths())};
+}
+// The eight synth slots: ADSR layers, tuned up two octaves so C-4 in the tracker (and Z at octave 4) plays middle C.
+function factorySynths(){
+  const A = o => Object.assign({mode:'ADSR'}, o), S = (name, layers, o) => mkVoice(name, layers.map(A), Object.assign({tune:24, len:6, gate:400, tail:2}, o || {}));
+  return [
+    S('Bass', [{type:'saw', tune:-24, atk:1, dec:400, sus:0.6, rel:120, lpCut:900, lpRes:0.35, lpEnv:0.35, fDec:220, level:0.8},
+      {type:'sine', tune:-24, atk:1, dec:300, sus:0.9, rel:120, level:0.6}], {drive:0.2}),
+    S('Pluck', [{type:'pulse', a:0.3, atk:0.5, dec:260, sus:0, rel:200, lpCut:1400, lpRes:0.3, lpEnv:0.5, fDec:180, level:0.8},
+      {type:'saw', fine:7, atk:0.5, dec:220, sus:0, rel:180, lpCut:2200, level:0.4}]),
+    S('Keys', [{type:'fm2', a:rA(1), b:0.35, atk:1, dec:900, sus:0.35, rel:350, level:0.8},
+      {type:'sine', tune:12, atk:1, dec:500, sus:0.2, rel:300, level:0.25}]),
+    S('Pad', [{type:'saw', fine:-9, atk:450, dec:1200, sus:0.8, rel:1200, lpCut:1800, lpRes:0.15, level:0.55},
+      {type:'saw', fine:9, atk:450, dec:1200, sus:0.8, rel:1200, lpCut:1800, lpRes:0.15, level:0.55},
+      {type:'tri', tune:12, atk:600, dec:1000, sus:0.7, rel:1200, level:0.3}], {len:8, tail:3}),
+    S('Lead', [{type:'square', atk:3, dec:300, sus:0.75, rel:180, lpCut:3200, lpRes:0.25, level:0.6},
+      {type:'saw', fine:12, atk:3, dec:300, sus:0.75, rel:180, lpCut:4200, level:0.45}]),
+    S('Bell', [{type:'bell', a:0.45, b:0.25, atk:0.5, dec:2400, sus:0.15, rel:1500, level:0.7},
+      {type:'sine', tune:12, atk:0.5, dec:1200, sus:0, rel:900, level:0.25}], {len:8}),
+    S('Organ', [{type:'addodd', a:0.35, b:0.4, atk:4, dec:200, sus:0.95, rel:90, level:0.7},
+      {type:'sine', tune:12, atk:4, dec:200, sus:0.9, rel:90, level:0.3}]),
+    S('Sub', [{type:'sine', tune:-24, atk:2, dec:500, sus:0.85, rel:150, level:0.9},
+      {type:'tri', tune:-12, atk:2, dec:300, sus:0.4, rel:150, level:0.2}]),
+  ];
 }
 /* ===ENGINE END=== */
 
@@ -1095,7 +1132,7 @@ function fromPos(d, p){
 let kit = loadSaved() || factoryKit();
 let cur = 0;
 let view = 'synth';   // 'synth' or 'tracker'
-const cache = new Array(8).fill(null), dirty = new Array(8).fill(true), bufs = new Array(8).fill(null);
+const cache = new Array(NSLOT).fill(null), dirty = new Array(NSLOT).fill(true), bufs = new Array(NSLOT).fill(null);
 let clipVoice = null, clipLayer = null;
 const ex = {sr:48000, bits:24, norm:true, noteName:false};
 const noteName = m => NOTE[((m % 12) + 12) % 12].replace('♯', '#') + (Math.floor(m / 12) - 1);
@@ -1105,23 +1142,23 @@ const Lc = () => V().layers[V().sel];
 /* ---------- audio ---------- */
 let ctx = null, master = null;
 const cpu = {cap:null, t:0};
-const playing = new Array(8).fill(null);
+const playing = new Array(NSLOT).fill(null);
 function audio(){
   if (!ctx){
     const AC = window.AudioContext || window.webkitAudioContext;
     ctx = new AC({latencyHint:'interactive'});
     try { if (ctx.renderCapacity){ ctx.renderCapacity.addEventListener('update', e => { cpu.cap = {avg:e.averageLoad, peak:e.peakLoad, under:e.underrunRatio, t:performance.now()}; }); ctx.renderCapacity.start({updateInterval:0.5}); } } catch(e){}
     master = ctx.createGain(); master.gain.value = 0.9; master.connect(ctx.destination);
-    for (let i = 0; i < 8; i++) dirty[i] = true;
+    for (let i = 0; i < NSLOT; i++) dirty[i] = true;
     setTimeout(prerender, 30);
   }
   if (ctx.state === 'suspended') ctx.resume();
   return ctx;
 }
-function prerender(){ let i = 0; const step = () => { if (i < 8){ ensure(i++); setTimeout(step, 0); } }; step(); }
+function prerender(){ let i = 0; const step = () => { if (i < NSLOT){ ensure(i++); setTimeout(step, 0); } }; step(); }
 function ensure(i){
   const sr = ctx ? ctx.sampleRate : 48000;
-  if (dirty[i] || !cache[i] || cache[i].sr !== sr){ const st = new Map(); cache[i] = {sr, data:renderVoice(kit.voices[i], sr, st), st}; dirty[i] = false; bufs[i] = null; }
+  if (dirty[i] || !cache[i] || cache[i].sr !== sr){ const st = new Map(); const v = kit.voices[i]; cache[i] = {sr, data:renderVoice(v, sr, st, isSyn(i) ? v.len : 0), st}; dirty[i] = false; bufs[i] = null; }
   return cache[i];
 }
 function buffer(i){
@@ -1131,7 +1168,7 @@ function buffer(i){
 }
 function stopVoice(i){
   const p = playing[i]; if (!p) return; playing[i] = null;
-  const t = ctx.currentTime; try { p.g.gain.setTargetAtTime(0, t, 0.004); p.src.stop(t + 0.04); } catch(e){}
+  const t = ctx.currentTime; try { p.g.gain.cancelScheduledValues(t); p.g.gain.setTargetAtTime(0, t, 0.004); p.src.stop(t + 0.04); } catch(e){}
 }
 // One note of pad i at a pitch, from the computer keyboard: notes ring out on their own (polyphonic).
 function playNote(i, semis, vel = 1){
@@ -1140,11 +1177,26 @@ function playNote(i, semis, vel = 1){
   src.buffer = buffer(i); src.playbackRate.value = Math.pow(2, semis / 12); g.gain.value = vel;
   src.connect(g); g.connect(master); src.start(); flash(i); vuHit(i, Math.pow(2, semis / 12), vel);
 }
+// Synth slots: a held note sounds until releaseNote, which fades it over the voice's release time.
+function holdNote(i, semis, vel = 1){
+  audio();
+  const src = ctx.createBufferSource(), g = ctx.createGain(), r = Math.pow(2, semis / 12);
+  src.buffer = buffer(i); src.playbackRate.value = r; g.gain.value = vel;
+  src.connect(g); g.connect(master); src.start(); flash(i); vuHit(i, r, vel);
+  return {src, g, i, done:false};
+}
+function releaseNote(h, at){
+  if (!h || h.done) return; h.done = true;
+  const t = Math.max(at || 0, ctx.currentTime), rel = relOf(kit.voices[h.i]);
+  try { h.g.gain.cancelScheduledValues(t); h.g.gain.setValueAtTime(h.g.gain.value, t); h.g.gain.setTargetAtTime(0, t, rel / 4.6); h.src.stop(t + rel * 1.6 + 0.05); } catch(e){}
+}
 function play(i, vel = 1){
   audio();
+  // A synth slot played as a one-shot (Space, Shift+number, MIDI pad) holds for the voice's Gate.
+  if (isSyn(i)){ stopVoice(i); const h = holdNote(i, 0, vel); playing[i] = h; releaseNote(h, ctx.currentTime + kit.voices[i].gate / 1000); return; }
   const v = kit.voices[i];
   stopVoice(i);
-  if (v.choke) for (let j = 0; j < 8; j++) if (j !== i && kit.voices[j].choke === v.choke) stopVoice(j);
+  if (v.choke) for (let j = 0; j < NSLOT; j++) if (j !== i && kit.voices[j].choke === v.choke) stopVoice(j);
   const src = ctx.createBufferSource(), g = ctx.createGain();
   g.gain.value = vel;
   src.buffer = buffer(i); src.connect(g); g.connect(master); src.start();
@@ -1154,13 +1206,13 @@ function play(i, vel = 1){
 /* ---------- effect meters: each effect card shows the level coming out of it while the pad sounds ---------- */
 // Pads are rendered ahead of time, so the levels after each effect are stored with the render (cache[i].st)
 // and the meters replay them in step with the sound.
-const hits = Array.from({length:8}, () => []);
+const hits = Array.from({length:NSLOT}, () => []);
 let vuRaf = 0, vuEls = [];
 function vuHit(i, rate, vel, mono){ const c = cache[i]; if (!c) return; if (mono) hits[i].length = 0; hits[i].push({t0:ctx.currentTime, rate, vel, c}); if (hits[i].length > 8) hits[i].shift(); if (!vuRaf) vuRaf = requestAnimationFrame(vuFrame); }
 function vuFrame(){
   vuRaf = 0; if (!ctx) return;
   const now = ctx.currentTime, H = hits[cur]; let live = false;
-  for (let i = 0; i < 8; i++) hits[i] = hits[i].filter(h => (now - h.t0) * h.rate * h.c.sr < h.c.data.length + h.c.sr * 0.3);
+  for (let i = 0; i < NSLOT; i++) hits[i] = hits[i].filter(h => (now - h.t0) * h.rate * h.c.sr < h.c.data.length + h.c.sr * 0.3);
   for (const m of vuEls){
     let pk = 0;
     for (const h of H){ const env = h.c.st && h.c.st.get(m.f); if (!env) continue;
@@ -1389,11 +1441,14 @@ function renderStrip(){
 const padEls = [];
 function buildPads(){
   const host = $('pads');
-  for (let i = 0; i < 8; i++){
-    const p = el('button', 'pad'); p.type = 'button';
+  for (let i = 0; i < NSLOT; i++){
+    const p = el('button', 'pad' + (isSyn(i) ? ' syn' : '')); p.type = 'button';
     const p1 = el('span', 'p1'), b = el('b', null, String(i + 1)), m = el('span', 'pm'), n = el('span', 'pn');
     p1.append(b, m); p.append(p1, n); host.append(p); padEls.push({p, n, m});
-    p.addEventListener('pointerdown', e => { e.preventDefault(); padPress(i); });
+    // Synth slots sound while the pad is held, then release.
+    p.addEventListener('pointerdown', e => { e.preventDefault(); try { p.setPointerCapture(e.pointerId); } catch(_){} padPress(i, true); });
+    const up = () => { if (padHeld[i]){ releaseNote(padHeld[i]); padHeld[i] = null; } };
+    p.addEventListener('pointerup', up); p.addEventListener('pointercancel', up);
     p.addEventListener('click', e => { if (e.detail === 0) padPress(i); });
   }
 }
@@ -1401,21 +1456,24 @@ function renderPads(){
   kit.voices.forEach((v, i) => {
     const {p, n, m} = padEls[i];
     n.textContent = v.name || '—';
-    m.textContent = midi.on ? (midi.notes[i] >= 0 ? noteName(midi.notes[i]) : '—') : '';
+    m.textContent = midi.on && !isSyn(i) ? (midi.notes[i] >= 0 ? noteName(midi.notes[i]) : '—') : '';
     p.classList.toggle('sel', i === cur);
     p.classList.toggle('learn', midi.learn && midi.target !== i);
     p.classList.toggle('learning', midi.learn && midi.target === i);
-    p.setAttribute('aria-label', `Pad ${i + 1}, ${v.name}`);
+    p.setAttribute('aria-label', `${isSyn(i) ? 'Synth' : 'Pad'} ${i + 1}, ${v.name}`);
   });
 }
 function flash(i){ const p = padEls[i].p; p.classList.add('hit'); setTimeout(() => p.classList.remove('hit'), 90); }
 function select(i){ if (i === cur) return; cur = i; refreshAll(); }
-function padPress(i){
+const padHeld = new Array(NSLOT).fill(null);
+function padPress(i, held){
+  if (held && isSyn(i) && !midi.learn){ if (padHeld[i]) releaseNote(padHeld[i]); padHeld[i] = holdNote(i, 0, 1); select(i); return; }
+  if (midi.learn && isSyn(i)){ select(i); return midiStatus('Synth slots play from every note that isn’t mapped to a pad: select one and play.'); }
   if (midi.learn){ midi.target = i; select(i); renderPads(); midiStatus(`Now hit a note on the controller for pad ${i + 1}.`); return; }
   play(i); select(i);
 }
 function refreshAll(){
-  $('vNum').textContent = 'Pad ' + (cur + 1);
+  $('vNum').textContent = (isSyn(cur) ? 'Synth ' : 'Pad ') + (cur + 1);
   $('vName').value = V().name; $('kitName').value = kit.name;
   vRows.forEach(r => r.refresh()); updChoke();
   refreshLayer(); renderPads(); renderFx();
@@ -1429,14 +1487,20 @@ document.addEventListener('keydown', e => {
   if (e.altKey) return;
   const pd = /^Digit[1-8]$/.test(e.code) ? +e.code.slice(5) - 1 : -1;
   if (e.shiftKey && pd >= 0){ padPress(pd); e.preventDefault(); return; }
-  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight'){ if (!e.target.matches('input[type=range]')){ select((cur + (e.key === 'ArrowRight' ? 1 : 7)) % 8); e.preventDefault(); } return; }
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight'){ if (!e.target.matches('input[type=range]')){ select((cur + (e.key === 'ArrowRight' ? 1 : NSLOT - 1)) % NSLOT); e.preventDefault(); } return; }
   if (e.key === '-' || e.key === '=' || e.code === 'NumpadDivide' || e.code === 'NumpadMultiply'){
     setOct(kOct + (e.key === '=' || e.code === 'NumpadMultiply' ? 1 : -1)); e.preventDefault(); return; }
   const lo = e.key.length === 1 ? e.key.toLowerCase() : '';
-  if (lo in PIANO && !e.shiftKey){ playNote(cur, kOct * 12 + PIANO[lo] - ROOT); e.preventDefault(); return; }
+  if (lo in PIANO && !e.shiftKey){
+    const st = kOct * 12 + PIANO[lo] - ROOT;
+    if (isSyn(cur)){ releaseNote(keyHeld.get(e.code)); keyHeld.set(e.code, holdNote(cur, st)); } else playNote(cur, st);
+    e.preventDefault(); return; }
   if (e.key === ' ' && !e.target.matches('button')){ play(cur); e.preventDefault(); }
 });
 
+const keyHeld = new Map();
+document.addEventListener('keyup', e => { const h = keyHeld.get(e.code); if (h){ keyHeld.delete(e.code); releaseNote(h); } });
+window.addEventListener('blur', () => { for (const h of keyHeld.values()) releaseNote(h); keyHeld.clear(); });
 /* ---------- waveform ---------- */
 function cssv(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
 function drawWave(){
@@ -1510,7 +1574,9 @@ const voiceFromJSON = j => { const v = mkVoice(j.name || 'Pad', []); Object.assi
 const kitToJSON = noSmp => ({app:'thunder', v:1, name:kit.name, voices:kit.voices.map(v => voiceToJSON(v, noSmp))});
 function kitFromJSON(j){
   if (!j || !Array.isArray(j.voices) || j.voices.length < 1) throw new Error('This file isn’t a ...Thunder kit.');
-  const vs = j.voices.slice(0, 8).map(voiceFromJSON); while (vs.length < 8) vs.push(mkVoice('Pad ' + (vs.length + 1), []));
+  const vs = j.voices.slice(0, NSLOT).map(voiceFromJSON); while (vs.length < NPAD) vs.push(mkVoice('Pad ' + (vs.length + 1), []));
+  // Kits from before the synth slots get the factory synths in slots 9–16.
+  if (vs.length < NSLOT){ const fs = factorySynths(); while (vs.length < NSLOT) vs.push(fs[vs.length - NPAD]); }
   return {name:j.name || 'Kit', voices:vs};
 }
 function save(){
@@ -1518,7 +1584,7 @@ function save(){
   catch(e){ try { localStorage.setItem(KEY, JSON.stringify(kitToJSON(true))); } catch(e2){} }
 }
 function loadSaved(){ try { const s = localStorage.getItem(KEY) || localStorage.getItem(OLD_KEY); return s ? kitFromJSON(JSON.parse(s)) : null; } catch(e){ return null; } }
-function setKit(k){ kit = k; cur = 0; for (let i = 0; i < 8; i++){ dirty[i] = true; cache[i] = null; } refreshAll(); save(); }
+function setKit(k){ kit = k; cur = 0; for (let i = 0; i < NSLOT; i++){ dirty[i] = true; cache[i] = null; } refreshAll(); save(); }
 
 /* ---------- files out ---------- */
 function wavBytes(data, sr, bits){
@@ -1588,7 +1654,7 @@ $('bExPad').addEventListener('click', () => {
   if (inClaude) deliver(w.name.replace(/\.wav$/, '.zip'), zipBlob([w]));
   else deliver(w.name, new Blob([w.data], {type:'audio/wav'}));
 });
-$('bExKit').addEventListener('click', () => { const fs = []; for (let i = 0; i < 8; i++) fs.push(padWav(i)); deliver(kitBase() + '.zip', zipBlob(fs)); });
+$('bExKit').addEventListener('click', () => { const fs = []; for (let i = 0; i < NSLOT; i++) fs.push(padWav(i)); deliver(kitBase() + '.zip', zipBlob(fs)); });
 const canShare = !inClaude && !!(navigator.canShare && window.File) && (() => { try { return navigator.canShare({files:[new File([new Uint8Array(4)], 'a.wav', {type:'audio/wav'})]}); } catch(e){ return false; } })();
 async function share(files){
   try { await navigator.share({files, title:'...Thunder'}); }
@@ -1597,7 +1663,7 @@ async function share(files){
 if (canShare){
   $('bShPad').hidden = false; $('bShKit').hidden = false;
   $('bShPad').addEventListener('click', () => { const w = padWav(cur); share([new File([w.data], w.name, {type:'audio/wav'})]); });
-  $('bShKit').addEventListener('click', () => { const fs = []; for (let i = 0; i < 8; i++){ const w = padWav(i); fs.push(new File([w.data], w.name, {type:'audio/wav'})); } share(fs); });
+  $('bShKit').addEventListener('click', () => { const fs = []; for (let i = 0; i < NSLOT; i++){ const w = padWav(i); fs.push(new File([w.data], w.name, {type:'audio/wav'})); } share(fs); });
 }
 if (inClaude){
   $('bExPad').textContent = 'Save this pad (WAV in .zip)';
@@ -1655,7 +1721,9 @@ function ask(msg, fn){ pending = fn; $('confirmMsg').textContent = msg; $('confi
 $('bYes').addEventListener('click', () => { $('confirmRow').hidden = true; if (pending) pending(); pending = null; });
 $('bNo').addEventListener('click', () => { $('confirmRow').hidden = true; pending = null; });
 $('bFactory').addEventListener('click', () => ask('Replace all 8 pads with the factory kit?', () => setKit(factoryKit())));
-$('bClearKit').addEventListener('click', () => ask('Clear all 8 pads?', () => setKit({name:'New kit', voices:Array.from({length:8}, (_, i) => mkVoice('Pad ' + (i + 1), [{type:'sine', b:0.25, pAmt:24, pDec:50, atk:0.1, dec:400}]))})));
+$('bClearKit').addEventListener('click', () => ask('Clear all 16 slots?', () => setKit({name:'New kit', voices:Array.from({length:NSLOT}, (_, i) => isSyn(i)
+  ? mkVoice('Synth ' + (i + 1), [{type:'saw', mode:'ADSR', atk:2, dec:400, sus:0.7, rel:200, lpCut:3000, level:0.7}], {tune:24, len:6, gate:400})
+  : mkVoice('Pad ' + (i + 1), [{type:'sine', b:0.25, pAmt:24, pDec:50, atk:0.1, dec:400}]))})));
 
 /* ---------- load an audio file as a sample layer ---------- */
 function assignSample(vi, data, sr, name){
@@ -1688,15 +1756,20 @@ const saveMidi = () => { try { localStorage.setItem(MKEY, JSON.stringify({notes:
 function midiStatus(msg){ $('midiStat').textContent = msg; }
 function onMidi(e){
   const [st, d1, d2] = e.data; if (!st) return;
-  if ((st & 0xf0) !== 0x90 || !d2) return;
+  const on = (st & 0xf0) === 0x90 && d2 > 0, off = (st & 0xf0) === 0x80 || ((st & 0xf0) === 0x90 && !d2);
+  if (off){ const h = midiHeld.get(d1); if (h){ midiHeld.delete(d1); releaseNote(h); } return; }
+  if (!on) return;
   if (midi.learn && midi.target >= 0){
     const t = midi.target; midi.notes = midi.notes.map((n, i) => i === t ? d1 : (n === d1 ? -1 : n));
     midi.target = -1; saveMidi(); renderPads();
     midiStatus(`Pad ${t + 1} now plays ${noteName(d1)} (${d1}). Tap another pad, or Done.`); flash(t); return;
   }
   const vel = midi.vel ? Math.max(0.05, d2 / 127) : 1;
-  midi.notes.forEach((n, i) => { if (n === d1) play(i, vel); });
+  let hit = false; midi.notes.forEach((n, i) => { if (n === d1){ play(i, vel); hit = true; } });
+  // Notes that aren't mapped to a pad play the selected synth slot, middle C (60) at its own pitch.
+  if (!hit && isSyn(cur)){ releaseNote(midiHeld.get(d1)); midiHeld.set(d1, holdNote(cur, d1 - 60, vel)); }
 }
+const midiHeld = new Map();
 function hookInputs(){
   let n = 0; midi.access.inputs.forEach(inp => { inp.onmidimessage = onMidi; n++; });
   midiStatus(n ? `${n} controller${n > 1 ? 's' : ''} connected` : 'No controller found. Plug one in.');
@@ -1739,7 +1812,7 @@ let plFailed = false;
     if (instance.exports._initialize) instance.exports._initialize();
     TX = instance;
   } catch(e){}
-  for (let i = 0; i < 8; i++){ const v = kit.voices[i]; if (v.layers.some(l => l.on && (l.type === 'plaits' || l.type === 'elements')) || (v.fx || []).some(f => f.on)) dirty[i] = true; }
+  for (let i = 0; i < NSLOT; i++){ const v = kit.voices[i]; if (v.layers.some(l => l.on && (l.type === 'plaits' || l.type === 'elements')) || (v.fx || []).some(f => f.on)) dirty[i] = true; }
   refreshLayer(); renderFx();
   ensure(cur); drawWave(); renderStrip();
 })();
@@ -1861,7 +1934,7 @@ const TFX = {
 };
 const FXT_LIST = ['eq', 'comp', 'reverb', 'delay', 'density', 'tape', 'chorus', 'crush', 'rings', 'clouds'];
 const TAILS = new Set(['reverb', 'delay', 'rings', 'clouds']);
-const NSLOT = 4;
+const FXSLOTS = 4;
 function freshTfx(type){ const f = {type, on:true}; for (const p of TFX[type].ps) f[p.k] = p.d; return f; }
 function normTfx(o){
   if (!o || typeof o !== 'object' || !TFX[o.type]) return null;
@@ -1869,8 +1942,8 @@ function normTfx(o){
   for (const p of TFX[o.type].ps) f[p.k] = clamp(int(o[p.k], p.d), p.min, p.max);
   return f;
 }
-const freshChainFx = () => new Array(NSLOT).fill(null);
-const normChainFx = a => Array.from({length:NSLOT}, (_, k) => Array.isArray(a) ? normTfx(a[k]) : null);
+const freshChainFx = () => new Array(FXSLOTS).fill(null);
+const normChainFx = a => Array.from({length:FXSLOTS}, (_, k) => Array.isArray(a) ? normTfx(a[k]) : null);
 // The live list the worklet gets: on slots only, with each slot's parameters mapped for this rate and tempo.
 function tfxChain(A, sr, bpm){
   const out = [];
@@ -1952,11 +2025,16 @@ function tfxNode(ac, chain){
 /* ---------- song data ---------- */
 const freshChain = () => Array.from({length:16}, () => [-1, 0]);
 const PROWS = 32;   // rows stored per phrase; each phrase plays its own LEN (16 by default)
-const freshPhrase = () => Array.from({length:PROWS}, () => [-1, -1, -1, -1, -1, -1, -1, -1, -1]);
-const freshInst = i => ({pad:i % 8, tsp:0, vol:255, pan:128, rev:0, ofs:0});
+// A phrase row: four note columns (2–4 play only on the polyphonic tracks 9–16), volume, instrument,
+// then three effect command/value pairs. Songs before v3 had one note column; normSong moves them over.
+const NCOL = 4, VC = 4, IC = 5, FX0 = 6, RW = 12;
+const blankRow = () => new Array(RW).fill(-1);
+const freshPhrase = () => Array.from({length:PROWS}, blankRow);
+const isPolyT = t => t >= NPAD && t < NT;
+const freshInst = i => ({pad:i % NSLOT, tsp:0, vol:255, pan:128, rev:0, ofs:0});   // instruments 08–0F play the synth slots
 const freshMix = () => ({vol:224, pan:128, mute:false, solo:false});
 function freshSong(){
-  return {app:'thunder-song', v:2, name:'Song 1', bpm:120, swing:50, limiter:true, renderFrom:0, master:224,
+  return {app:'thunder-song', v:3, name:'Song 1', bpm:120, swing:50, limiter:true, renderFrom:0, master:224,
     song:Array.from({length:256}, () => new Array(NT).fill(-1)), chains:new Array(256).fill(null), phrases:new Array(256).fill(null),
     insts:Array.from({length:NI}, (_, i) => freshInst(i)), mix:Array.from({length:NT}, freshMix),
     tfx:Array.from({length:NT}, freshChainFx), mfx:freshChainFx(), lpb:4, plen:new Array(256).fill(16), plpb:new Array(256).fill(0)};
@@ -1984,12 +2062,15 @@ function normSong(j){
   S.lpb = clamp(int(j.lpb, 4), 1, 16);
   if (Array.isArray(j.plen)) j.plen.slice(0, 256).forEach((v, i) => S.plen[i] = clamp(int(v, 16), 1, PROWS));
   if (Array.isArray(j.plpb)) j.plpb.slice(0, 256).forEach((v, i) => S.plpb[i] = clamp(int(v, 0), 0, 16));
+  const old1 = !(int(j.v, 1) >= 3);   // one note column: [note, vol, inst, fx…]
   if (Array.isArray(j.phrases)) j.phrases.slice(0, 256).forEach((p, i) => { if (Array.isArray(p)) S.phrases[i] = Array.from({length:PROWS}, (_, k) => {
-    const r = Array.isArray(p[k]) ? p[k] : [], o = Array.from({length:9}, (_, m) => clamp(int(r[m], -1), -1, 255));
-    for (let m = 3; m < 9; m += 2){ const [c, v] = fxIdx(o[m], o[m + 1]); o[m] = c; o[m + 1] = c < 0 ? -1 : v; }
+    const r = Array.isArray(p[k]) ? p[k] : [];
+    const o = old1 ? (() => { const q = Array.from({length:9}, (_, m) => clamp(int(r[m], -1), -1, 255)); return [q[0], -1, -1, -1, ...q.slice(1)]; })()
+      : Array.from({length:RW}, (_, m) => clamp(int(r[m], -1), -1, 255));
+    for (let m = FX0; m < RW; m += 2){ const [c, v] = fxIdx(o[m], o[m + 1]); o[m] = c; o[m + 1] = c < 0 ? -1 : v; }
     return o; }); });
   if (Array.isArray(j.insts)) j.insts.slice(0, NI).forEach((o, i) => { if (o && typeof o === 'object'){ const I = S.insts[i];
-    I.pad = clamp(int(o.pad, I.pad), 0, 7); I.tsp = clamp(int(o.tsp, 0), -48, 48); I.vol = clamp(int(o.vol, 255), 0, 255);
+    I.pad = clamp(int(o.pad, I.pad), 0, NSLOT - 1); I.tsp = clamp(int(o.tsp, 0), -48, 48); I.vol = clamp(int(o.vol, 255), 0, 255);
     I.pan = clamp(int(o.pan, 128), 0, 255); I.rev = o.rev ? 1 : 0; I.ofs = clamp(int(o.ofs, 0), 0, 255); } });
   if (Array.isArray(j.mix)) j.mix.slice(0, NT).forEach((o, i) => { if (o && typeof o === 'object'){ const m = S.mix[i];
     m.vol = clamp(int(o.vol, 224), 0, 255); m.pan = clamp(int(o.pan, 128), 0, 255); m.mute = !!o.mute; m.solo = !!o.solo; } });
@@ -1999,7 +2080,7 @@ function normSong(j){
 }
 function demoSong(){
   const S = freshSong(); S.name = 'Starter beat';
-  const P = steps => { const p = freshPhrase(); for (const [i, n, v, ins, c, cv] of steps){ const r = p[i]; r[0] = n; r[1] = v; r[2] = ins; if (c){ r[3] = FXC.indexOf(c); r[4] = cv; } } return p; };
+  const P = steps => { const p = freshPhrase(); for (const [i, n, v, ins, c, cv] of steps){ const r = p[i]; r[0] = n; r[VC] = v; r[IC] = ins; if (c){ r[FX0] = FXC.indexOf(c); r[FX0 + 1] = cv; } } return p; };
   S.phrases[0] = P([[0, ROOT, -1, 0], [4, ROOT, -1, 0], [8, ROOT, -1, 0], [12, ROOT, -1, 0]]);
   S.phrases[1] = P([[4, ROOT, -1, 1], [12, ROOT, -1, 1], [15, ROOT, 0x70, 1, 'DEL', 3]]);
   S.phrases[2] = P([[2, ROOT, 0x90, 3], [6, ROOT, 0x90, 3], [10, ROOT, 0x90, 3], [14, ROOT, -1, 4], [15, ROOT, 0x80, 3, 'RET', 0x22]]);
@@ -2119,7 +2200,7 @@ function makeSeq(S, mode, o){
         // Read the three FX columns left to right. REP repeats the track's last command; RND and RNL
         // change the command to their left (or, with none, the note's pitch).
         const cmds = []; let nrnd = 0;
-        for (let k = 3; k < 9; k += 2){
+        for (let k = FX0; k < RW; k += 2){
           if (r[k] < 0 || !FXC[r[k]]) continue;
           let c = FXC[r[k]], v = Math.max(0, r[k + 1]);
           if (c === 'REP'){ if (!T.last) continue; T.last = {c:T.last.c, v:(T.last.v + v) & 255}; cmds.push({...T.last}); continue; }
@@ -2149,28 +2230,34 @@ function makeSeq(S, mode, o){
         const at = t0 + Math.min((fx.DEL || 0) * tick, dur * 0.98), end = t0 + dur;
         const pit = (fx.PIT != null ? s8(fx.PIT) : 0) + (fx.FIN != null ? s8(fx.FIN) / 100 : 0);
         const mods = {arp:null, bend:null, vib:null};
-        const n = r[0];
-        if (n === OFF) evs.push({type:'off', t:at, track:t});
-        else if (n >= 0 && n < 120 && play){
-          const ii = fx.INS != null ? clamp(fx.INS, 0, NI - 1) : r[2] >= 0 ? r[2] : T.inst; T.inst = ii;
+        // Tracks 9–16 are polyphonic: all four note columns play, as a chord, over whatever is still ringing.
+        const poly = isPolyT(t), ns = poly ? r.slice(0, NCOL) : [r[0]];
+        const offN = ns.includes(OFF), notes = ns.filter(x => x >= 0 && x < 120);
+        if (offN) evs.push({type:'off', t:at, track:t});
+        if (notes.length && play){
+          const ii = fx.INS != null ? clamp(fx.INS, 0, NI - 1) : r[IC] >= 0 ? r[IC] : T.inst; T.inst = ii;
           const I = S.insts[ii] || S.insts[0];
-          const note = n + ctsp + I.tsp + T.tsp + pit + nrnd;
-          const gain = curve(fx.VOL != null ? fx.VOL : r[1] >= 0 ? r[1] : 255) * curve(I.vol);
-          const rate = Math.pow(2, (note - ROOT) / 12);
+          const gain = curve(fx.VOL != null ? fx.VOL : r[VC] >= 0 ? r[VC] : 255) * curve(I.vol);
           if (fx.ARP) mods.arp = arpOf(fx.ARP, T, at, end, tick);
           else if (fx.PBN) mods.bend = {mul:Math.pow(2, s8(fx.PBN) / 12), t1:end};
           else if (fx.PVB) mods.vib = {spd:fx.PVB >> 4, dep:fx.PVB & 15, t1:end};
-          const ev = {type:'note', t:at, track:t, pad:I.pad, rate, gain, pan:fx.PAN != null ? fx.PAN : I.pan, ofs:fx.STA != null ? fx.STA : I.ofs,
-            rev:fx.PLY != null ? (fx.PLY & 1) === 1 : !!I.rev, cut:fx.KIL != null ? at + fx.KIL * tick : null, rel:fx.OFF != null ? at + fx.OFF * tick : null,
-            slide:fx.PSL ? {from:T.rate, dur:fx.PSL * tick} : null, ...mods};
-          evs.push(ev); T.rate = rate * (mods.bend ? mods.bend.mul : 1);
           const every = (fx.RET || 0) & 15, fade = (fx.RET || 0) >> 4;
-          if (every){ let k = 1;
-            for (let tt = at + every * tick; tt < end - 1e-6 && k < 64; tt += every * tick, k++)
-              evs.push(Object.assign({}, ev, {t:tt, slide:null, arp:null, bend:null, vib:null, cut:ev.cut != null ? tt + (ev.cut - at) : null,
-                rel:ev.rel != null ? tt + (ev.rel - at) : null, gain:ev.gain * Math.max(0, 1 - fade * k / 16)}));
-          }
-        } else if (n < 0 && play){
+          let firstRate = 0;
+          notes.forEach((n, q) => {
+            const note = n + ctsp + I.tsp + T.tsp + pit + nrnd, rate = Math.pow(2, (note - ROOT) / 12);
+            if (!q) firstRate = rate;
+            const ev = {type:'note', t:at, track:t, poly, pad:I.pad, rate, gain, pan:fx.PAN != null ? fx.PAN : I.pan, ofs:fx.STA != null ? fx.STA : I.ofs,
+              rev:fx.PLY != null ? (fx.PLY & 1) === 1 : !!I.rev, cut:fx.KIL != null ? at + fx.KIL * tick : null, rel:fx.OFF != null ? at + fx.OFF * tick : null,
+              slide:fx.PSL && !q ? {from:T.rate, dur:fx.PSL * tick} : null, ...mods};
+            evs.push(ev);
+            if (every){ let k = 1;
+              for (let tt = at + every * tick; tt < end - 1e-6 && k < 64; tt += every * tick, k++)
+                evs.push(Object.assign({}, ev, {t:tt, slide:null, arp:null, bend:null, vib:null, cut:ev.cut != null ? tt + (ev.cut - at) : null,
+                  rel:ev.rel != null ? tt + (ev.rel - at) : null, gain:ev.gain * Math.max(0, 1 - fade * k / 16)}));
+            }
+          });
+          T.rate = firstRate * (mods.bend ? mods.bend.mul : 1);
+        } else if (!notes.length && !offN && play){
           // No note on this row: instrument commands change the note that is already playing.
           const m = {type:'mod', t:at, track:t};
           let any = false;
@@ -2201,7 +2288,10 @@ function makeSeq(S, mode, o){
 
 /* ---------- player: plays note events into an audio context (live or offline) ---------- */
 function makePlayer(ac, out, getBuf, live){
-  const buses = [], cur = new Array(NT + 1).fill(null), alive = new Set();
+  // vs[t]: the voices still sounding on track t (one on tracks 1–8, up to POLY on 9–16 and the preview bus).
+  const buses = [], vs = Array.from({length:NT + 1}, () => []), alive = new Set(), POLY = 4;
+  const relTc = v => v.syn ? v.rel / 4.6 : 0.004;
+  const live1 = (v, at) => v && !v.ended && !(v.stopAt != null && v.stopAt <= at);
   for (let t = 0; t <= NT; t++){
     const inp = ac.createGain(), g = ac.createGain(), p = ac.createStereoPanner(); inp.connect(g); g.connect(p); p.connect(out);
     let an = null; if (live && t < NT){ an = ac.createAnalyser(); an.fftSize = 512; p.connect(an); }
@@ -2227,10 +2317,13 @@ function makePlayer(ac, out, getBuf, live){
     } catch(e){}
   }
   function play(ev){
-    const prev = cur[ev.track];
-    if (ev.type === 'off'){ kill(prev, ev.t); cur[ev.track] = null; return; }
-    if (ev.type === 'mod'){
-      const v = prev; if (!v || v.ended || (v.stopAt != null && v.stopAt <= ev.t)) return;
+    const T = vs[ev.track];
+    // OFF releases every note on the track: synth slots over their release, drum pads at once.
+    if (ev.type === 'off'){ for (const v of T) kill(v, ev.t, relTc(v)); T.length = 0; return; }
+    if (ev.type === 'mod'){ for (const v of T) if (live1(v, ev.t)) modVoice(v, ev); return; }
+    startNote(ev);
+  }
+  function modVoice(v, ev){
       try {
         if (ev.gain != null) v.g.gain.setValueAtTime(ev.gain, ev.t);
         if (ev.pan != null) v.pn.pan.setValueAtTime(clamp((ev.pan - 128) / 127, -1, 1), ev.t);
@@ -2238,29 +2331,34 @@ function makePlayer(ac, out, getBuf, live){
       } catch(e){}
       pitchMods(v, ev.t, v.rate, ev);
       if (ev.cut != null) kill(v, ev.cut);
-      if (ev.rel != null) kill(v, ev.rel, 0.05);
-      return;
-    }
+      if (ev.rel != null) kill(v, ev.rel, v.syn ? relTc(v) : 0.05);
+  }
+  function startNote(ev){
     const b = getBuf(ev.pad, ev.rev); if (!b) return;
-    kill(prev, ev.t);
+    const T = vs[ev.track];
+    for (let k = T.length - 1; k >= 0; k--) if (!live1(T[k], ev.t)) T.splice(k, 1);
+    // Mono tracks: the new note takes over (a synth note lets the old one release). Poly: up to 4 ring
+    // together and the oldest is stolen.
+    if (!ev.poly){ for (const v of T) kill(v, ev.t, v.syn ? Math.min(relTc(v), 0.05) : 0.004); T.length = 0; }
+    else while (T.length >= POLY) kill(T.shift(), ev.t, 0.006);
     const kv = kit.voices[ev.pad], ck = kv ? kv.choke : 0;
-    if (ck) for (let k = 0; k < NT; k++){ const v = cur[k]; if (k !== ev.track && v && v.choke === ck) kill(v, ev.t); }
+    if (ck) for (let k = 0; k < NT; k++) if (k !== ev.track) for (const v of vs[k]) if (v.choke === ck) kill(v, ev.t);
     const src = ac.createBufferSource(), g = ac.createGain(), f = ac.createGain(), pn = ac.createStereoPanner();
     src.buffer = b;
     if (ev.slide && ev.slide.dur > 0){ src.playbackRate.setValueAtTime(ev.slide.from, ev.t); src.playbackRate.linearRampToValueAtTime(ev.rate, ev.t + ev.slide.dur); }
     else src.playbackRate.value = ev.rate;
     g.gain.value = ev.gain; pn.pan.value = clamp((ev.pan - 128) / 127, -1, 1);
     src.connect(g); g.connect(f); f.connect(pn); pn.connect(buses[ev.track].inp);
-    const v = {src, f, g, pn, base:ev.rate, rate:ev.rate, choke:ck, ended:false, stopAt:null};
+    const syn = isSyn(ev.pad), v = {src, f, g, pn, base:ev.rate, rate:ev.rate, choke:ck, ended:false, stopAt:null, syn, rel:syn && kv ? relOf(kv) : 0};
     if (!ev.slide) pitchMods(v, ev.t, ev.rate, ev);
     src.start(Math.max(ev.t, ac.currentTime), clamp(ev.ofs, 0, 255) / 256 * b.duration);
     alive.add(v);
     src.onended = () => { v.ended = true; alive.delete(v); if (live) try { pn.disconnect(); } catch(e){} };
     if (ev.cut != null) kill(v, ev.cut);
-    if (ev.rel != null) kill(v, ev.rel, 0.05);
-    cur[ev.track] = v;
+    if (ev.rel != null) kill(v, ev.rel, syn ? relTc(v) : 0.05);
+    T.push(v);
   }
-  function stopAll(at){ for (const v of alive) kill(v, at); cur.fill(null); }
+  function stopAll(at){ for (const v of alive) kill(v, at); for (const T of vs) T.length = 0; }
   function applyMix(filter){
     const at = ac.currentTime;
     buses.forEach((b, t) => {
@@ -2333,7 +2431,7 @@ function tStart(mode, o){
   const r = rtInit();
   const seq = makeSeq(S, mode, o);
   if (!seq.alive()){ toast(mode === 'song' ? `Row ${hx(o.row)} is empty. Put a chain on it, or move to a row that has some.` : 'Nothing to play here yet.'); draw(); return; }
-  for (let i = 0; i < 8; i++) ensure(i);
+  for (let i = 0; i < NSLOT; i++) ensure(i);
   seq.time = ctx.currentTime + 0.08;
   Object.assign(tp, {on:true, mode, seq, q:[], pos:null, bpm:seq.bpm});
   tp.timer = setInterval(pump, 25); pump(); draw();
@@ -2352,10 +2450,10 @@ function tStop(quiet){
   if (rt) rt.pl.stopAll(ctx.currentTime);
   if (!quiet) draw();
 }
-function preview(ii, note, vol){
-  const r = rtInit(), I = S.insts[ii] || S.insts[0];
-  r.pl.play({type:'note', t:ctx.currentTime + 0.005, track:NT, pad:I.pad, rate:Math.pow(2, (note + I.tsp - ROOT) / 12),
-    gain:curve(vol >= 0 ? vol : 255) * curve(I.vol), pan:I.pan, ofs:I.ofs, rev:!!I.rev, cut:null, slide:null});
+function preview(ii, note, vol, poly){
+  const r = rtInit(), I = S.insts[ii] || S.insts[0], t = ctx.currentTime + 0.005;
+  r.pl.play({type:'note', t, track:NT, poly:!!poly, pad:I.pad, rate:Math.pow(2, (note + I.tsp - ROOT) / 12),
+    gain:curve(vol >= 0 ? vol : 255) * curve(I.vol), pan:I.pan, ofs:I.ofs, rev:!!I.rev, cut:null, slide:null, rel:isSyn(I.pad) ? t + 0.45 : null});
 }
 
 /* ---------- rendering the song and stems ---------- */
@@ -2396,7 +2494,7 @@ function wavN(chs, sr, bits){
   return u8;
 }
 function stemName(t, notes){
-  const n = new Array(8).fill(0); for (const e of notes) if (e.track === t) n[e.pad]++;
+  const n = new Array(NSLOT).fill(0); for (const e of notes) if (e.track === t) n[e.pad]++;
   const p = n.indexOf(Math.max(...n)); return (kit.voices[p] && kit.voices[p].name) || 'Pad ' + (p + 1);
 }
 async function renderOut(stems){
@@ -2413,7 +2511,7 @@ async function renderOut(stems){
     if (!keepT.length) return toast('Every track with notes is muted.');
     toast('Rendering pads…'); await idle();
     const pads = new Map();
-    for (const e of notes) if (!pads.has(e.pad)){ pads.set(e.pad, renderVoice(kit.voices[e.pad], sr)); await idle(); }
+    for (const e of notes) if (!pads.has(e.pad)){ const v = kit.voices[e.pad]; pads.set(e.pad, renderVoice(v, sr, null, isSyn(e.pad) ? v.len : 0)); await idle(); }
     const bufs = new Map();
     const getB = (pad, rev) => { const k = pad + (rev ? 'r' : 'f'); let b = bufs.get(k);
       if (!b){ const d0 = pads.get(pad); if (!d0) return null; b = mkBuf(rev ? d0.slice().reverse() : d0, sr); bufs.set(k, b); } return b; };
@@ -2518,7 +2616,10 @@ let tv = 'song', midV = 'song';
 const cs = {song:{x:0, y:0, top:0}, chain:{x:0, y:0}, phrase:{x:0, y:0, top:0}, inst:{x:0, y:0}, mixer:{x:0, y:0}, fx:{x:0, y:0}, project:{x:0, y:0}};
 let cChain = 0, cPhrase = 0, cInst = 0, cTrack = 0, cFxT = 0, cFxS = 0, lastFxType = 'eq', selA = null, clip = null;
 const last = {chain:0, phrase:0, note:ROOT, vol:255, inst:0, fxc:0, fxv:0};
-const PK = ['note', 'vol', 'inst', 'fxc', 'fxv', 'fxc', 'fxv', 'fxc', 'fxv'];
+const PK = ['note', 'note', 'note', 'note', 'vol', 'inst', 'fxc', 'fxv', 'fxc', 'fxv', 'fxc', 'fxv'];
+// The phrase shows its chord columns (N2–N4) when it is open from one of the polyphonic tracks 9–16.
+const polyView = () => isPolyT(cTrack);
+const pCols = () => polyView() ? [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11] : [0, 4, 5, 6, 7, 8, 9, 10, 11];
 const kindAt = (v, x) => v === 'song' ? 'chain' : v === 'chain' ? (x ? 'tsp' : 'phrase') : PK[x];
 function getCell(v, x, y){
   if (v === 'song') return S.song[y][x];
@@ -2534,8 +2635,8 @@ function setCell(v, x, y, val){
 function instRows(){
   const I = S.insts[cInst], pre = () => preview(cInst, ROOT, -1);
   return [
-    {l:'PAD', get:() => I.pad, set:v => I.pad = v, min:0, max:7, big:1, d:cInst % 8, fmt:v => hx(v) + '  ' + ((kit.voices[v] && kit.voices[v].name) || 'Pad ' + (v + 1)),
-      info:() => 'Which ...Thunder pad this instrument plays. EDIT plays it.', after:pre, tap:pre},
+    {l:'PAD', get:() => I.pad, set:v => I.pad = v, min:0, max:NSLOT - 1, big:NPAD, d:cInst % NSLOT, fmt:v => hx(v) + '  ' + (isSyn(v) ? 'SYNTH ' : '') + ((kit.voices[v] && kit.voices[v].name) || 'Pad ' + (v + 1)),
+      info:() => 'Which ...Thunder slot this instrument plays: 00–07 drum pads, 08–0F synths (they hold until a note OFF). EDIT plays it.', after:pre, tap:pre},
     {l:'TRANSPOSE', get:() => I.tsp, set:v => I.tsp = v, min:-48, max:48, big:12, d:0, info:v => sgn(v) + ' semitones on every note'},
     {l:'VOLUME', get:() => I.vol, set:v => I.vol = v, min:0, max:255, big:16, d:255, info:v => 'Instrument level ' + dB(curve(v))},
     {l:'PAN', get:() => I.pan, set:v => I.pan = v, min:0, max:255, big:16, d:128, info:panS},
@@ -2551,13 +2652,13 @@ const fxList = A => (A || []).filter(Boolean).map(f => TFX[f.type].n + (f.on ? '
 // FX screen: which track, its four slots, then the settings of the slot the cursor was last on.
 function fxRows(){
   const t = cFxT, A = t >= NT ? S.mfx : S.tfx[t], cy = cs.fx.y;
-  if (cy >= 1 && cy <= NSLOT) cFxS = cy - 1;
+  if (cy >= 1 && cy <= FXSLOTS) cFxS = cy - 1;
   const rows = [{l:'TRACK', get:() => cFxT, set:v => cFxT = v, min:0, max:NT, big:4, fmt:v => v >= NT ? 'MST  master, after every track' : d2(v + 1),
     info:() => 'Which track these effects are on (MST is the master). OPTION+◀▶ also changes it'}];
-  for (let k = 0; k < NSLOT; k++) rows.push({l:'SLOT ' + (k + 1), gap:k === 0, get:() => A[k] ? FXT_LIST.indexOf(A[k].type) + 1 : 0,
+  for (let k = 0; k < FXSLOTS; k++) rows.push({l:'SLOT ' + (k + 1), gap:k === 0, get:() => A[k] ? FXT_LIST.indexOf(A[k].type) + 1 : 0,
     set:v => { A[k] = v ? freshTfx(FXT_LIST[v - 1]) : null; if (v) lastFxType = FXT_LIST[v - 1]; cFxS = k; fxChanged(t); }, min:0, max:FXT_LIST.length, big:1, d:0,
     fmt:v => v ? TFX[FXT_LIST[v - 1]].n.padEnd(5) + (A[k] && !A[k].on ? 'OFF  ' : '') + TFX[FXT_LIST[v - 1]].long : '---',
-    tap:() => { if (!A[k]){ A[k] = freshTfx(lastFxType); fxChanged(t); } cFxS = k; cs.fx.y = NSLOT + 1; draw(); },
+    tap:() => { if (!A[k]){ A[k] = freshTfx(lastFxType); fxChanged(t); } cFxS = k; cs.fx.y = FXSLOTS + 1; draw(); },
     info:v => v ? `Slot ${k + 1} runs ${TFX[FXT_LIST[v - 1]].long}. EDIT+arrows picks another, OPTION+EDIT removes it` : `Empty. EDIT adds ${TFX[lastFxType].long}; EDIT+arrows picks one. Slots run top to bottom`});
   const k = cFxS, f = A[k];
   if (!f){ rows.push({l:'› ADD TO SLOT ' + (k + 1), gap:true, act:() => { A[k] = freshTfx(lastFxType); fxChanged(t); draw(); }, info:() => `Puts ${TFX[lastFxType].long} in slot ${k + 1}`}); return rows; }
@@ -2599,7 +2700,7 @@ const rowsOf = v => v === 'inst' ? instRows() : v === 'project' ? projRows() : v
 function dims(v){
   if (v === 'song') return {w:NT, h:256};
   if (v === 'chain') return {w:2, h:16};
-  if (v === 'phrase') return {w:9, h:plen(cPhrase)};
+  if (v === 'phrase') return {w:RW, h:plen(cPhrase)};
   if (v === 'mixer') return {w:NT, h:6};
   return {w:1, h:rowsOf(v).length};
 }
@@ -2610,7 +2711,7 @@ function after(k, v, x, y, val){
   if (val >= 0 && val !== OFF && k in last) last[k] = val;
   if (v === 'phrase'){
     const r = S.phrases[cPhrase][y];
-    if (k === 'note' && val !== OFF){ if (r[2] < 0) r[2] = last.inst; aud(r); }
+    if (k === 'note' && val !== OFF){ if (r[IC] < 0) r[IC] = last.inst; aud(r); }
     if (k === 'inst' && r[0] >= 0 && r[0] !== OFF) aud(r);
     if (k === 'fxc' && r[x + 1] < 0) r[x + 1] = val === prevFxc ? last.fxv : 0;
   }
@@ -2621,15 +2722,17 @@ function after(k, v, x, y, val){
 function pickUp(x, y){
   const p = S.phrases[cPhrase]; if (!p || y < 0) return;
   const r = p[y], k = PK[x], got = [];
-  if (r[2] >= 0 && (r[2] !== last.inst || r[2] !== cInst)){ last.inst = cInst = r[2]; const I = S.insts[r[2]]; got.push(`instrument ${hx(r[2])} (pad ${I.pad + 1} ${(kit.voices[I.pad] || {}).name || ''})`.replace(' )', ')')); }
-  if (k === 'note' && r[0] >= 0 && r[0] !== OFF && r[0] !== last.note){ last.note = r[0]; got.push('note ' + noteS(r[0])); }
-  if (k === 'vol' && r[1] >= 0 && r[1] !== last.vol){ last.vol = r[1]; got.push('volume ' + hx(r[1])); }
+  if (r[IC] >= 0 && (r[IC] !== last.inst || r[IC] !== cInst)){ last.inst = cInst = r[IC]; const I = S.insts[r[IC]]; got.push(`instrument ${hx(r[IC])} (pad ${I.pad + 1} ${(kit.voices[I.pad] || {}).name || ''})`.replace(' )', ')')); }
+  if (k === 'note' && r[x] >= 0 && r[x] !== OFF && r[x] !== last.note){ last.note = r[x]; got.push('note ' + noteS(r[x])); }
+  if (k === 'vol' && r[VC] >= 0 && r[VC] !== last.vol){ last.vol = r[VC]; got.push('volume ' + hx(r[VC])); }
   if (k === 'fxc' || k === 'fxv'){ const cx = k === 'fxc' ? x : x - 1, fc = r[cx], fv = Math.max(0, r[cx + 1]);
     if (fc >= 0 && FXC[fc] && (fc !== last.fxc || fv !== last.fxv)){ last.fxc = fc; last.fxv = fv; got.push(`effect ${FXC[fc]} ${hx(fv)}`); } }
   if (got.length){ toast('Now current: ' + got.join(' · ')); draw(); }
 }
 const curS = () => `inst ${hx(last.inst)} · ${FXC[last.fxc]} ${hx(last.fxv)}`;
-function aud(r){ if (r[0] >= 0 && r[0] < 120) preview(r[2] >= 0 ? r[2] : last.inst, r[0], r[1]); }
+// Hear a phrase row: the whole chord when the phrase is open from a polyphonic track.
+function aud(r){ const ii = r[IC] >= 0 ? r[IC] : last.inst, poly = polyView();
+  for (const n of poly ? r.slice(0, NCOL) : [r[0]]) if (n >= 0 && n < 120) preview(ii, n, r[VC], poly); }
 function insertAt(x, y, k){
   if (k === 'tsp') return;
   if (k === 'fxv' && getCell(tv, x - 1, y) < 0) return toast('Pick an effect in the column to the left first.');
@@ -2693,7 +2796,7 @@ function editDouble(wasEmpty){
     setCell(tv, c.x, c.y, id); after(isS ? 'chain' : 'phrase', tv, c.x, c.y, id);
     return toast((fresh ? 'New ' : 'Cloned to ') + (isS ? 'chain ' : 'phrase ') + hx(id));
   }
-  if (tv === 'phrase' && c.x === 0){ setCell('phrase', 0, c.y, OFF); return after('note', 'phrase', 0, c.y, OFF); }
+  if (tv === 'phrase' && PK[c.x] === 'note'){ setCell('phrase', c.x, c.y, OFF); return after('note', 'phrase', c.x, c.y, OFF); }
   const r = rowsOf(tv)[c.y]; if (r && r.act && r.dbl) r.act();
 }
 function del(){
@@ -2709,7 +2812,7 @@ function del(){
   const r = rowsOf(tv)[c.y]; if (r && r.get && r.d != null){ r.set(r.d); if (r.after) r.after(); saveS(); draw(); }
 }
 // Whole rows, Renoise style: clear a row, insert a blank one (rows below move down), or remove one (rows below move up).
-function rowBlank(v){ return v === 'chain' ? [-1, 0] : [-1, -1, -1, -1, -1, -1, -1, -1, -1]; }
+function rowBlank(v){ return v === 'chain' ? [-1, 0] : blankRow(); }
 function rowsArr(v){
   if (v === 'chain'){ if (!S.chains[cChain]) S.chains[cChain] = freshChain(); return S.chains[cChain]; }
   if (v === 'phrase'){ if (!S.phrases[cPhrase]) S.phrases[cPhrase] = freshPhrase(); return S.phrases[cPhrase]; }
@@ -2780,7 +2883,9 @@ function move(dx, dy){
   const c = cs[tv], d = dims(tv);
   if (tv === 'phrase' && c.y === -2){ if (dy > 0){ c.y = 0; c.x = 0; } else c.x = clamp(c.x + dx, 0, 1); return draw(); }
   if (tv === 'phrase' && dy === -1 && c.y === 0){ c.y = -2; c.x = c.x > 0 ? 1 : 0; return draw(); }
-  c.x = clamp(c.x + dx, 0, d.w - 1); c.y = clamp(c.y + dy, 0, d.h - 1); draw();
+  if (tv === 'phrase' && dx){ const C = pCols(), i = Math.max(0, C.indexOf(c.x)); c.x = C[clamp(i + dx, 0, C.length - 1)]; }
+  else c.x = clamp(c.x + dx, 0, d.w - 1);
+  c.y = clamp(c.y + dy, 0, d.h - 1); draw();
 }
 function psetGet(x){ return x === 0 ? plen(cPhrase) : (S.plpb[cPhrase] || 0); }
 function psetSet(x, v){ if (x === 0) S.plen[cPhrase] = clamp(v, 1, PROWS); else S.plpb[cPhrase] = clamp(v, 0, 16); saveS(); draw(); }
@@ -2789,7 +2894,7 @@ function go(v){
   if (v === 'phrase' && tv === 'song'){ const cid = S.song[cs.song.y][cs.song.x];
     if (cid >= 0){ cChain = cid; cTrack = cs.song.x; const ch = S.chains[cid]; const r = ch ? ch.findIndex(q => q[0] >= 0) : -1; if (r >= 0){ cs.chain.y = r; cPhrase = ch[r][0]; } } }
   if (v === 'phrase' && tv === 'chain'){ const ch = S.chains[cChain], id = ch ? ch[cs.chain.y][0] : -1; if (id >= 0) cPhrase = id; }
-  if (v === 'inst' && tv === 'phrase'){ const p = S.phrases[cPhrase], r = p && p[cs.phrase.y]; if (r && r[2] >= 0) cInst = r[2]; }
+  if (v === 'inst' && tv === 'phrase'){ const p = S.phrases[cPhrase], r = p && p[cs.phrase.y]; if (r && r[IC] >= 0) cInst = r[IC]; }
   if (v === 'fx' && tv === 'mixer') cFxT = cs.mixer.y === 5 ? NT : cs.mixer.x;
   if (v === 'fx' && GRIDV.has(tv)) cFxT = tv === 'song' ? cs.song.x : cTrack;
   tv = v; if (MID.includes(v)) midV = v; selA = null; draw(); saveCur();
@@ -2805,7 +2910,7 @@ function nav(dir){
   // On an empty cell, still change screen: show the chain or phrase that was last open.
   if (tv === 'song'){ if (S.song[cs.song.y][cs.song.x] < 0){ cTrack = cs.song.x; go('chain'); return toast(`Empty row: showing chain ${hx(cChain)}, the last one open.`); } return go('chain'); }
   if (tv === 'chain'){ const ch = S.chains[cChain]; if (!ch || ch[cs.chain.y][0] < 0){ go('phrase'); return toast(`No phrase on that row: showing phrase ${hx(cPhrase)}, the last one open.`); } return go('phrase'); }
-  if (tv === 'phrase'){ const p = S.phrases[cPhrase], r = p && p[cs.phrase.y]; cInst = r && r[2] >= 0 ? r[2] : last.inst; tv = 'inst'; midV = 'inst'; draw(); }
+  if (tv === 'phrase'){ const p = S.phrases[cPhrase], r = p && p[cs.phrase.y]; cInst = r && r[IC] >= 0 ? r[IC] : last.inst; tv = 'inst'; midV = 'inst'; draw(); }
 }
 function optDir(dir){
   const d = dir === 'right' || dir === 'up' ? 1 : -1, big = dir === 'up' || dir === 'down';
@@ -2929,9 +3034,10 @@ function info(){
       : `Lines per beat for this phrase: ${lpb || '-- (the song’s ' + S.lpb + ')'} · each row is a 1/${e2 * 4} note` + (e2 % 3 === 0 ? ' (triplet feel)' : ''); }
   if (tv === 'phrase'){
     const p = S.phrases[cPhrase], r = p ? p[c.y] : freshPhrase()[0], k = PK[c.x], v = r[c.x];
-    if (k === 'note') return v < 0 ? 'No note' : v === OFF ? 'Note off: stops this track' : `${noteS(v)} · ` + (v === ROOT ? 'the pad’s own pitch' : `${sgn(v - ROOT)} st from the pad’s pitch`);
+    if (k === 'note'){ const cn = c.x ? `Chord note ${c.x + 1}: ` : '';
+      return cn + (v < 0 ? 'No note' : v === OFF ? 'Note off: releases every note on this track' : `${noteS(v)} · ` + (v === ROOT ? 'the pad’s own pitch' : `${sgn(v - ROOT)} st from the pad’s pitch`)); }
     if (k === 'vol') return v < 0 ? 'Volume: full' : `Volume ${hx(v)} · ${dB(curve(v))}`;
-    if (k === 'inst'){ if (v < 0) return 'Instrument: same as the last note on this track'; const I = S.insts[v] || S.insts[0]; return `Instrument ${hx(v)} → pad ${I.pad + 1} ${(kit.voices[I.pad] || {}).name || ''}`; }
+    if (k === 'inst'){ if (v < 0) return 'Instrument: same as the last note on this track'; const I = S.insts[v] || S.insts[0]; return `Instrument ${hx(v)} → ${isSyn(I.pad) ? 'synth' : 'pad'} ${I.pad + 1} ${(kit.voices[I.pad] || {}).name || ''}`; }
     const ci = k === 'fxc' ? v : r[c.x - 1], vv = k === 'fxc' ? r[c.x + 1] : v;
     return ci < 0 || !FXC[ci] ? 'No command. EDIT adds one; EDIT+▲▼ or letters pick from ' + FXC.join(' ') : `${FXC[ci]} ${h2(vv)} · ${FXI[FXC[ci]](Math.max(0, vv))}`;
   }
@@ -2988,20 +3094,21 @@ function draw(){
     for (let y = 0; y < 16; y++){ const r = ch ? ch[y] : [-1, 0];
       L.push([{t:hx(y, 1), cls:'rn' + (y % 4 ? '' : ' rn4') + (pr.has(y) ? ' pl' : '') + rsel(y), r:y}, ' ', {t:h2(r[0]), cls:cc(0, y, r[0] < 0 ? 'e' : 'v'), x:0, y}, ' ', {t:hx(r[1]), cls:cc(1, y, r[1] ? 'v' : 'e'), x:1, y}]); }
   } else if (tv === 'phrase'){
-    title = 'PHRASE ' + hx(cPhrase); sub = 'TRACK ' + d2(cTrack + 1);
+    title = 'PHRASE ' + hx(cPhrase); sub = 'TRACK ' + d2(cTrack + 1) + (polyView() ? ' · POLY' : '');
+    const poly = polyView(); if (!poly && c.x >= 1 && c.x < NCOL) c.x = 0;
     const p = S.phrases[cPhrase], pr = playRows(q => q.phrase === cPhrase ? q.step : null), len = plen(cPhrase), lpb = S.plpb[cPhrase] || 0, el2 = lpb || S.lpb;
     L.push([{t:'LEN ', cls:'lb'}, {t:d2(len), cls:cc(0, -2, 'v'), x:0, y:-2}, {t:'  LPB ', cls:'lb'}, {t:lpb ? d2(lpb) : '--', cls:cc(1, -2, lpb ? 'v' : 'e'), x:1, y:-2},
       {t:'  1/' + (el2 * 4) + (el2 % 3 === 0 ? ' (triplets)' : '') + (lpb ? '' : ' song'), cls:'lb'}]);
-    L.push(['   ', {t:'N  ', cls:'th'}, ' ', {t:'V ', cls:'th'}, ' ', {t:'I ', cls:'th'}, ' ', {t:'FX1   ', cls:'th'}, ' ', {t:'FX2   ', cls:'th'}, ' ', {t:'FX3', cls:'th'}]);
+    L.push(['   ', ...(poly ? [{t:'N1  N2  N3  N4 ', cls:'th'}] : [{t:'N  ', cls:'th'}]), ' ', {t:'V ', cls:'th'}, ' ', {t:'I ', cls:'th'}, ' ', {t:'FX1   ', cls:'th'}, ' ', {t:'FX2   ', cls:'th'}, ' ', {t:'FX3', cls:'th'}]);
     const VR = Math.max(4, songRows() - 1); if (c.top == null) c.top = 0;
     if (c.y >= 0){ if (c.y < c.top) c.top = c.y; if (c.y > c.top + VR - 1) c.top = c.y - VR + 1; }
     c.top = clamp(c.top, 0, Math.max(0, len - VR));
     for (let y = c.top; y < Math.min(len, c.top + VR); y++){
-      const r = p ? p[y] : [-1, -1, -1, -1, -1, -1, -1, -1, -1];
-      const ln = [{t:hx(y), cls:'rn' + (y % 4 ? '' : ' rn4') + (pr.has(y) ? ' pl' : '') + rsel(y), r:y}, ' ',
-        {t:noteS(r[0]), cls:cc(0, y, r[0] < 0 ? 'e' : 'cn'), x:0, y}, ' ', {t:h2(r[1]), cls:cc(1, y, r[1] < 0 ? 'e' : 'cv'), x:1, y}, ' ',
-        {t:h2(r[2]), cls:cc(2, y, r[2] < 0 ? 'e' : 'ci'), x:2, y}];
-      for (let k = 3; k < 9; k += 2) ln.push(' ', {t:r[k] < 0 ? '---' : (FXC[r[k]] || '???'), cls:cc(k, y, r[k] < 0 ? 'e' : 'cf'), x:k, y}, ' ', {t:h2(r[k + 1]), cls:cc(k + 1, y, r[k + 1] < 0 ? 'e' : 'v'), x:k + 1, y});
+      const r = p ? p[y] : blankRow();
+      const ln = [{t:hx(y), cls:'rn' + (y % 4 ? '' : ' rn4') + (pr.has(y) ? ' pl' : '') + rsel(y), r:y}, ' '];
+      for (let q = 0; q < (poly ? NCOL : 1); q++) ln.push({t:noteS(r[q]), cls:cc(q, y, r[q] < 0 ? 'e' : 'cn'), x:q, y}, ' ');
+      ln.push({t:h2(r[VC]), cls:cc(VC, y, r[VC] < 0 ? 'e' : 'cv'), x:VC, y}, ' ', {t:h2(r[IC]), cls:cc(IC, y, r[IC] < 0 ? 'e' : 'ci'), x:IC, y});
+      for (let k = FX0; k < RW; k += 2) ln.push(' ', {t:r[k] < 0 ? '---' : (FXC[r[k]] || '???'), cls:cc(k, y, r[k] < 0 ? 'e' : 'cf'), x:k, y}, ' ', {t:h2(r[k + 1]), cls:cc(k + 1, y, r[k + 1] < 0 ? 'e' : 'v'), x:k + 1, y});
       L.push(ln);
     }
   } else if (tv === 'mixer'){
@@ -3269,11 +3376,11 @@ const HEXK = '0123456789abcdef';
 function curKind(){ const c = cs[tv]; if (onPset()) return 'param'; if (GRIDV.has(tv)) return kindAt(tv, c.x); if (tv === 'mixer') return 'mix'; return 'param'; }
 function down1(){ const c = cs[tv], d = dims(tv); c.y = clamp(c.y + (GRIDV.has(tv) ? kStep : 1), 0, d.h - 1); }
 function typeNote(semi){
-  const c = cs[tv]; if (tv !== 'phrase' || c.x !== 0 || c.y < 0) return;
-  const n = clamp(kOct * 12 + semi, 0, 119);
-  setCell('phrase', 0, c.y, n); const y = c.y; down1(); after('note', 'phrase', 0, y, n);
+  const c = cs[tv]; if (tv !== 'phrase' || PK[c.x] !== 'note' || c.y < 0) return;
+  const n = clamp(kOct * 12 + semi, 0, 119), x = c.x;
+  setCell('phrase', x, c.y, n); const y = c.y; down1(); after('note', 'phrase', x, y, n);
 }
-function typeOff(){ const c = cs[tv]; if (tv !== 'phrase' || c.x !== 0 || c.y < 0) return; setCell('phrase', 0, c.y, OFF); const y = c.y; down1(); after('note', 'phrase', 0, y, OFF); }
+function typeOff(){ const c = cs[tv]; if (tv !== 'phrase' || PK[c.x] !== 'note' || c.y < 0) return; const x = c.x; setCell('phrase', x, c.y, OFF); const y = c.y; down1(); after('note', 'phrase', x, y, OFF); }
 function typeHex(d){
   const c = cs[tv], k = curKind(), now = performance.now(), key = tv + c.x + ':' + c.y + ':' + cChain + ':' + cPhrase;
   const fresh = hexBuf.key !== key || now - hexBuf.t > 1500 || hexBuf.n >= 2;
@@ -3336,7 +3443,7 @@ function keysDown(e){
   if (k === 'Escape'){ if (selA){ selA = null; draw(); } return true; }
   if (k === 'Tab'){
     const c = cs[tv], d = dims(tv), dir = e.shiftKey ? -1 : 1;
-    if (tv === 'phrase'){ const G = [0, 1, 2, 3, 5, 7], i = G.findIndex(g => g > c.x); const cur = i < 0 ? G.length - 1 : i - 1;
+    if (tv === 'phrase'){ const G = polyView() ? [0, 1, 2, 3, VC, IC, FX0, FX0 + 2, FX0 + 4] : [0, VC, IC, FX0, FX0 + 2, FX0 + 4], i = G.findIndex(g => g > c.x); const cur = i < 0 ? G.length - 1 : i - 1;
       c.x = G[(cur + dir + G.length) % G.length]; draw(); }
     else move(dir, 0);
     void d; return true;

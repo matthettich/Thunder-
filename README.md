@@ -25,9 +25,13 @@ An 8-pad drum synth and 16-track tracker for the browser, built for a Galaxy Z F
 
 **Skin ▾** in the top bar (or SKIN in the tracker's Project screen) switches between the ...Seeds skins: Pastel (follows your system), Pastel light, Minimal, Minimal colors, Monotone, Minimal black, Minimal colors black and Neon. The choice is remembered.
 
+## Synth slots
+
+The kit has 16 slots. 1–8 are the drum pads (one-shots). 9–16 are synths for melodic and harmonic parts, starting as Bass, Pluck, Keys, Pad, Lead, Bell, Organ and Sub. A synth note holds at its sustain level for as long as it is held (up to the slot's Max len), then fades over the longest release of its ADSR layers. They are tuned so C-4 plays middle C. On the synth page, the computer keyboard and the pads hold synth notes while pressed (hold several keys for a chord); Space and Shift+number play them for the slot's Gate; MIDI notes that aren't mapped to a drum pad play the selected synth, held until note-off. Exports still make one-shots (the Gate length), named with their note if you turn that on. Kits saved before the synth slots load with the factory synths in 9–16.
+
 ## Playing pads from the computer keyboard
 
-On the synth page the keyboard plays the selected pad chromatically, Renoise style: Z to / is the lower octave (S D G H J for sharps), Q to P the upper (2 3 5 6 7 9 0 for sharps). C-4 is the pad at its own pitch; − and = (or numpad / and *) change the octave. Shift+1–8 or ◀ ▶ pick a pad, Space plays it as it is.
+On the synth page the keyboard plays the selected pad chromatically, Renoise style: Z to / is the lower octave (S D G H J for sharps), Q to P the upper (2 3 5 6 7 9 0 for sharps). C-4 is the pad at its own pitch; − and = (or numpad / and *) change the octave. Shift+1–8 or ◀ ▶ pick a pad (◀ ▶ go through all 16 slots), Space plays it as it is. On a synth slot, notes hold while the keys are down.
 
 ## Tracker
 
@@ -42,6 +46,8 @@ Tap **Tracker** at the top for an M8-style sequencer that plays the kit. 16 trac
 - **Mixer** – volume, pan, mute, solo and effects per track, level meters per track (green, yellow above −12 dB, red above −6 dB), and a stereo master meter with peak and CLIP.
 - **FX** – up to 4 effects per track and 4 on the master, running live as the song plays (see below).
 - **Project** – tempo, LPB (lines per beat, like Renoise: 4 = 16ths, 8 = 32nds, 3 or 6 = triplets), swing, limiter, render settings, renders, and project files (song and kit together).
+
+**Chords and polyphony.** Tracks 9–16 are polyphonic. A phrase opened from one of them shows four note columns (N1–N4), so a row can hold a chord, and notes ring over each other up to 4 per track (a fifth steals the oldest). A note OFF in any note column releases every note on the track; on synth slots that's their release, drum pads stop at once. Tracks 1–8 stay monophonic and play only N1. Instruments 08–0F play the synth slots in new songs (older songs keep their instruments as they were). Songs saved before the chord columns open with their notes in N1.
 
 **FX column.** Named and laid out like the M8's. Sequencer commands:
 

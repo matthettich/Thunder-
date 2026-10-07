@@ -10,130 +10,132 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-/* Layout: one-screen instrument. Top bar, a scrolling editor (pad, its 8 layers, the selected layer),
-   and a fixed dock with the recorder and 8 trigger pads. Skin follows ...Seeds "Minimal":
-   white, square, 1px ink lines, thick family-coloured module borders, Futura. */
+/* Layout: Seeds "Minimal" skin, light only (as in Seeds). Full-width bands split by 1px ink lines:
+   grey control bands, a black monitor screen for the waveform, white module cards with thick
+   family-coloured borders, and a grey recorder dock with the 8 pads. */
 :root{
-  --bg:#ffffff; --panel:#ffffff; --panel2:#f3f3f3; --side:#efefef; --ink:#111111; --muted:#555555;
-  --track:#e6e6e6; --inv:#ffffff;
-  --std:#2f6fc7; --fm:#8a4fd0; --add:#139a9a; --noise:#e07a2e; --smp:#d1456e; --rec:#d1456e;
+  --bench:#ffffff; --panel:#ffffff; --panel2:#f3f3f3; --side:#efefef; --ink:#111111; --muted:#555555;
+  --track:#e6e6e6; --inv:#ffffff; --screen:#000000; --screen-ink:#ffffff; --screen-line:#3a3a3a;
+  --std:#2f6fc7; --fm:#8a4fd0; --add:#139a9a; --noise:#e07a2e; --smp:#d1456e; --rec:#d33b2c;
   --font:Futura,"Futura PT",Jost,"Century Gothic","Avenir Next",system-ui,sans-serif;
+  color-scheme:light;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#0d0d0d; --panel:#0d0d0d; --panel2:#1b1b1b; --side:#161616; --ink:#f0f0f0; --muted:#a6a6a6;
-  --track:#333333; --inv:#0d0d0d;
-  --std:#6a9cf0; --fm:#ad85ee; --add:#35c4c4; --noise:#f29a55; --smp:#ee7398; --rec:#ee7398; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#0d0d0d; --panel:#0d0d0d; --panel2:#1b1b1b; --side:#161616; --ink:#f0f0f0; --muted:#a6a6a6;
-  --track:#333333; --inv:#0d0d0d;
-  --std:#6a9cf0; --fm:#ad85ee; --add:#35c4c4; --noise:#f29a55; --smp:#ee7398; --rec:#ee7398; color-scheme:dark}
-
 *{box-sizing:border-box; border-radius:0}
 [hidden]{display:none!important}
 html,body{height:100%}
-body{margin:0; background:var(--bg); color:var(--ink); font-family:var(--font); font-size:13px;
+body{margin:0; background:var(--bench); color:var(--ink); font-family:var(--font); font-size:14px;
   display:flex; flex-direction:column; overflow:hidden; -webkit-tap-highlight-color:transparent; letter-spacing:-.01em}
 button,select,input{font:inherit; color:var(--ink)}
-button{background:var(--panel); border:1px solid var(--ink); padding:4px 10px; min-height:32px; cursor:pointer;
-  touch-action:manipulation; user-select:none; -webkit-user-select:none}
-button.on{background:var(--ink); color:var(--inv)}
+button{background:var(--panel); border:1px solid var(--ink); padding:6px 11px; min-height:34px; cursor:pointer;
+  touch-action:manipulation; user-select:none; -webkit-user-select:none; display:inline-flex; align-items:center; gap:7px; justify-content:center}
+button:hover{border-color:var(--muted)}
+button.on{background:var(--ink); color:var(--inv); border-color:var(--ink)}
 button:disabled{opacity:.4; cursor:default}
 button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--ink); outline-offset:2px}
-button.sm{min-height:28px; padding:2px 8px; font-size:12px}
-select{background:var(--panel); border:1px solid var(--ink); min-height:32px; padding:0 6px; max-width:100%}
-input[type=text]{background:var(--panel); border:1px solid var(--ink); min-height:32px; padding:0 8px; min-width:0}
+button.sm{min-height:30px; padding:3px 9px; font-size:12.5px}
+select{background:var(--panel); border:1px solid var(--ink); min-height:34px; padding:0 6px; max-width:100%}
+input[type=text]{background:var(--panel); border:1px solid var(--ink); min-height:34px; padding:0 9px; min-width:0}
 input[type=range]{width:100%; accent-color:var(--ink); height:30px; margin:0; touch-action:pan-y}
 .sp{flex:1}
+.dot{width:12px; height:12px; border-radius:50%!important; background:var(--rec); display:inline-block; flex:none}
 
-/* top bar */
-.top{display:flex; align-items:center; gap:8px; padding:8px 16px; border-bottom:1px solid var(--ink); flex:none; flex-wrap:wrap}
-.brand{font-weight:700; font-size:19px; letter-spacing:.02em; white-space:nowrap}
+/* top bar, like the Seeds title bar */
+.top{display:flex; align-items:center; gap:10px; padding-block:9px; padding-inline:16px; border-bottom:1px solid var(--ink); flex:none; flex-wrap:wrap; background:var(--bench)}
+.brand{font-weight:600; font-size:22px; letter-spacing:.01em; white-space:nowrap; margin-right:6px}
 .kitname{width:150px}
 
-/* scrolling editor */
-.main{flex:1; min-height:0; overflow:auto; padding-block:12px; padding-inline:16px; display:flex; flex-direction:column; gap:12px}
-.card{border:1px solid var(--ink); background:var(--panel); flex:none}
-.card>header{display:flex; align-items:center; gap:8px; padding:6px 8px; border-bottom:1px solid var(--ink); flex-wrap:wrap}
-.card>header h2{font-size:13px; font-weight:600; margin:0; white-space:nowrap}
-.panel .pbody{padding:10px; display:flex; flex-direction:column; gap:10px}
+/* scrolling editor made of bands */
+.main{flex:1; min-height:0; overflow:auto; display:flex; flex-direction:column}
+.band{flex:none; padding-block:9px; padding-inline:16px; border-bottom:1px solid var(--ink); background:var(--bench)}
+.band.grey{background:var(--side)}
+.bar{display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+.ttl{font-weight:600; font-size:15px; white-space:nowrap}
+.lbl{color:var(--muted)}
+.pbody{display:flex; flex-direction:column; gap:10px; padding-top:8px}
 .btnrow{display:flex; gap:6px; flex-wrap:wrap; align-items:center}
-.note{color:var(--muted); font-size:12px; line-height:1.45; margin:0; max-width:68ch}
+.note{color:var(--muted); font-size:12.5px; line-height:1.45; margin:0; max-width:68ch}
 
-.row{display:grid; grid-template-columns:64px minmax(0,1fr) 60px; align-items:center; gap:6px; font-size:12.5px; min-height:30px}
+.row{display:grid; grid-template-columns:70px minmax(0,1fr) 64px; align-items:center; gap:6px; font-size:12.5px; min-height:30px}
 .row label{color:var(--muted); user-select:none; -webkit-user-select:none; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; cursor:default}
 .row output{text-align:right; font-variant-numeric:tabular-nums; white-space:nowrap}
-.segrow{display:flex; align-items:center; gap:6px; min-height:32px; font-size:12.5px}
-.segrow>span{color:var(--muted); width:64px; flex:none}
-.seg{display:inline-flex; border:1px solid var(--ink)}
-.seg button{border:0; border-right:1px solid var(--ink); min-height:28px; padding:2px 9px; font-size:12px}
+.segrow{display:flex; align-items:center; gap:6px; min-height:34px; font-size:12.5px}
+.segrow>span{color:var(--muted); width:70px; flex:none}
+.seg{display:inline-flex; border:1px solid var(--ink); background:var(--panel)}
+.seg button{border:0; border-right:1px solid var(--ink); min-height:30px; padding:3px 12px; font-weight:500; font-size:12.5px; background:none}
+.seg button.on{background:var(--ink); color:var(--inv)}
 .seg button:last-child{border-right:0}
 
-/* pad (voice) card */
-.vhead .pnum{font-weight:700}
-.vhead input{width:140px}
-.vbody{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:4px 16px; padding:8px}
-.wavebox{display:flex; flex-direction:column; gap:4px; min-width:0}
-.wave{width:100%; height:120px; display:block; border:1px solid var(--ink); background:var(--panel2); cursor:pointer}
-.wmeta{font-size:11.5px; color:var(--muted); font-variant-numeric:tabular-nums; display:flex; gap:10px; flex-wrap:wrap}
+/* monitor screen (Seeds' black main view) */
+.screen{flex:none; background:var(--screen); border-bottom:1px solid var(--ink); position:relative}
+.wave{width:100%; height:150px; display:block; cursor:pointer}
+.wmeta{display:flex; gap:14px; flex-wrap:wrap; font-size:12.5px; color:var(--muted); font-variant-numeric:tabular-nums}
+.vrows{display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:0 22px; padding-top:4px}
 
-/* layer strip */
-.strip{display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); gap:6px; flex:none}
+/* layer list, like the Seeds module palette items */
+.strip{display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); gap:6px}
 .lcell{border:2.5px solid var(--fam); background:var(--panel); padding:4px 6px; min-height:56px; text-align:left;
-  display:flex; flex-direction:column; justify-content:space-between; gap:3px; min-width:0}
+  display:flex; flex-direction:column; justify-content:space-between; align-items:stretch; gap:3px; min-width:0; font-weight:400}
+.lcell:hover{border-color:var(--fam)}
 .lcell .l1{display:flex; align-items:center; justify-content:space-between; gap:4px; font-weight:600}
-.lcell .tn{font-size:11.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.lcell .tn{font-size:12px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .lcell .lv{height:4px; background:var(--track); position:relative}
-.lcell .lv i{position:absolute; left:0; top:0; bottom:0; background:var(--fam)}
+.lcell .lv i{position:absolute; left:0; top:0; bottom:0; background:var(--ink)}
 .lcell.off{border-style:dashed}
 .lcell.off .tn,.lcell.off .l1 b{color:var(--muted)}
-.lcell.sel{background:var(--fam); color:var(--inv)}
-.lcell.sel .tn,.lcell.sel .l1 b{color:var(--inv)}
-.lcell.sel .lv{background:color-mix(in srgb, var(--inv) 35%, transparent)}
-.lcell.sel .lv i{background:var(--inv)}
-.tog{width:18px; height:18px; border:1.5px solid currentColor; display:inline-block; flex:none; position:relative}
-.tog.on::after{content:""; position:absolute; inset:3px; background:currentColor}
+.lcell.off .lv i{background:var(--muted)}
+.lcell.sel{border-width:3.5px; padding:3px 5px; background:var(--panel2)}
+.lcell.sel .tn{font-weight:600}
+.tog{width:18px; height:18px; border:1.5px solid var(--ink); display:inline-block; flex:none; position:relative; background:var(--panel)}
+.tog.on{background:var(--ink)}
+.tog.on::after{content:""; position:absolute; inset:3px; border:2px solid var(--inv); border-top:0; border-left:0; width:5px; height:9px; left:5px; top:1px; transform:rotate(45deg)}
 
-/* layer editor */
-.layercard{border:3.5px solid var(--fam)}
-.layercard>header{border-bottom:2px solid var(--fam)}
-.layercard>header h2{color:var(--ink)}
-.famtag{font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--fam); font-weight:600}
-.secs{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:6px 18px; padding:8px}
-.sec h3{font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; margin:2px 0 2px; font-weight:600; color:var(--fam)}
-.readout{font-size:11.5px; color:var(--muted); font-variant-numeric:tabular-nums; min-height:18px; padding-left:70px}
+/* layer editor: a Seeds module card */
+.cardwrap{padding-block:12px; padding-inline:16px; flex:none}
+.layercard{border:3.5px solid var(--fam); background:var(--panel)}
+.layercard>header{display:flex; align-items:center; gap:8px; padding:8px 8px 8px 12px; border-bottom:2px solid var(--fam); flex-wrap:wrap}
+.famtag{font-size:12px; color:var(--muted)}
+.secs{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:8px 22px; padding:10px 12px 12px}
+.sec{min-width:0}
+.sec h3{font-size:13px; font-weight:600; margin:2px 0 4px; color:var(--ink); display:flex; align-items:center; gap:7px}
+.sec h3::before{content:""; width:9px; height:9px; background:var(--fam); flex:none}
+.readout{font-size:12px; color:var(--muted); font-variant-numeric:tabular-nums; min-height:18px; padding-left:76px}
 
-/* dock */
-.dock{flex:none; background:var(--side); border-top:1px solid var(--ink); padding-block:8px; padding-inline:16px}
-.recbar{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:8px}
-.recbar .row{flex:1 1 220px; max-width:360px}
-#bRec.on{background:var(--rec); border-color:var(--rec); color:#fff}
-.meter{width:120px; height:14px; border:1px solid var(--ink); background:var(--panel); display:block; flex:none}
-.rstat{font-size:12px; color:var(--muted); flex:1 1 200px; min-width:0; line-height:1.3}
-.recmore{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:2px 18px; margin-bottom:8px;
-  border:1px solid var(--ink); background:var(--panel); padding:6px 8px}
+/* recorder dock */
+.dock{flex:none; background:var(--side); border-top:1px solid var(--ink); padding-block:9px 11px; padding-inline:16px; display:grid; gap:8px}
+.dock>header{display:flex; align-items:baseline; gap:10px; min-width:0}
+.rstat{font-size:12.5px; color:var(--muted); min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1}
+.recbar{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+.recbar .row{flex:1 1 230px; max-width:380px}
+#bRec{font-size:15px; padding:6px 14px}
+#bRec.on{background:var(--ink); color:var(--inv)}
+.meter{width:140px; height:14px; border:1px solid var(--ink); background:var(--panel); display:block; flex:none}
+.recmore{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:2px 18px; border:1px solid var(--ink); background:var(--panel); padding:6px 10px}
 .pads{display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); gap:6px}
-.pad{height:68px; border:1px solid var(--ink); background:var(--panel); display:flex; flex-direction:column;
-  justify-content:space-between; align-items:flex-start; padding:5px 7px; text-align:left; font-size:12px; touch-action:none; min-width:0}
-.pad b{font-size:15px}
+.pad{height:70px; border:1px solid var(--ink); background:var(--panel); display:flex; flex-direction:column;
+  justify-content:space-between; align-items:flex-start; padding:6px 8px; text-align:left; font-size:12.5px; touch-action:none; min-width:0; gap:0}
+.pad b{font-size:16px; font-weight:600}
 .pad .pn{white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%}
-.pad.sel{box-shadow:inset 0 0 0 2px var(--ink)}
+.pad.sel{border-width:3.5px; padding:3.5px 5.5px}
 .pad.hit{background:var(--ink); color:var(--inv)}
 .pad.recmode{border-color:var(--rec); border-style:dashed}
-.pad.armed{border:3px solid var(--rec); padding:3px 5px}
+.pad.armed{border:3.5px solid var(--rec); padding:3.5px 5.5px}
 .pad.recording{background:var(--rec); color:#fff; border-color:var(--rec)}
 
-.toast{position:fixed; left:50%; transform:translateX(-50%); bottom:calc(170px + env(safe-area-inset-bottom,0px));
-  background:var(--ink); color:var(--inv); padding:8px 14px; font-size:13px; z-index:9; max-width:calc(100% - 32px)}
+.toast{position:fixed; left:50%; transform:translateX(-50%); bottom:calc(190px + env(safe-area-inset-bottom,0px));
+  background:var(--ink); color:var(--inv); padding:9px 15px; font-size:13px; z-index:9; max-width:calc(100% - 32px)}
 
 @media (max-width:600px){
   .strip,.pads{grid-template-columns:repeat(4,minmax(0,1fr))}
-  .pad{height:54px}
-  .meter{width:auto; flex:1 1 60px}
-  .recbar{gap:6px; margin-bottom:6px}
-  .rstat{font-size:11.5px}
+  .pad{height:56px}
   .top{gap:6px}
-  .kitname{width:110px}
-  .toast{bottom:calc(230px + env(safe-area-inset-bottom,0px))}
+  .brand{font-size:19px}
+  .kitname{width:auto; flex:1 1 60px; min-width:0}
+  .top{flex-wrap:nowrap}
+  .top .sp{display:none}
+  .top button{padding-inline:8px}
+  .wave{height:120px}
+  .meter{width:auto; flex:1 1 60px}
+  .toast{bottom:calc(250px + env(safe-area-inset-bottom,0px))}
 }
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
 </style>
@@ -151,8 +153,8 @@ input[type=range]{width:100%; accent-color:var(--ink); height:30px; margin:0; to
 </div>
 
 <div class="main" id="main">
-  <section class="card panel" id="pKit" hidden>
-    <header><h2>Kit</h2></header>
+  <section class="band grey" id="pKit" hidden>
+    <div class="bar"><span class="ttl">Kit</span></div>
     <div class="pbody">
       <div class="btnrow">
         <button id="bSaveKit">Save kit (.json)</button>
@@ -168,8 +170,8 @@ input[type=range]{width:100%; accent-color:var(--ink); height:30px; margin:0; to
     </div>
   </section>
 
-  <section class="card panel" id="pExport" hidden>
-    <header><h2>Export</h2></header>
+  <section class="band grey" id="pExport" hidden>
+    <div class="bar"><span class="ttl">Export</span></div>
     <div class="pbody">
       <div class="btnrow">
         <div class="segrow"><span>Rate</span><div class="seg" id="segRate"></div></div>
@@ -186,9 +188,9 @@ input[type=range]{width:100%; accent-color:var(--ink); height:30px; margin:0; to
     </div>
   </section>
 
-  <section class="card" id="voiceCard">
-    <header class="vhead">
-      <span class="pnum" id="vNum">Pad 1</span>
+  <section class="band grey">
+    <div class="bar">
+      <span class="ttl" id="vNum">Pad 1</span>
       <input id="vName" type="text" aria-label="Pad name" spellcheck="false">
       <div class="sp"></div>
       <button class="sm" id="vPlay">Play</button>
@@ -196,21 +198,23 @@ input[type=range]{width:100%; accent-color:var(--ink); height:30px; margin:0; to
       <button class="sm" id="vInit">Init</button>
       <button class="sm" id="vCopy">Copy</button>
       <button class="sm" id="vPaste">Paste</button>
-    </header>
-    <div class="vbody">
-      <div id="vRows"></div>
-      <div class="wavebox">
-        <canvas class="wave" id="wave" aria-label="Rendered waveform, tap to play"></canvas>
-        <div class="wmeta" id="wMeta"></div>
-      </div>
     </div>
   </section>
+  <div class="screen"><canvas class="wave" id="wave" aria-label="Rendered waveform, tap to play"></canvas></div>
+  <section class="band grey">
+    <div class="wmeta" id="wMeta"></div>
+    <div class="vrows" id="vRows"></div>
+  </section>
 
-  <div class="strip" id="strip"></div>
+  <section class="band">
+    <div class="bar" style="margin-bottom:8px"><span class="ttl">Layers</span><span class="lbl">tap to edit, tick to turn on</span></div>
+    <div class="strip" id="strip"></div>
+  </section>
 
-  <section class="card layercard" id="layerCard">
+  <div class="cardwrap">
+  <section class="layercard" id="layerCard">
     <header>
-      <h2 id="lTitle">Layer 1</h2>
+      <span class="ttl" id="lTitle">Layer 1</span>
       <select id="lType" aria-label="Oscillator type"></select>
       <button class="sm" id="lOn">On</button>
       <span class="famtag" id="lFam"></span>
@@ -222,17 +226,18 @@ input[type=range]{width:100%; accent-color:var(--ink); height:30px; margin:0; to
     </header>
     <div class="secs" id="secs"></div>
   </section>
+  </div>
 </div>
 
 <div class="dock">
+  <header><span class="ttl">Recorder</span><span class="rstat" id="rStat">Tap Rec, then a pad. Recording starts when sound crosses the line.</span></header>
   <div class="recmore" id="recMore" hidden></div>
   <div class="recbar">
-    <button id="bRec">● Rec</button>
+    <button id="bRec"><span class="dot"></span>Rec</button>
     <button class="sm" id="bLoad">Load file</button>
     <button class="sm" id="bRecMore" aria-expanded="false" aria-label="Recording settings">⚙</button>
     <canvas class="meter" id="meter" aria-label="Input level"></canvas>
     <div class="row" id="thrRow"></div>
-    <span class="rstat" id="rStat">Tap Rec, then a pad. Recording starts when sound crosses the line.</span>
     <input type="file" id="fileIn" accept="audio/*,.wav,.mp3,.ogg,.m4a,.flac" hidden>
   </div>
   <div class="pads" id="pads"></div>
@@ -766,18 +771,19 @@ document.addEventListener('keydown', e => {
 /* ---------- waveform ---------- */
 function cssv(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
 function drawWave(){
-  const cv = $('wave'), dpr = window.devicePixelRatio || 1, w = Math.max(10, cv.clientWidth), h = cv.clientHeight || 120;
+  const cv = $('wave'), dpr = window.devicePixelRatio || 1, w = Math.max(10, cv.clientWidth), h = cv.clientHeight || 150;
   cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
   const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
   const c = cache[cur]; if (!c) return;
   const d = c.data, mid = h / 2;
-  g.fillStyle = cssv('--track'); g.fillRect(0, mid, w, 1);
-  g.fillStyle = cssv('--ink');
+  g.fillStyle = cssv('--screen'); g.fillRect(0, 0, w, h);
+  g.fillStyle = cssv('--screen-line'); g.fillRect(0, mid, w, 1);
+  g.fillStyle = cssv('--screen-ink');
   const per = d.length / w; let pk = 0;
   for (let x = 0; x < w; x++){
     let mn = 0, mx = 0; const s = Math.floor(x * per), e = Math.min(d.length, Math.floor((x + 1) * per) + 1);
     for (let i = s; i < e; i++){ const v = d[i]; if (v < mn) mn = v; if (v > mx) mx = v; }
-    const y1 = mid - Math.min(1, mx) * (mid - 2), y2 = mid - Math.max(-1, mn) * (mid - 2);
+    const y1 = mid - Math.min(1, mx) * (mid - 8), y2 = mid - Math.max(-1, mn) * (mid - 8);
     g.fillRect(x, y1, 1, Math.max(1, y2 - y1));
   }
   for (let i = 0; i < d.length; i++){ const a = Math.abs(d[i]); if (a > pk) pk = a; }

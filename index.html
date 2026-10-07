@@ -223,7 +223,7 @@ input[type=range]{width:100%; accent-color:var(--ink); height:30px; margin:0; to
 .tsub{color:var(--ts-th); font-weight:400; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .tgrid{flex:1; min-height:0; overflow:hidden; padding-top:.25em}
 .tgrid .ln{white-space:pre; line-height:1.3; height:1.3em}
-.tgrid span[data-x]{cursor:pointer}
+.tgrid span[data-x],.tgrid span[data-r]{cursor:pointer}
 /* Screen colours. Dark is the M8 look; the pastel ones keep every colour at readable contrast (4.5:1 or more for text). */
 .tscr{--ts-bg:#000000; --ts-ink:#ffffff; --ts-dim:#4f4f4f; --ts-rn:#6f6f6f; --ts-rn4:#b5b5b5; --ts-th:#8a8a8a; --ts-vol:#7fd3cf; --ts-inst:#a6c2f0; --ts-fx:#e8a5de;
   --ts-mute:#e0564a; --ts-solo:#e8b93c; --ts-pl-bg:#4a3c0c; --ts-pl:#ffd659; --ts-sel:#2c3a55; --ts-cur-bg:#ffffff; --ts-cur:#000000; --ts-line:#3a3a3a; --ts-info:#c9c9c9; --ts-hint:#7a7a7a;
@@ -475,13 +475,15 @@ body.trkv .toast{bottom:calc(var(--k) * 2 + 40px + env(safe-area-inset-bottom,0p
         <dt>Sticky keys</dt><dd>tap SHIFT or OPTION alone and it stays lit for the next button</dd>
         <dt>Command row</dt><dd>buttons for change, clear, select, copy, cut, paste</dd>
         <dt>Touch</dt><dd>tap to move, tap again to open or add, drag up or down to change</dd>
-        <dt>Keys</dt><dd>arrows, Shift, Z option, X edit, Space play · Alt+1–7 screens · F5–F8 transport · Ctrl+Z undo</dd>
+        <dt>Row numbers</dt><dd>tap to select that line, tap another to grow it</dd>
+        <dt>Keys</dt><dd>arrows, Shift, Z option, X edit, Space play · Alt+1–7 screens · F5–F8 transport · Ctrl+Z undo · Ctrl+C X V A copy, cut, paste, all · Ctrl+S save, Shift+Ctrl+S save as, Ctrl+O open</dd>
       </dl>
       <dl class="tlegend" id="tLegKeys" hidden>
         <dt>Alt + 1–7</dt><dd>Song, Chain, Phrase, Inst, Mixer, FX, Project · Alt+0 the synth</dd>
         <dt>F2 F3 F4</dt><dd>Phrase, Mixer, Inst (like Renoise’s editor keys)</dd>
         <dt>F5 F6 F7 F8</dt><dd>play song · play this screen · song from cursor · stop</dd>
-        <dt>Arrows</dt><dd>move · Shift+arrows change screen</dd>
+        <dt>Arrows</dt><dd>move · Shift+◀▶ change screen</dd>
+        <dt>Shift + ▲▼</dt><dd>select whole lines (Song, Chain, Phrase); tap row numbers on a touch screen</dd>
         <dt>Tab</dt><dd>next column (phrase) or track</dd>
         <dt>Home End PgUp PgDn</dt><dd>top, bottom, 16 rows</dd>
         <dt>Alt + arrows</dt><dd>change the value (◀▶ ±1, ▲▼ more)</dd>
@@ -495,10 +497,12 @@ body.trkv .toast{bottom:calc(var(--k) * 2 + 40px + env(safe-area-inset-bottom,0p
         <dt>Enter</dt><dd>add, open or run · twice for new</dd>
         <dt>Delete</dt><dd>clear the row, step down · Shift+Delete just the cell</dd>
         <dt>Insert Backspace</dt><dd>add a row · remove a row</dd>
-        <dt>Ctrl/⌘ Z Y</dt><dd>undo, redo</dd>
+        <dt>Ctrl/⌘ S</dt><dd>save · Shift+Ctrl/⌘+S save as · Ctrl/⌘+O open</dd>
+        <dt>Ctrl/⌘ Z Y</dt><dd>undo, redo (Shift+Ctrl/⌘+Z redo too)</dd>
         <dt>Ctrl/⌘ ▲▼</dt><dd>previous / next chain or phrase</dd>
         <dt>[ ]</dt><dd>previous / next chain, phrase or instrument</dd>
-        <dt>Ctrl/⌘ B C X V</dt><dd>select, copy, cut, paste</dd>
+        <dt>Ctrl/⌘ C X V A</dt><dd>copy, cut, paste over the cursor or selection, select all · Ctrl/⌘+B block select</dd>
+        <dt>Esc</dt><dd>drop the selection</dd>
         <dt>Space</dt><dd>play this screen · Shift+Space the song</dd>
       </dl>
     </aside>
@@ -1860,13 +1864,18 @@ function demoSong(){
 }
 let S = (() => { try { const s = localStorage.getItem(TK); return s ? normSong(JSON.parse(s)) : demoSong(); } catch(e){ return demoSong(); } })();
 let sT = 0;
-// Undo: every saved change keeps the state before it (up to 200 steps).
-const undo = {past:[], future:[], cur:JSON.stringify(S), busy:false};
+// Undo: every saved change keeps the state before it (up to 200 steps). Changes made by one key or tap
+// (a paste, a cut, a note plus its instrument) settle at the end of that event, so they undo as one step.
+const undo = {past:[], future:[], cur:JSON.stringify(S), busy:false, pend:false};
 function snap(){
-  if (undo.busy) return;
-  const j = JSON.stringify(S);
-  if (undo.cur !== null && j !== undo.cur){ undo.past.push(undo.cur); if (undo.past.length > 200) undo.past.shift(); undo.future = []; }
-  undo.cur = j;
+  if (undo.busy || undo.pend) return;
+  undo.pend = true;
+  queueMicrotask(() => {
+    undo.pend = false;
+    const j = JSON.stringify(S);
+    if (undo.cur !== null && j !== undo.cur){ undo.past.push(undo.cur); if (undo.past.length > 200) undo.past.shift(); undo.future = []; }
+    undo.cur = j;
+  });
 }
 function undoStep(dir){
   const from = dir < 0 ? undo.past : undo.future, to = dir < 0 ? undo.future : undo.past;
@@ -2301,8 +2310,45 @@ async function shareLast(){
   try { await navigator.share({files:lastR.map(f => new File([f.data], f.name, {type:'audio/wav'})), title:'...Thunder'}); }
   catch(e){ if (e && e.name !== 'AbortError') toast('Sharing didn’t work here. The render was saved to your downloads.'); }
 }
-function saveProj(){
-  deliver(`${safe(S.name || 'Song')} project.json`, new Blob([JSON.stringify({app:'thunder-project', v:1, song:S, kit:kitToJSON(false)})], {type:'application/json'}));
+// Save writes back to the file the project came from (or was last saved as) where the browser allows it
+// (desktop Chrome and Edge); elsewhere it downloads a copy. Save As always asks for a new file.
+let projFile = null;
+const canFS = !inClaude && typeof window.showSaveFilePicker === 'function';
+const PJT = [{description:'...Thunder project', accept:{'application/json':['.json']}}];
+const projBlob = () => new Blob([JSON.stringify({app:'thunder-project', v:1, song:S, kit:kitToJSON(false)})], {type:'application/json'});
+async function writeTo(h){ const w = await h.createWritable(); await w.write(projBlob()); await w.close(); }
+let saving = false;
+async function saveProj(as){
+  if (saving) return; saving = true; flushS();
+  try {
+    if (!as && projFile){
+      try { await writeTo(projFile); return toast('Saved ' + projFile.name); }
+      catch(e){ if (e && e.name === 'AbortError') return; }   // permission gone or file moved: ask for a file instead
+    }
+    if (canFS){
+      try { const h = await window.showSaveFilePicker({suggestedName:`${safe(S.name || 'Song')} project.json`, types:PJT}); await writeTo(h); projFile = h; return toast('Saved ' + h.name); }
+      catch(e){ if (e && e.name === 'AbortError') return; toast('Couldn’t save there: ' + ((e && e.message) || e)); return; }
+    }
+    if (as){ const n = prompt('Save project as', S.name); if (n == null) return; S.name = n.trim().slice(0, 40) || 'Song'; saveS(); draw(); }
+    await deliver(`${safe(S.name || 'Song')} project.json`, projBlob());
+  } finally { saving = false; }
+}
+async function loadProjFile(f){
+  try {
+    const j = JSON.parse(await f.text());
+    if (!j || (!j.song && j.app !== 'thunder-song')) throw new Error('This file isn’t a ...Thunder project.');
+    if (j.kit) setKit(kitFromJSON(j.kit));
+    setSong(normSong(j.app === 'thunder-song' ? j : j.song), 'Loaded ' + (j.song && j.song.name || f.name));
+    return true;
+  } catch(err){ toast(err.message || 'Couldn’t read that project file.'); return false; }
+}
+async function openProj(){
+  if (canFS && typeof window.showOpenFilePicker === 'function'){
+    try { const [h] = await window.showOpenFilePicker({types:PJT}); if (await loadProjFile(await h.getFile())) projFile = h; }
+    catch(e){ if (e && e.name !== 'AbortError') toast('Couldn’t open that file.'); }
+    return;
+  }
+  $('projIn').click();
 }
 const CUK = 'thunder-cursor-v1';
 function saveCur(){ try { localStorage.setItem(CUK, JSON.stringify({tv, midV, cChain, cPhrase, cInst, cTrack, cFxT, cs})); } catch(e){} }
@@ -2315,7 +2361,7 @@ function loadCur(){
   } catch(e){}
 }
 function resetCursors(){ cChain = cPhrase = cInst = cTrack = cFxT = cFxS = 0; for (const k in cs) Object.assign(cs[k], {x:0, y:0, top:0}); selA = null; }
-function setSong(s, msg){ tStop(true); S = s; resetCursors(); if (rt){ rtAllFx(); rtRoute(); rt.pl.applyMix(); } saveS(); draw(); if (msg) toast(msg); }
+function setSong(s, msg){ tStop(true); S = s; projFile = null; resetCursors(); if (rt){ rtAllFx(); rtRoute(); rt.pl.applyMix(); } saveS(); draw(); if (msg) toast(msg); }
 
 /* ---------- views ---------- */
 const MID = ['song', 'chain', 'phrase', 'inst'], VIEWS = ['song', 'chain', 'phrase', 'inst', 'mixer', 'fx', 'project'], GRIDV = new Set(['song', 'chain', 'phrase']);
@@ -2394,8 +2440,9 @@ function projRows(){
     {l:'› RENDER SONG', act:() => renderOut(false), gap:true, info:() => 'Stereo WAV of the song, from RENDER FROM to the end'},
     {l:'› RENDER STEMS', act:() => renderOut(true), info:() => 'A zip with the mix plus one stereo WAV per track, all the same length'},
     ...(canShare && lastR ? [{l:'› SHARE LAST RENDER', act:shareLast, info:() => 'Send the last render to Koala, SunVox or another app'}] : []),
-    {l:'› SAVE PROJECT', act:saveProj, gap:true, info:() => 'One .json file with the song and the kit'},
-    {l:'› LOAD PROJECT', act:() => $('projIn').click(), info:() => 'Load a project file (song and kit)'},
+    {l:'› SAVE', act:() => saveProj(false), gap:true, info:() => (projFile ? 'Saves over ' + projFile.name : 'Saves the song and kit as one .json file') + ' · Ctrl/⌘+S'},
+    {l:'› SAVE AS', act:() => saveProj(true), info:() => 'Saves to a new file, keeping the old one · Shift+Ctrl/⌘+S'},
+    {l:'› LOAD PROJECT', act:openProj, info:() => 'Load a project file (song and kit) · Ctrl/⌘+O'},
     {l:'› NEW SONG', dbl:true, act:() => setSong(freshSong(), 'New song. The kit is unchanged.'), info:() => 'Clears the song, keeps the kit. Tap EDIT twice'},
     {l:'› LOAD DEMO', dbl:true, act:() => setSong(demoSong(), 'Loaded the starter beat.'), info:() => 'Replaces the song with the starter beat. Tap EDIT twice'},
   ];
@@ -2531,19 +2578,38 @@ function toggleSel(){
   if (selA){ selA = null; toast('Selection off'); } else { selA = {x:cs[tv].x, y:cs[tv].y, v:tv}; toast('Selecting: arrows extend · OPTION copies · OPTION+EDIT cuts'); }
   draw();
 }
-function selRect(){ const c = cs[tv]; return {x0:Math.min(selA.x, c.x), x1:Math.max(selA.x, c.x), y0:Math.min(selA.y, c.y), y1:Math.max(selA.y, c.y)}; }
+// A line selection (selA.line) always spans every column, so it copies whole rows.
+function selRect(){ const c = cs[tv], ln = selA.line; return {x0:ln ? 0 : Math.min(selA.x, c.x), x1:ln ? dims(tv).w - 1 : Math.max(selA.x, c.x), y0:Math.min(selA.y, c.y), y1:Math.max(selA.y, c.y)}; }
+// Shift+▲▼ in KEYS mode: the first press selects the cursor's line, the next ones grow it.
+function lineSel(dy){
+  const c = cs[tv]; if (!GRIDV.has(tv) || c.y < 0) return false;
+  if (!selA || selA.v !== tv) selA = {x:0, y:c.y, v:tv, line:true};
+  else if (!selA.line) selA.line = true;
+  else c.y = clamp(c.y + dy, 0, dims(tv).h - 1);
+  draw(); return true;
+}
+function selectAll(){
+  if (!GRIDV.has(tv) || onPset()) return toast('Selecting works in Song, Chain and Phrase.');
+  selA = {x:0, y:0, v:tv, line:true}; cs[tv].y = dims(tv).h - 1; draw();
+}
+const pasteKey = () => inMode === 'keys' ? 'Ctrl/⌘+V' : 'SHIFT+EDIT';
 function copySel(cut){
-  const r = selRect(), d = [];
+  const r = selRect(), d = [], line = !!selA.line;
   for (let y = r.y0; y <= r.y1; y++){ const row = []; for (let x = r.x0; x <= r.x1; x++){ row.push(getCell(tv, x, y)); if (cut) setCell(tv, x, y, kindAt(tv, x) === 'tsp' ? 0 : -1); } d.push(row); }
-  clip = {v:tv, x0:r.x0, d}; selA = null;
-  toast(`${cut ? 'Cut' : 'Copied'} ${d.length * d[0].length} cell${d.length * d[0].length > 1 ? 's' : ''}. SHIFT+EDIT pastes.`); draw();
+  clip = {v:tv, x0:r.x0, d, line}; selA = null;
+  const n = line ? d.length : d.length * d[0].length, what = line ? ' line' : ' cell';
+  toast(`${cut ? 'Cut' : 'Copied'} ${n}${what}${n > 1 ? 's' : ''}. ${pasteKey()} pastes at the cursor.`); draw();
 }
 function paste(){
-  if (!clip) return toast('Nothing copied yet. SHIFT+OPTION starts a selection.');
+  if (!clip) return toast('Nothing copied yet. ' + (inMode === 'keys' ? 'Shift+▲▼ selects lines, Ctrl/⌘+B a block.' : 'SHIFT+OPTION starts a selection.'));
   if (clip.v !== tv) return toast('That was copied in ' + VNAME[clip.v] + '. Paste it there.');
-  const c = cs[tv], dm = dims(tv), x0 = tv === 'song' ? c.x : clip.x0;
-  clip.d.forEach((row, j) => row.forEach((val, i) => { const x = x0 + i, y = c.y + j; if (x < dm.w && y < dm.h) setCell(tv, x, y, val); }));
-  toast('Pasted'); draw();
+  const c = cs[tv], dm = dims(tv), x0 = clip.line ? 0 : tv === 'song' ? c.x : clip.x0;
+  // Pasting over a selection starts at its top row.
+  const y0 = selA ? selRect().y0 : c.y; selA = null;
+  if (y0 < 0) return toast('Move to a row first.');
+  let n = 0;
+  clip.d.forEach((row, j) => { const y = y0 + j; if (y < dm.h) n++; row.forEach((val, i) => { const x = x0 + i; if (x < dm.w && y < dm.h) setCell(tv, x, y, val); }); });
+  toast(clip.line ? `Pasted ${n} line${n > 1 ? 's' : ''}` + (n < clip.d.length ? ` (${clip.d.length - n} past the end were left out)` : '') : 'Pasted'); draw();
 }
 // The phrase's LEN / LPB line sits above row 0 (y = -2): ▲ from row 0 reaches it, ▼ goes back.
 const onPset = () => tv === 'phrase' && cs.phrase.y === -2;
@@ -2685,7 +2751,11 @@ const HINT = {
 };
 function info(){
   const c = cs[tv];
-  if (selA) return 'SELECTING · arrows extend · OPTION copies · OPTION+EDIT cuts · SHIFT+OPTION cancels';
+  if (selA){
+    const r = selRect(), n = r.y1 - r.y0 + 1, what = selA.line ? `${n} LINE${n > 1 ? 'S' : ''} ${hx(r.y0)}–${hx(r.y1)}` : 'SELECTING';
+    return inMode === 'keys' ? `${what} · Shift+▲▼ grow · Ctrl/⌘+C copy · Ctrl/⌘+X cut · Ctrl/⌘+V paste over · Esc cancel`
+      : `${what} · arrows extend · OPTION copies · OPTION+EDIT cuts · SHIFT+OPTION cancels`;
+  }
   if (tv === 'song'){ const v = S.song[c.y][c.x]; return `TRACK ${d2(c.x + 1)} · ROW ${hx(c.y)} · ` + (v < 0 ? 'empty' : `chain ${hx(v)}` + (isEmptyChain(S.chains[v]) ? ' (empty)' : '')); }
   if (tv === 'chain'){ const ch = S.chains[cChain], r = ch ? ch[c.y] : [-1, 0];
     return c.x === 0 ? (r[0] < 0 ? 'No phrase. The chain ends at the first empty row.' : `Phrase ${hx(r[0])}` + (isEmptyPhrase(S.phrases[r[0]]) ? ' (empty)' : '')) : `Transpose ${sgn(r[1])} semitones for this row`; }
@@ -2730,6 +2800,7 @@ function draw(){
   const P = tp.on ? tp.pos : null, L = [];
   let title = VNAME[tv], sub = '';
   const sr = selA ? selRect() : null;
+  const rsel = y => sr && selA.line && y >= sr.y0 && y <= sr.y1 ? ' sel' : '';
   const cc = (x, y, base) => base + (sr && x >= sr.x0 && x <= sr.x1 && y >= sr.y0 && y <= sr.y1 ? ' sel' : '') + (c.x === x && c.y === y ? ' cur' : '');
   const mc = t => (S.mix[t].mute ? ' mu' : '') + (S.mix[t].solo ? ' so' : '');
   const playRows = test => { const s = new Set(); if (P) P.forEach(p => { const r = p && test(p); if (r != null) s.add(r); }); return s; };
@@ -2738,7 +2809,7 @@ function draw(){
     const VR = songRows(); if (c.y < c.top) c.top = c.y; if (c.y > c.top + VR - 1) c.top = c.y - VR + 1; c.top = clamp(c.top, 0, 256 - VR);
     const hd = ['   ']; for (let t = 0; t < NT; t++) hd.push({t:d2(t + 1), cls:'th' + mc(t), x:t, y:-1}, ' '); L.push(hd);
     for (let y = c.top; y < c.top + VR; y++){
-      const ln = [{t:hx(y), cls:'rn' + (y % 4 ? '' : ' rn4')}, ' '];
+      const ln = [{t:hx(y), cls:'rn' + (y % 4 ? '' : ' rn4') + rsel(y), r:y}, ' '];
       for (let t = 0; t < NT; t++){ const v = S.song[y][t], pl = P && tp.mode === 'song' && P[t] && P[t].row === y;
         ln.push({t:h2(v), cls:cc(t, y, (v < 0 ? 'e' : 'v') + (pl ? ' pl' : '')), x:t, y}, ' '); }
       L.push(ln);
@@ -2748,7 +2819,7 @@ function draw(){
     const ch = S.chains[cChain], pr = playRows(p => tp.mode !== 'phrase' && p.chain === cChain ? p.cr : null);
     L.push(['  ', {t:'PH', cls:'th'}, ' ', {t:'TP', cls:'th'}]);
     for (let y = 0; y < 16; y++){ const r = ch ? ch[y] : [-1, 0];
-      L.push([{t:hx(y, 1), cls:'rn' + (y % 4 ? '' : ' rn4') + (pr.has(y) ? ' pl' : '')}, ' ', {t:h2(r[0]), cls:cc(0, y, r[0] < 0 ? 'e' : 'v'), x:0, y}, ' ', {t:hx(r[1]), cls:cc(1, y, r[1] ? 'v' : 'e'), x:1, y}]); }
+      L.push([{t:hx(y, 1), cls:'rn' + (y % 4 ? '' : ' rn4') + (pr.has(y) ? ' pl' : '') + rsel(y), r:y}, ' ', {t:h2(r[0]), cls:cc(0, y, r[0] < 0 ? 'e' : 'v'), x:0, y}, ' ', {t:hx(r[1]), cls:cc(1, y, r[1] ? 'v' : 'e'), x:1, y}]); }
   } else if (tv === 'phrase'){
     title = 'PHRASE ' + hx(cPhrase); sub = 'TRACK ' + d2(cTrack + 1);
     const p = S.phrases[cPhrase], pr = playRows(q => q.phrase === cPhrase ? q.step : null), len = plen(cPhrase), lpb = S.plpb[cPhrase] || 0, el2 = lpb || S.lpb;
@@ -2760,7 +2831,7 @@ function draw(){
     c.top = clamp(c.top, 0, Math.max(0, len - VR));
     for (let y = c.top; y < Math.min(len, c.top + VR); y++){
       const r = p ? p[y] : [-1, -1, -1, -1, -1, -1, -1, -1, -1];
-      const ln = [{t:hx(y), cls:'rn' + (y % 4 ? '' : ' rn4') + (pr.has(y) ? ' pl' : '')}, ' ',
+      const ln = [{t:hx(y), cls:'rn' + (y % 4 ? '' : ' rn4') + (pr.has(y) ? ' pl' : '') + rsel(y), r:y}, ' ',
         {t:noteS(r[0]), cls:cc(0, y, r[0] < 0 ? 'e' : 'cn'), x:0, y}, ' ', {t:h2(r[1]), cls:cc(1, y, r[1] < 0 ? 'e' : 'cv'), x:1, y}, ' ',
         {t:h2(r[2]), cls:cc(2, y, r[2] < 0 ? 'e' : 'ci'), x:2, y}];
       for (let k = 3; k < 9; k += 2) ln.push(' ', {t:r[k] < 0 ? '---' : (FXC[r[k]] || '???'), cls:cc(k, y, r[k] < 0 ? 'e' : 'cf'), x:k, y}, ' ', {t:h2(r[k + 1]), cls:cc(k + 1, y, r[k + 1] < 0 ? 'e' : 'v'), x:k + 1, y});
@@ -2800,7 +2871,14 @@ function draw(){
     });
   }
   grid.innerHTML = L.map(ln => '<div class="ln">' + ln.map(s => typeof s === 'string' ? s :
-    `<span class="${s.cls || ''}"${s.x != null ? ` data-x="${s.x}" data-y="${s.y}"` : ''}>${esc(s.t)}</span>`).join('') + '</div>').join('');
+    `<span class="${s.cls || ''}"${s.x != null ? ` data-x="${s.x}" data-y="${s.y}"` : ''}${s.r != null ? ` data-r="${s.r}"` : ''}>${esc(s.t)}</span>`).join('') + '</div>').join('');
+  // Song and Phrase page their own rows; the list screens (Inst, FX, Project) can be taller than the
+  // screen, so keep the cursor's line in view.
+  if (GRIDV.has(tv) || tv === 'mixer') grid.scrollTop = 0;
+  else { const cur = grid.querySelector('.cur'), ln = cur && cur.closest('.ln');
+    if (ln){ const g = grid.getBoundingClientRect(), r = ln.getBoundingClientRect(), m = r.height;
+      if (r.top - m < g.top) grid.scrollTop -= g.top - r.top + m;
+      else if (r.bottom + m > g.bottom) grid.scrollTop += r.bottom - g.bottom + m; } }
   meterEls = tv === 'mixer' ? [...grid.querySelectorAll('.mt')] : []; masterEls = tv === 'mixer' ? [...grid.querySelectorAll('.mm')] : [];
   $('tTitle').textContent = title; $('tSub').textContent = sub;
   $('tInfo').textContent = info(); $('tHint').textContent = (inMode === 'keys' ? HINTK : HINT)[tv] + (inMode === 'keys' && tv === 'phrase' ? ' · octave ' + kOct + ' · step ' + kStep : '');
@@ -2904,6 +2982,15 @@ document.querySelectorAll('#trk .k[data-b]').forEach(k => {
 $('trk').addEventListener('contextmenu', e => e.preventDefault());
 let drag = null;
 grid.addEventListener('pointerdown', e => {
+  // Tapping a row number selects that whole line; tapping another grows the selection to it; tapping
+  // the only selected line again lets it go.
+  const rn = e.target.closest('[data-r]');
+  if (rn && GRIDV.has(tv)){
+    const y = +rn.dataset.r, c = cs[tv];
+    if (selA && selA.line && selA.v === tv){ if (selA.y === y && c.y === y) selA = null; else c.y = y; }
+    else { selA = {x:0, y, v:tv, line:true}; c.y = y; }
+    draw(); return;
+  }
   const s = e.target.closest('[data-x]'); if (!s) return;
   const x = +s.dataset.x, y = +s.dataset.y, c = cs[tv];
   if (y === -1){ S.mix[x].mute = !S.mix[x].mute; mixChanged(); draw(); return; }
@@ -2919,9 +3006,9 @@ grid.addEventListener('pointermove', e => {
     const n = Math.trunc(dy / 16);
     while (drag.acc < n){ bump(1, false); drag.acc++; drag.moved = true; }
     while (drag.acc > n){ bump(-1, false); drag.acc--; drag.moved = true; }
-  } else if (tv === 'song'){
+  } else if (tv !== 'mixer' && tv !== 'chain' && drag.sy >= 0){
     const rh = parseFloat(scr.style.fontSize || '14') * 1.3, n = Math.trunc(dy / rh);
-    if (n){ drag.moved = true; cs.song.y = clamp(drag.sy + n, 0, 255); draw(); }
+    if (n){ drag.moved = true; cs[tv].y = clamp(drag.sy + n, 0, dims(tv).h - 1); draw(); }
   }
 });
 const dragEnd = e => {
@@ -2935,6 +3022,14 @@ const dragEnd = e => {
   }
 };
 grid.addEventListener('pointerup', dragEnd); grid.addEventListener('pointercancel', dragEnd);
+// Mouse wheel moves the cursor a row per notch, so long screens scroll.
+let wAcc = 0;
+grid.addEventListener('wheel', e => {
+  if (tv === 'mixer' || onPset()) return; e.preventDefault();
+  wAcc += e.deltaMode === 1 ? e.deltaY * 40 : e.deltaY;
+  const n = Math.trunc(wAcc / 40); if (!n) return; wAcc -= n * 40;
+  const c = cs[tv]; c.y = clamp(c.y + n, 0, dims(tv).h - 1); draw();
+}, {passive:false});
 const KEYB = {ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right', ' ':'play', Shift:'shift', z:'opt', Z:'opt', x:'edit', X:'edit'};
 // Keys that work in both input modes: screens, transport and undo.
 const PAGEK = {F2:'phrase', F3:'mixer', F4:'inst'};
@@ -2953,10 +3048,28 @@ function globalKeys(e){
   }
   if (mod && !e.altKey && (e.key === 'z' || e.key === 'Z')){ undoStep(e.shiftKey ? 1 : -1); return true; }
   if (mod && !e.altKey && (e.key === 'y' || e.key === 'Y')){ undoStep(1); return true; }
+  // Clipboard, in either input mode.
+  if (mod && !e.altKey && !e.shiftKey){
+    const lo = e.key.toLowerCase();
+    if (lo === 'c'){ if (selA) copySel(false); else toast(inMode === 'keys' ? 'Select first: Shift+▲▼ for lines, Ctrl/⌘+B for a block.' : 'Select first: SHIFT+OPTION, or tap a row number.'); return true; }
+    if (lo === 'x'){ if (selA) copySel(true); else toast('Select something to cut first.'); return true; }
+    if (lo === 'v'){ paste(); return true; }
+    if (lo === 'a'){ selectAll(); return true; }
+  }
+  return false;
+}
+// Project files, from the synth or the tracker: Ctrl/⌘+S save, Shift+Ctrl/⌘+S save as, Ctrl/⌘+O open.
+function fileKeys(e){
+  if (!(e.ctrlKey || e.metaKey) || e.altKey) return false;
+  const lo = e.key.toLowerCase();
+  if (lo === 's'){ if (!e.repeat) saveProj(e.shiftKey); return true; }
+  if (lo === 'o' && !e.shiftKey){ if (!e.repeat) openProj(); return true; }
   return false;
 }
 document.addEventListener('keydown', e => {
-  if (view !== 'tracker' || e.target.matches('input[type=text],select')) return;
+  if (e.target.matches('input[type=text],select')) return;
+  if (fileKeys(e)){ e.preventDefault(); return; }
+  if (view !== 'tracker') return;
   if (globalKeys(e)){ e.preventDefault(); return; }
   if (inMode === 'keys'){ if (keysDown(e)) e.preventDefault(); return; }
   if (e.ctrlKey || e.metaKey || e.altKey) return;
@@ -2966,15 +3079,7 @@ document.addEventListener('keydown', e => {
 });
 document.addEventListener('keyup', e => { if (view !== 'tracker' || inMode === 'keys') return; const b = KEYB[e.key]; if (b){ e.preventDefault(); release(b, true); } });
 window.addEventListener('blur', releaseAll);
-$('projIn').addEventListener('change', async e => {
-  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
-  try {
-    const j = JSON.parse(await f.text());
-    if (!j || (!j.song && j.app !== 'thunder-song')) throw new Error('This file isn’t a ...Thunder project.');
-    if (j.kit) setKit(kitFromJSON(j.kit));
-    setSong(normSong(j.app === 'thunder-song' ? j : j.song), 'Loaded ' + (j.song && j.song.name || f.name));
-  } catch(err){ toast(err.message || 'Couldn’t read that project file.'); }
-});
+$('projIn').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) loadProjFile(f); });
 new ResizeObserver(() => { fit(); draw(); }).observe(scr);
 if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { measure(); fit(); });
 
@@ -3038,17 +3143,15 @@ function keysDown(e){
   const k = e.key, lo = k.length === 1 ? k.toLowerCase() : k, mod = e.ctrlKey || e.metaKey, kind = curKind();
   if (mod){
     if (lo === 'b'){ toggleSel(); return true; }
-    if (lo === 'c'){ if (selA) copySel(false); else toast('Ctrl/⌘+B starts a selection.'); return true; }
-    if (lo === 'x'){ if (selA) copySel(true); return true; }
-    if (lo === 'v'){ paste(); return true; }
     if (k === 'ArrowUp' || k === 'ArrowDown'){ optDir(k === 'ArrowDown' ? 'right' : 'left'); return true; }
     return false;
   }
   const arrow = {ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right'}[k];
   if (arrow){
-    if (e.shiftKey) nav(arrow);
+    // Shift+▲▼ selects whole lines in Song, Chain and Phrase; Shift+◀▶ (and Shift+▲▼ elsewhere) change screen.
+    if (e.shiftKey){ if (!((arrow === 'up' || arrow === 'down') && lineSel(arrow === 'down' ? 1 : -1))) nav(arrow); }
     else if (e.altKey) bump(arrow === 'right' || arrow === 'up' ? 1 : -1, arrow === 'up' || arrow === 'down');
-    else { const m = {up:[0, -1], down:[0, 1], left:[-1, 0], right:[1, 0]}[arrow]; move(m[0], m[1]); }
+    else { if (selA && selA.line) selA = null; const m = {up:[0, -1], down:[0, 1], left:[-1, 0], right:[1, 0]}[arrow]; move(m[0], m[1]); }
     return true;
   }
   if (e.altKey) return false;
@@ -3132,13 +3235,13 @@ $('tKp').addEventListener('pointerdown', e => {
 $('tKp').addEventListener('click', e => { const b = e.target.closest('button[data-a]'); if (b && e.detail === 0 && !b.disabled) kpAction(b.dataset.a); });
 $('tMode').addEventListener('click', () => setInput(inMode === 'keys' ? 'pad' : 'keys'));
 const HINTK = {
-  song:'Type hex · Enter add or open · Enter×2 new chain · Del clear · Alt+arrows ±1/±16 · Shift+→ open',
-  chain:'Type hex · Enter add or open · Enter×2 new phrase · Del clear · [ ] other chain · Shift+→ open',
-  phrase:'Notes Z–/ and Q–P · 1 off · −/= octave · Del clear row · Ins/Bksp row · Tab column · [ ] other phrase',
+  song:'Type hex · Enter add or open · Enter×2 new chain · Del clear · Alt+arrows ±1/±16 · Shift+→ open · Shift+↑↓ lines',
+  chain:'Type hex · Enter add or open · Enter×2 new phrase · Del clear · [ ] other chain · Shift+→ open · Shift+↑↓ lines',
+  phrase:'Notes Z–/ and Q–P · 1 off · −/= octave · Del clear row · Ins/Bksp row · Shift+↑↓ lines · Ctrl+C/V',
   inst:'Alt+arrows change · Enter runs › rows · [ ] other instrument · Shift+← phrase',
   mixer:'Type hex for VOL and PAN · Enter mutes, solos or opens FX · Del resets · Shift+→ FX · Shift+↑ back',
   fx:'Type hex · Alt+arrows change · Enter adds · Del removes or resets · [ ] other track · Shift+← mixer',
-  project:'Alt+arrows change · Enter runs › rows · Del resets · Shift+↓ back',
+  project:'Alt+arrows change · Enter runs › rows · Del resets · Ctrl+S save · Shift+Ctrl+S save as · Ctrl+O open',
 };
 
 /* ---------- switching between the synth and the tracker ---------- */

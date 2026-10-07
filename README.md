@@ -10,7 +10,7 @@ An 8-pad drum synth for the browser, built for a Galaxy Z Fold 6, for making one
   - FM: 2-op, feedback, metal, cross-mod
   - Additive: harmonic, odd, membrane, bell, bar, chord
   - Noise: white, pink, brown, blue, 808 metal, digital LFSR, crackle, sample-and-hold
-  - Recorded samples
+  - Samples loaded from audio files
 - **Samples.** Load an audio file into any layer with Load sample, then pitch, reverse and filter it like any other layer.
 - **Export.** Mono WAV, 44.1k or 48k, 16 or 24-bit, normalised and tail-trimmed. Save one pad or all 8 as a zip, or share straight to Koala on Android.
 - **Kits.** Kits save in the browser automatically and can be saved or loaded as `.json`, recorded samples included.

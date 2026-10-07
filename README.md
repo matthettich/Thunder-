@@ -41,7 +41,7 @@ Tap **Tracker** at the top for an M8-style sequencer that plays the kit. 16 trac
 
 - **Song** – 256 rows × 16 tracks of chain numbers. Each track loops back to the top of its block of filled rows when it reaches an empty row.
 - **Chain** – up to 16 phrases in order, each with a transpose.
-- **Phrase** – up to 32 rows of note, volume, instrument and three effects. **ROWS** (− 16 +, beside INPUT) sets how many rows the open phrase plays, 1–32; tap the number to type one. On the Chain screen it changes the phrase on the cursor's row. Press ▲ on the top row to reach the same LEN plus LPB (lines per beat for this phrase; -- uses the song's).
+- **Phrase** – up to 32 rows of note, volume, instrument and three effects. **ROWS** (− 16 +, at the right of the tab bar) sets how many rows the open phrase plays, 1–32; tap the number to type one. On the Chain screen it changes the phrase on the cursor's row. Press ▲ on the top row to reach the same LEN plus LPB (lines per beat for this phrase; -- uses the song's).
 - **Inst** – 16 instruments. Each plays one of the 8 pads with its own transpose, volume, pan, reverse and start point. C-4 plays a pad at its own pitch.
 - **Mixer** – volume, pan, mute, solo and effects per track, level meters per track (green, yellow above −12 dB, red above −6 dB), and a stereo master meter with peak and CLIP.
 - **FX** – up to 4 effects per track and 4 on the master, running live as the song plays (see below).
@@ -81,7 +81,7 @@ Renders include the effects and let reverb and delay tails ring out. Stems skip 
 
 Both are on by default on touch screens and can be turned off in Project (COMMANDS, STICKY KEYS).
 
-**Two input modes** (the INPUT button by the tabs, or Project → INPUT):
+**Two input modes** (the INPUT button next to CPU in the top bar, or Project → INPUT):
 
 - **PAD** – a d-pad plus SHIFT, PLAY, OPTION and EDIT, used like an M8: SHIFT+arrows changes screen, EDIT adds (twice for a new chain or phrase), EDIT+arrows changes a value, OPTION+EDIT clears, SHIFT+OPTION selects, SHIFT+EDIT pastes. On a computer keyboard: arrows, Shift, Z = Option, X = Edit, Space = Play.
 - **KEYS** – direct entry. On a keyboard: notes on Z–M and Q–I, `-`/`=` octave, `1` note off, 0–F for hex, letters for effects, Enter to add or open (on a phrase row it also picks up what's there as the current values: the row's instrument, plus the note, volume, or effect and its value under the cursor, which new entries then use; the hint line shows them after NOW), Delete to clear, Alt+arrows to change values, `[` `]` for the previous/next chain or phrase, Ctrl/⌘ B, C, X, V to select, copy, cut and paste. On a touch screen the dock turns into a keypad that follows the cursor: a piano in the note column, 0–F in hex columns, effect names in effect columns.
@@ -100,7 +100,7 @@ These screen, transport and undo keys also work in PAD mode.
 
 **Tempo and ticks.** Beside ROWS, the tracker shows the tempo and the ticks a step. While it plays they follow `TPO` and `TIC` (in gold), and the dots light up tick by tick through each step. Tap them for a reminder of where to set them.
 
-**On a phone** the tabs take the first line under the top bar, with tempo, ticks, ROWS and INPUT on the second. The buttons under the screen are taller for thumbs, and the screen's text shrinks as needed so 16 rows always fit.
+**On a phone** the tabs take the first line under the top bar, with tempo, ticks and ROWS on the second; INPUT sits in the top bar next to CPU. The buttons under the screen are taller for thumbs, and the screen's text shrinks as needed so 16 rows always fit.
 
 **Moving a project between phone and computer.** Project → SHARE PROJECT (on phones) sends the project file, song and kit together, to Drive, Gmail, Quick Share or any app on the share sheet. On the other device, Project → LOAD PROJECT (Ctrl/⌘+O) opens it. SAVE works too: it downloads the `.json` on a phone, and writes straight back to the file on desktop Chrome and Edge, so you can keep one file in a synced folder.
 

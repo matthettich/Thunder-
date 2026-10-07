@@ -213,7 +213,7 @@ input[type=range]{width:100%; accent-color:var(--ink); height:30px; margin:0; to
 @media (prefers-color-scheme: dark){ :root[data-skin="auto"]{--bench:#272a2f; --panel:#373c43; --panel2:#2f343a; --side:#2f343a; --ink:#e9ebe6; --muted:#a5aaae;
   --track:#24282d; --inv:#232830; --line:#4b5159; --voice:#3c304f; --fm:#9b80e2; --smp:#e2649a; color-scheme:dark} }
 :root[data-skinbase="pastel"] :is(button,select,input[type=text],.seg,.lcell,.layercard,.fxcard,.pad,.mtr,.kp,.k,.tcmd button){border-radius:9px}
-:root[data-skinbase="pastel"] .seg{overflow:hidden} :root[data-skinbase="pastel"] :is(.seg button,.ttabs button,.tmode){border-radius:0}
+:root[data-skinbase="pastel"] .seg{overflow:hidden} :root[data-skinbase="pastel"] :is(.seg button,.ttabs button){border-radius:0}
 :root[data-skinbase="pastel"] :is(.lcell,.layercard,.fxcard,.pad){box-shadow:0 1px 0 rgba(255,255,255,.6) inset, 0 10px 22px -14px rgba(40,50,75,.5)}
 :root[data-skinbase="pastel"] :is(.lcell,.layercard){background:color-mix(in srgb, var(--fam) 10%, var(--panel))}
 /* pads take a colour each in the colour skins */
@@ -236,6 +236,10 @@ input[type=range]{width:100%; accent-color:var(--ink); height:30px; margin:0; to
 .skin .dots i{width:12px; height:12px; border-radius:50%; border:1px solid rgba(127,127,127,.5); display:block}
 .skin[aria-checked="true"]{outline:2px solid var(--ink); outline-offset:-3px}
 /* CPU meter in the top bar */
+.top .tmode{border:1px solid var(--line); min-height:34px; background:var(--panel); padding:0 10px; font-size:12px; font-weight:600; letter-spacing:.04em; white-space:nowrap}
+.top .tmode.on{background:var(--ink); color:var(--inv)}
+.top .tmode[hidden]{display:none}
+@media (max-width:480px){ .top .tmode .mx{display:inline} .top .tmode,.top .tcpu{padding:0 8px} .top .tcpu{min-width:72px} }
 .top .tcpu{border:1px solid var(--line); min-height:34px; background:var(--panel); padding:0 10px; min-width:84px; overflow:hidden}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
 
@@ -347,7 +351,7 @@ body.trkv.cmdv .toast{bottom:calc(var(--k) * 3.3 + 60px + env(safe-area-inset-bo
 @media (max-width:600px){
   .ttabbar{flex-wrap:wrap} .ttabbar .ttabs{flex:1 1 100%; border-bottom:1px solid var(--line)}
   .tpat{flex:1; border-left:0} .tclk{flex:1}
-  .trows button{min-height:40px; min-width:44px} .ttabbar .tmode .mx{display:inline}
+  .trows button{min-height:40px; min-width:44px}
   .ttabbar .ttabs button{flex:1 0 auto; padding:0 6px; font-size:11.5px; letter-spacing:.02em}
 }
 .tcpu{border:0; border-left:1px solid var(--line); min-height:36px; padding:0 10px; font-size:12px; font-weight:600; letter-spacing:.04em; flex:none; white-space:nowrap;
@@ -390,6 +394,7 @@ body.trkv .toast{bottom:calc(var(--k) * 2 + 40px + env(safe-area-inset-bottom,0p
   <button id="bMidi" aria-expanded="false">MIDI ▾</button>
   <button id="bExport" aria-expanded="false">Export ▾</button>
   <button id="bSkin" aria-expanded="false">Skin ▾</button>
+  <button type="button" class="tmode" id="tMode" aria-label="Switch input mode" hidden>INPUT: PAD</button>
   <button type="button" class="tcpu" id="tCpu" aria-label="Audio load"><span>CPU --</span><i></i></button>
   <button type="button" id="bHelp" aria-label="Help and keys (?)" title="Help and keys (? or F1)">?</button>
 </div>
@@ -514,8 +519,7 @@ body.trkv .toast{bottom:calc(var(--k) * 2 + 40px + env(safe-area-inset-bottom,0p
     <div class="tpat" id="tPat">
       <span class="tclk" id="tClk" title="Tempo and ticks a step (TPO and TIC change them as the song plays)"><b id="tClkB">120</b><small>BPM</small><b id="tClkT">6</b><small>TK</small><span class="tdots" id="tDots"></span></span>
       <span class="trows" role="group" aria-label="Rows in this phrase"><button type="button" id="tRowsDn" aria-label="Fewer rows">−</button><button type="button" id="tRowsV" class="rv" aria-label="Rows in this phrase"><small id="tRowsP">PH 00</small><b id="tRowsN">16</b></button><button type="button" id="tRowsUp" aria-label="More rows">+</button></span>
-    </div>
-    <button type="button" class="tmode" id="tMode" aria-label="Switch input mode">INPUT: PAD</button></div>
+    </div></div>
   <div class="tbody">
     <div class="tscr" id="tScr">
       <div class="thd"><span id="tTitle">SONG</span><span class="tsub" id="tSub"></span></div>
@@ -609,7 +613,7 @@ body.trkv .toast{bottom:calc(var(--k) * 2 + 40px + env(safe-area-inset-bottom,0p
 <h3>Chords and polyphony</h3>
 <p><b>Tracks 9–16 are polyphonic.</b> Open a phrase from one of them and it shows four note columns, N1–N4, so a row can hold a chord. Notes on these tracks ring over each other, up to 4 at a time per track; a fifth steals the oldest. A note OFF in any note column releases everything on the track. Tracks 1–8 stay one note at a time, and a phrase played there uses only N1.</p>
 <h3>Two input modes</h3>
-<p><b>PAD</b> is the M8 way: a d-pad plus SHIFT, PLAY, OPTION and EDIT, good with a thumb. <b>KEYS</b> is direct entry: type notes, hex and effects, Renoise style, with an on-screen keypad on touch screens. Switch with the <b>INPUT</b> button beside the tabs or Project → INPUT.</p>
+<p><b>PAD</b> is the M8 way: a d-pad plus SHIFT, PLAY, OPTION and EDIT, good with a thumb. <b>KEYS</b> is direct entry: type notes, hex and effects, Renoise style, with an on-screen keypad on touch screens. Switch with the <b>INPUT</b> button next to CPU at the top or Project → INPUT.</p>
 </section>
     <section id="hAll"><h2>Keys that work everywhere</h2><table><tr><td><kbd>?</kbd> or <kbd>F1</kbd></td><td>Open or close this help</td></tr><tr><td><kbd>Ctrl/⌘</kbd> <kbd>S</kbd></td><td>Save the project (writes back to the same file where the browser allows)</td></tr><tr><td><kbd>Shift</kbd> <kbd>Ctrl/⌘</kbd> <kbd>S</kbd></td><td>Save As: a new file</td></tr><tr><td><kbd>Ctrl/⌘</kbd> <kbd>O</kbd></td><td>Open a project file</td></tr><tr><td><kbd>Ctrl/⌘</kbd> <kbd>Z</kbd> / <kbd>Ctrl/⌘</kbd> <kbd>Y</kbd></td><td>Undo / redo in the tracker (also <kbd>Shift</kbd> <kbd>Ctrl/⌘</kbd> <kbd>Z</kbd>). A paste or cut undoes in one step</td></tr><tr><td><kbd>Alt</kbd> <kbd>1</kbd>–<kbd>7</kbd></td><td>Song, Chain, Phrase, Inst, Mixer, FX, Project · <kbd>Alt</kbd> <kbd>0</kbd> back to the synth</td></tr><tr><td><kbd>Ctrl/⌘</kbd> <kbd>Shift</kbd> <kbd>arrows</kbd></td><td>Change screen, M8 style (▲ Project, ▼ Mixer, ◀▶ along every screen: Song, Chain, Phrase, Inst, Mixer, FX, Project)</td></tr><tr><td><kbd>F2</kbd> <kbd>F3</kbd> <kbd>F4</kbd></td><td>Phrase, Mixer, Inst</td></tr><tr><td><kbd>F5</kbd> <kbd>F6</kbd> <kbd>F7</kbd> <kbd>F8</kbd></td><td>Play song from the top · play this screen · song from the cursor row · stop</td></tr></table></section>
     <section id="hKeys"><h2>Tracker · KEYS mode</h2><h3>Moving</h3><table><tr><td><kbd>arrows</kbd></td><td>Move the cursor (drops a line selection)</td></tr><tr><td><kbd>Shift</kbd> <kbd>◀</kbd> <kbd>Shift</kbd> <kbd>▶</kbd></td><td>Previous / next screen, in tab order (Song → … → Inst → Mixer → FX → Project)</td></tr><tr><td><kbd>Tab</kbd> / <kbd>Shift</kbd> <kbd>Tab</kbd></td><td>Next / previous column (phrase) or track</td></tr><tr><td><kbd>Home</kbd> <kbd>End</kbd> <kbd>PgUp</kbd> <kbd>PgDn</kbd></td><td>Top, bottom, 16 rows up or down</td></tr><tr><td><kbd>[</kbd> <kbd>]</kbd> or <kbd>Ctrl/⌘</kbd> <kbd>▲▼</kbd></td><td>Previous / next chain, phrase, instrument or FX track</td></tr><tr><td>Mouse wheel</td><td>Scroll the screen a row at a time</td></tr></table><h3>Typing</h3><table><tr><td><kbd>Z</kbd> <kbd>S</kbd> <kbd>X</kbd> … <kbd>/</kbd></td><td>Notes, lower octave (S D G H J are the sharps); on tracks 9–16, Tab to N2–N4 to add chord notes</td></tr><tr><td><kbd>Q</kbd> <kbd>2</kbd> <kbd>W</kbd> … <kbd>P</kbd></td><td>Notes, upper octave</td></tr><tr><td><kbd>1</kbd> or <kbd>Caps Lock</kbd></td><td>Note off</td></tr><tr><td><kbd>−</kbd> <kbd>=</kbd> or numpad <kbd>/</kbd> <kbd>*</kbd></td><td>Octave down / up</td></tr><tr><td><kbd>0</kbd>–<kbd>9</kbd> <kbd>A</kbd>–<kbd>F</kbd></td><td>Hex values: two digits, or one for an instrument</td></tr><tr><td>Letters</td><td>Commands in FX columns (press again to cycle: R gives RET, REP, RND, RNL)</td></tr><tr><td><kbd>{</kbd> <kbd>}</kbd></td><td>Edit step down / up: how far the cursor moves after you type</td></tr><tr><td><kbd>Alt</kbd> <kbd>arrows</kbd></td><td>Change the value (◀▶ by 1, ▲▼ by more)</td></tr><tr><td><kbd>Enter</kbd></td><td>Add, open, or run a › row · twice for a new chain or phrase · in a phrase, picks up what’s there as the current values: the row’s instrument, plus the note, volume, or effect and its value under the cursor (shown after NOW on the hint line)</td></tr></table><h3>Rows</h3><table><tr><td><kbd>Delete</kbd></td><td>Clear the row and step down · <kbd>Shift</kbd> <kbd>Delete</kbd> just the cell</td></tr><tr><td><kbd>Insert</kbd></td><td>Add a blank row (rows below move down)</td></tr><tr><td><kbd>Backspace</kbd></td><td>Same as Delete: clear the row and step down; rows below stay where they are</td></tr><tr><td><kbd>Ctrl/⌘</kbd> <kbd>Backspace</kbd></td><td>Remove the row (rows below move up)</td></tr></table><h3>Selecting, copy and paste</h3><table><tr><td><kbd>Shift</kbd> <kbd>▲</kbd> <kbd>Shift</kbd> <kbd>▼</kbd></td><td>Select whole lines in Song, Chain and Phrase. The first press takes the cursor’s line, the next ones grow it</td></tr><tr><td><kbd>Ctrl/⌘</kbd> <kbd>A</kbd></td><td>Select every line</td></tr><tr><td><kbd>Ctrl/⌘</kbd> <kbd>B</kbd></td><td>Start a block selection; arrows grow it</td></tr><tr><td><kbd>Ctrl/⌘</kbd> <kbd>C</kbd> <kbd>Ctrl/⌘</kbd> <kbd>X</kbd></td><td>Copy / cut the selection</td></tr><tr><td><kbd>Ctrl/⌘</kbd> <kbd>V</kbd></td><td>Paste at the cursor row, or over a selection from its top. Lines paste into any phrase</td></tr><tr><td><kbd>Esc</kbd></td><td>Drop the selection</td></tr><tr><td>Row numbers</td><td>Tap or click one to select that line; another to grow the selection to it</td></tr></table><h3>Playing</h3><table><tr><td><kbd>Space</kbd></td><td>Play or stop this screen (phrase, chain or song)</td></tr><tr><td><kbd>Shift</kbd> <kbd>Space</kbd></td><td>Play the song from the cursor row</td></tr></table></section>
@@ -2735,7 +2739,7 @@ function projRows(){
     {l:'TEMPO', get:() => S.bpm, set:v => S.bpm = v, min:40, max:300, big:10, d:120, fmt:v => v + ' BPM', after:rtAllFx, info:() => 'Beats per minute, 4 steps to a beat. Track delays follow it'},
     {l:'LPB', get:() => S.lpb, set:v => S.lpb = v, min:1, max:16, big:4, d:4, fmt:v => v + ' lines/beat · 1/' + (v * 4), info:() => 'Lines per beat, like Renoise: 4 makes each row a 16th, 8 a 32nd, 3 or 6 triplets. A phrase can set its own on its LEN line'},
     {l:'TICKS', get:() => S.ticks || TICKS, set:v => S.ticks = v, min:1, max:32, big:4, d:TICKS, fmt:v => v + ' ticks a step', info:() => 'How many ticks each step is cut into for DEL, RET, KIL, OFF, ARC, PSL and GRV (6 like the M8). A TIC command in a phrase changes it from that row on'},
-    {l:'PATTERN LEN', get:() => S.dlen || 16, set:v => setDefLen(v), min:1, max:PROWS, big:4, d:16, fmt:v => v + (v === 1 ? ' row' : ' rows') + ' · new phrases', info:() => 'How many rows a new phrase starts with (empty phrases follow it too). Change one phrase with ROWS by the INPUT button, or its LEN line'},
+    {l:'PATTERN LEN', get:() => S.dlen || 16, set:v => setDefLen(v), min:1, max:PROWS, big:4, d:16, fmt:v => v + (v === 1 ? ' row' : ' rows') + ' · new phrases', info:() => 'How many rows a new phrase starts with (empty phrases follow it too). Change one phrase with ROWS at the right of the tab bar, or its LEN line'},
     {l:'› ALL PHRASES TO ' + (S.dlen || 16), dbl:true, act:() => { for (let i = 0; i < 256; i++) S.plen[i] = S.dlen || 16; saveS(); draw(); toast(`Every phrase now plays ${S.dlen || 16} rows. Notes past that are kept, just not played.`); },
       info:() => `Sets every phrase, used or not, to ${S.dlen || 16} rows. Rows past the end keep their notes. Tap EDIT twice`},
     {l:'SWING', get:() => S.swing, set:v => S.swing = v, min:50, max:75, big:5, d:50, fmt:v => v + '%', info:() => '50% is straight; higher pushes every second step later'},
@@ -2952,7 +2956,7 @@ function setDefLen(v){
   const d = clamp(v, 1, PROWS); S.dlen = d;
   for (let i = 0; i < 256; i++) if (isEmptyPhrase(S.phrases[i])) S.plen[i] = d;
 }
-// ROWS by the INPUT button: how many rows the open phrase plays.
+// ROWS at the right of the tab bar: how many rows the open phrase plays.
 // On the chain screen it's the phrase on the cursor's row; elsewhere the phrase last opened.
 function rowsId(){ if (tv === 'chain'){ const ch = S.chains[cChain], r = ch && ch[cs.chain.y]; if (r && r[0] >= 0) return r[0]; } return cPhrase; }
 function setRows(v){ const id = rowsId(); S.plen[id] = clamp(v, 1, PROWS); if (id === cPhrase){ const c = cs.phrase; if (c.y >= S.plen[id]) c.y = S.plen[id] - 1; } saveS(); draw(); }
@@ -3623,7 +3627,7 @@ let updView = () => {};
 function setView(v){
   view = v === 'tracker' ? 'tracker' : 'synth';
   const tr = view === 'tracker';
-  $('main').hidden = $('dock').hidden = tr; $('trk').hidden = !tr;
+  $('main').hidden = $('dock').hidden = tr; $('trk').hidden = !tr; $('tMode').hidden = !tr;
   ['kitName', 'bKit', 'bMidi', 'bExport', 'bSkin'].forEach(id => $(id).hidden = tr);
   if (tr) ['pKit', 'pExport', 'pMidi', 'pSkin'].forEach(id => $(id).hidden = true);
   document.body.classList.toggle('trkv', tr);

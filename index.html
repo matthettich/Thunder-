@@ -239,6 +239,7 @@ input[type=range]{width:100%; accent-color:var(--ink); height:30px; margin:0; to
 .top .tmode{border:1px solid var(--line); min-height:34px; background:var(--panel); padding:0 10px; font-size:12px; font-weight:600; letter-spacing:.04em; white-space:nowrap}
 .top .tmode.on{background:var(--ink); color:var(--inv)}
 .top .tmode[hidden]{display:none}
+.updb{position:fixed; left:50%; transform:translateX(-50%); top:calc(10px + env(safe-area-inset-top,0px)); z-index:20; background:var(--pl); color:var(--inv); border:0; padding:12px 18px; font-size:14px; font-weight:600; box-shadow:0 4px 16px rgba(0,0,0,.25); white-space:nowrap}
 @media (max-width:480px){ .top .tmode .mx{display:inline} .top .tmode,.top .tcpu{padding:0 8px} .top .tcpu{min-width:72px} }
 .top .tcpu{border:1px solid var(--line); min-height:34px; background:var(--panel); padding:0 10px; min-width:84px; overflow:hidden}
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
@@ -2756,6 +2757,7 @@ function projRows(){
     {l:'› SAVE AS', act:() => saveProj(true), info:() => 'Saves to a new file, keeping the old one · Shift+Ctrl/⌘+S'},
     {l:'› LOAD PROJECT', act:openProj, info:() => 'Load a project file (song and kit) · Ctrl/⌘+O'},
     ...(canShareProj() ? [{l:'› SHARE PROJECT', act:shareProj, info:() => 'Send the project file (song and kit) to Drive, email, a chat or your other device, then open it there with LOAD PROJECT'}] : []),
+    {l:'› UPDATE APP', gap:true, act:() => checkUpdate(true), info:() => 'Reloads with the newest version (your song and kit are kept). The app also checks by itself when it opens'},
     {l:'› NEW SONG', dbl:true, act:() => setSong(freshSong(), 'New song. The kit is unchanged.'), info:() => 'Clears the song, keeps the kit. Tap EDIT twice'},
     {l:'› LOAD DEMO', dbl:true, act:() => setSong(demoSong(), 'Loaded the starter beat.'), info:() => 'Replaces the song with the starter beat. Tap EDIT twice'},
   ];
@@ -3680,6 +3682,25 @@ updView = makeSeg($('segView'), [['tracker', 'Tracker'], ['synth', 'Synth']], ()
 /* ===TRACKER END=== */
 
 /* ---------- boot ---------- */
+/* ---------- updates ---------- */
+// The installed app has no pull-to-refresh, so it checks for a new version when it opens and whenever it comes
+// back to the front, and shows a button when one is ready. Project → UPDATE APP reloads on demand.
+const hadSW = !!(navigator.serviceWorker && navigator.serviceWorker.controller);
+function applyUpdate(){ try { flushS(); saveCur(); } catch(e){} location.reload(); }
+function updBanner(){
+  if ($('updB')) return;
+  const b = el('button', 'updb', 'New version ready · tap to update'); b.id = 'updB'; b.type = 'button';
+  b.addEventListener('click', applyUpdate); document.body.append(b);
+}
+async function checkUpdate(manual){
+  const sw = navigator.serviceWorker && location.protocol === 'https:';
+  if (sw){ try { const r = await navigator.serviceWorker.getRegistration(); if (r) await r.update(); } catch(e){} }
+  if (manual){ toast('Updating…'); setTimeout(applyUpdate, 500); }
+}
+if (navigator.serviceWorker) navigator.serviceWorker.addEventListener('controllerchange', () => { if (hadSW) updBanner(); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden) checkUpdate(false); });
+setTimeout(() => checkUpdate(false), 3000);
+
 buildPads();
 refreshAll();
 loadCur();

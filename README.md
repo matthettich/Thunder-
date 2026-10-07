@@ -121,7 +121,7 @@ It's a plain web app with no build step: `index.html`, `manifest.webmanifest`, `
 - **Android (Chrome):** open the address, tap **⋮** → **Install app** (or **Add to Home screen**).
 - **Mac / PC (Chrome or Edge):** click the install icon in the address bar.
 
-It opens full screen with its own icon and works offline once it has loaded. To update, push a new `index.html`; open the app while online and it picks up the change (close and reopen once if you still see the old version).
+It opens full screen with its own icon and works offline once it has loaded. To update, push a new `index.html`. The installed app has no pull-to-refresh, so it checks for a new version whenever it opens or comes back to the front and shows a **New version ready · tap to update** button; Project → UPDATE APP reloads with the newest version any time. Your song and kit are kept.
 
 ## Credits
 

@@ -27,10 +27,30 @@ Tap **Tracker** at the top for an M8-style sequencer that plays the kit. 16 trac
 - **Chain** – up to 16 phrases in order, each with a transpose.
 - **Phrase** – 16 steps of note, volume, instrument and three effects.
 - **Inst** – 16 instruments. Each plays one of the 8 pads with its own transpose, volume, pan, reverse and start point. C-4 plays a pad at its own pitch.
-- **Mixer** – volume, pan, mute and solo per track, a master level and meters.
+- **Mixer** – volume, pan, mute, solo and effects per track, a master level and meters.
+- **FX** – up to 4 effects per track and 4 on the master, running live as the song plays (see below).
 - **Project** – tempo, swing, limiter, render settings, renders, and project files (song and kit together).
 
 Effects: `RET` retrigger, `DEL` delay, `CUT`, `CHA` chance, `PSL` pitch slide, `RND` random pitch/level, `OFS` start offset, `REV` reverse, `PAN`, `TPO` tempo, `HOP` jump. There are 6 ticks to a step.
+
+**Track effects.** Open FX from the tab, from the mixer's FX row (EDIT), or with SHIFT+▶ in the mixer (on the MASTER row it opens the master chain). Each track has 4 slots that run top to bottom; EDIT on an empty slot adds an effect, EDIT+arrows picks another type, OPTION+EDIT removes it. The settings of the slot you were last on are listed underneath, as hex values like the rest of the tracker. The effects:
+
+- **EQ** – Airwindows EQ: treble, mid and bass, their frequencies, lowpass, highpass, output
+- **COMP** – Airwindows Pressure4 compressor, with a mix control for parallel compression
+- **VERB** – Airwindows Galactic reverb
+- **DLY** – Airwindows TapeDelay2, timed in steps so it follows the tempo
+- **SAT** – Airwindows Density · **TAPE** – Airwindows ToTape6
+- **CHOR** – DaisySP chorus · **CRSH** – DaisySP bitcrush
+- **RING** – Mutable Instruments Rings resonator · **CLDS** – Mutable Instruments Clouds
+
+Renders include the effects and let reverb and delay tails ring out. Stems skip the master effects and the limiter, so they add up to the mix when the master chain is empty. Each effect costs some phone CPU; Clouds and Rings are the heaviest.
+
+**One finger is enough.** Every M8 combination works without holding two buttons:
+
+- **Sticky keys** – tap SHIFT or OPTION on its own and it lights up and stays on for the next button (tap it again to cancel). So SHIFT, then ▶ changes screen; OPTION, then EDIT clears; SHIFT, then OPTION selects; SHIFT, then EDIT pastes; SHIFT, then PLAY plays the song. Holding still works as before.
+- **Command row** – a row of buttons above the d-pad: − − / − / + / + + (change the value), ◀ PREV / NEXT ▶ (other chain, phrase, instrument or FX track), CLEAR, SELECT, COPY, CUT, PASTE and ▶ SONG.
+
+Both are on by default on touch screens and can be turned off in Project (COMMANDS, STICKY KEYS).
 
 **Two input modes** (the INPUT button by the tabs, or Project → INPUT):
 
@@ -39,7 +59,7 @@ Effects: `RET` retrigger, `DEL` delay, `CUT`, `CHA` chance, `PSL` pitch slide, `
 
 On touch, tap a cell to move there, tap it again to open or add, and drag up or down on it to change the value. Tap a track number to mute it.
 
-**Rendering.** Project → RENDER SONG saves a stereo WAV; RENDER STEMS saves a zip with the mix plus one WAV per track. Stems are all the same length and add up to the mix (they skip the limiter). Rate, bits and normalising follow the Export settings.
+**Rendering.** Project → RENDER SONG saves a stereo WAV; RENDER STEMS saves a zip with the mix plus one WAV per track. Stems are all the same length and include each track's effects; they skip the limiter and the master effects. Rate, bits and normalising follow the Export settings.
 
 The tracker keeps playing while you switch back to the synth, so you can change a pad and hear it in the loop.
 
@@ -56,4 +76,4 @@ It opens full screen with its own icon and works offline once it has loaded. To 
 
 ## Credits
 
-Synthesis and effects come from Mutable Instruments (Plaits, Rings, Clouds, Elements; Emilie Gillet), Airwindows (Chris Johnson) and DaisySP (Electrosmith), all MIT licensed. See `THIRD_PARTY_NOTICES.md`; build sources are in `dsp/`.
+Synthesis and effects come from Mutable Instruments (Plaits, Rings, Clouds, Elements; Emilie Gillet), Airwindows (Chris Johnson) and DaisySP (Electrosmith), all MIT licensed. See `THIRD_PARTY_NOTICES.md`; build sources are in `dsp/` (the tracker's effects module is in `dsp/tfx/`).

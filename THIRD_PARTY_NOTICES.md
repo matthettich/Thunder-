@@ -1,7 +1,7 @@
 # Third-party code
 
-...Thunder's synthesis and effects module (`dsp/`, compiled to WebAssembly and embedded in
-`index.html`) is built from the following MIT-licensed projects. The wrappers and the build
+...Thunder's synthesis and effects module (`dsp/`) and the tracker's track-effects module (`dsp/tfx/`),
+both compiled to WebAssembly and embedded in `index.html`, are built from the following MIT-licensed projects. The wrappers and the build
 script, including two small patches, are in the `dsp` folder.
 
 ## Mutable Instruments: Plaits, Rings, Clouds, Elements (and stmlib)
@@ -10,7 +10,7 @@ https://github.com/pichenettes/eurorack. Copyright Emilie Gillet.
 "Mutable Instruments", "Plaits", "Rings", "Clouds" and "Elements" are names of Mutable Instruments'
 products; ...Thunder is not affiliated with or endorsed by Mutable Instruments.
 
-## Airwindows: Density and ToTape6
+## Airwindows: Density, ToTape6, EQ, Pressure4, Galactic and TapeDelay2
 
 https://github.com/airwindows/airwindows. Copyright (c) 2018 Chris Johnson.
 

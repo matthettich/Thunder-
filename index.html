@@ -385,6 +385,42 @@ body.trkv .toast{bottom:calc(var(--k) * 2 + 40px + env(safe-area-inset-bottom,0p
   .tctl{padding-block:8px 10px}
 }
 @media (max-width:760px){ .tside{display:none} }
+.tscr .sm{text-decoration:line-through; opacity:.5}
+.tmap.nochain button[data-v="inst"]{grid-column:span 2}
+/* ARRANGE: the whole song at a glance, in its own deeper blue, on wide screens (unfolded, tablet, computer). */
+.tarr{display:none; width:300px; flex:none; flex-direction:column; min-height:0; border-left:1px solid var(--line);
+  --ar-bg:#c6d6f0; --ar-ink:#16233d; --ar-dim:#5b6f93; --ar-blk:#35599a; --ar-blk-ink:#ffffff; --ar-empty:rgba(53,89,154,.13); --ar-line:rgba(22,35,61,.18);
+  --ar-pl:#ffd76a; --ar-pl-ink:#3d2c00; --ar-cur:#16233d; --ar-mu:#b42b20;
+  background:var(--ar-bg); color:var(--ar-ink); font-family:var(--mono); font-variant-ligatures:none; user-select:none; -webkit-user-select:none}
+.tarr.dk{--ar-bg:#0f1b33; --ar-ink:#dfe8fb; --ar-dim:#7d90b5; --ar-blk:#4d76c2; --ar-empty:rgba(125,160,230,.12); --ar-line:rgba(223,232,251,.16);
+  --ar-pl:#ffd659; --ar-cur:#ffffff; --ar-mu:#ff7b6e}
+@media (min-width:761px) and (min-height:480px){ body.arron .tarr{display:flex} }
+/* Up to a laptop-ish width the overview takes the side panel's place (the tabs and the mixer still do its job). */
+@media (min-width:761px) and (max-width:1099px) and (min-height:480px){ body.arron .tside{display:none} }
+.tahd{display:flex; align-items:center; gap:8px; padding:8px 10px 6px; font-size:12px; font-weight:700; letter-spacing:.05em; flex:none}
+.tahd span{flex:1; min-width:0; font-weight:400; color:var(--ar-dim); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; letter-spacing:0}
+.tahd button{min-height:24px; padding:0 8px; font-size:10.5px; font-weight:700; letter-spacing:.04em; background:transparent; color:var(--ar-ink); border:1px solid var(--ar-line); border-radius:4px}
+.tahd button.on{background:var(--ar-mu); border-color:var(--ar-mu); color:#fff}
+.tath,.tagrid .ar{display:grid; grid-template-columns:22px repeat(8,minmax(0,1fr)) 4px repeat(8,minmax(0,1fr)); gap:2px; padding:0 8px}
+.tath{flex:none; font-size:9px; color:var(--ar-dim); padding-bottom:3px; border-bottom:1px solid var(--ar-line)}
+.tath i{font-style:normal; text-align:center; cursor:pointer; line-height:16px}
+.tath i.mu{color:var(--ar-mu); text-decoration:line-through}
+.tagrid{flex:1; min-height:0; overflow-y:auto; overscroll-behavior:contain; padding:3px 0 8px; touch-action:pan-y}
+.tagrid .ar{margin-bottom:2px}
+.tagrid .rn{font-size:9px; line-height:16px; color:var(--ar-dim); cursor:pointer}
+.tagrid .rn.r4{color:var(--ar-ink); font-weight:700}
+.tagrid .rn.pl{background:var(--ar-pl); color:var(--ar-pl-ink); border-radius:2px}
+.tagrid b{display:block; height:16px; line-height:16px; font-size:9px; font-weight:600; text-align:center; border-radius:2px; background:var(--ar-empty); color:transparent; cursor:pointer; overflow:hidden}
+.tagrid b.f{background:var(--ar-blk); color:var(--ar-blk-ink)}
+.tagrid b.z{background:transparent; box-shadow:inset 0 0 0 1px var(--ar-blk); color:var(--ar-blk)}
+.tagrid b.m{background:transparent; box-shadow:inset 0 0 0 1px var(--ar-dim); color:var(--ar-dim); text-decoration:line-through;
+  background-image:repeating-linear-gradient(135deg, transparent 0 3px, var(--ar-empty) 3px 5px)}
+.tagrid b.p{background:var(--ar-pl); color:var(--ar-pl-ink); box-shadow:none}
+.tagrid b.p.m{background:transparent; box-shadow:inset 0 0 0 2px var(--ar-pl); color:var(--ar-dim)}
+.tagrid b.tm{opacity:.35}
+.tagrid b.c{outline:2px solid var(--ar-cur); outline-offset:0; position:relative; z-index:1}
+.tagrid b.c:not(.f):not(.m):not(.z):not(.p){color:var(--ar-dim)}
+.tafoot{flex:none; font-size:10px; line-height:1.35; color:var(--ar-dim); padding:6px 10px 8px; border-top:1px solid var(--ar-line); font-family:system-ui, sans-serif}
 @media (max-width:480px){ .top{flex-wrap:wrap} .top .brand{display:none} .top .kitname{order:9; flex:1 1 100%} .top button{white-space:nowrap} .ttabs button{padding:0 10px; font-size:12px} .tmode .mx{display:none} .tmode{padding:0 10px} .tctl{padding-inline:10px} .tcmd{padding-inline:10px} }
 </style>
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
@@ -533,6 +569,12 @@ body.trkv .toast{bottom:calc(var(--k) * 2 + 40px + env(safe-area-inset-bottom,0p
       <div class="tgrid" id="tGrid"></div>
       <div class="tinfo"><div id="tInfo"></div><div class="thint" id="tHint"></div></div>
     </div>
+    <aside class="tarr" id="tArr" aria-label="Song arrangement">
+      <div class="tahd"><b>ARRANGE</b><span id="tArrSub"></span><button type="button" id="tArrMode" title="What a tap on a block does">TAP: GO</button></div>
+      <div class="tath" id="tArrTh"></div>
+      <div class="tagrid" id="tArrGrid"></div>
+      <div class="tafoot">Tap a block to go to it, twice to open its phrase · Alt-click or hold to mute it (the phrase stays) · tap a row number to play from there</div>
+    </aside>
     <aside class="tside" aria-label="Tracker status">
       <div class="tmap" id="tMap">
         <button type="button" data-v="project" class="wide">PROJECT</button>
@@ -614,6 +656,8 @@ body.trkv .toast{bottom:calc(var(--k) * 2 + 40px + env(safe-area-inset-bottom,0p
 <p>...Thunder has two pages: the <b>Synth</b>, where you build an 8-pad kit, and the <b>Tracker</b>, an M8-style sequencer that plays that kit. Switch with <b>Synth / Tracker</b> at the top. Everything saves in the browser as you work; <b>Save</b> writes a project file (song and kit) you can keep or move to another device.</p>
 <h3>How a song fits together</h3>
 <p><b>Song</b> (256 rows × 16 tracks of chain numbers) → <b>Chain</b> (up to 16 phrases, each with a transpose) → <b>Phrase</b> (up to 32 rows of note, volume, instrument and three effects) → <b>Inst</b> (which pad a note plays, with transpose, volume, pan, reverse and start). <b>Mixer</b>, <b>FX</b> and <b>Project</b> sit around them.</p>
+<p><b>Chains are hidden by default</b> (Project → CHAINS), Renoise style: EDIT×2 on an empty song cell makes a block that already holds a phrase, SHIFT+▶ opens that phrase, and EDIT×2 on a filled block makes a unique copy. Set CHAINS to SHOWN for the M8 chain screen; nothing is lost either way.</p>
+<p><b>Arrange</b> (wide screens): the blue overview at the right shows the whole song. Tap a block to go to it, twice to open its phrase, a row number to play from there. <b>Alt-click or hold a block to mute it</b>: the phrase stays in place, silent, so you can drop parts in and out while arranging. TAP: MUTE makes every tap a mute; M does it on the Song screen in KEYS mode.</p>
 <p>The screens are laid out like the M8's map: Song ▶ Chain ▶ Phrase ▶ Inst left to right, Project above, Mixer below, FX to the right of the Mixer. You move between them with the screen keys below, the tabs, or the map in the side panel.</p>
 <h3>Drum pads and synths</h3>
 <p>The kit has 16 slots. <b>1–8</b> are drum pads: one-shots that play their whole sound. <b>9–16</b> are synths for melodies and chords (Bass, Pluck, Keys, Pad, Lead, Bell, Organ, Sub to start): a note holds at its sustain level for as long as you hold it, up to the slot’s Max len, then fades over its release when you let go. C-4 plays middle C. In the tracker, instruments 08–0F play the synth slots in a new song.</p>
@@ -2083,7 +2127,8 @@ function freshSong(){
   return {app:'thunder-song', v:3, name:'Song 1', bpm:120, swing:50, limiter:true, renderFrom:0, master:224,
     song:Array.from({length:256}, () => new Array(NT).fill(-1)), chains:new Array(256).fill(null), phrases:new Array(256).fill(null),
     insts:Array.from({length:NI}, (_, i) => freshInst(i)), mix:Array.from({length:NT}, freshMix),
-    tfx:Array.from({length:NT}, freshChainFx), mfx:freshChainFx(), lpb:4, ticks:TICKS, dlen:16, plen:new Array(256).fill(16), plpb:new Array(256).fill(0)};
+    tfx:Array.from({length:NT}, freshChainFx), mfx:freshChainFx(), lpb:4, ticks:TICKS, dlen:16, plen:new Array(256).fill(16), plpb:new Array(256).fill(0),
+    smute:new Array(256).fill(0)};   // smute[row]: a bit per track, set = that song block is muted (it stays in place)
 }
 const int = (v, d) => Number.isFinite(+v) && v !== null && v !== '' ? Math.round(+v) : d;
 function normSong(j){
@@ -2125,6 +2170,7 @@ function normSong(j){
     m.vol = clamp(int(o.vol, 224), 0, 255); m.pan = clamp(int(o.pan, 128), 0, 255); m.mute = !!o.mute; m.solo = !!o.solo; } });
   if (Array.isArray(j.tfx)) for (let t = 0; t < NT; t++) S.tfx[t] = normChainFx(j.tfx[t]);
   S.mfx = normChainFx(j.mfx);
+  if (Array.isArray(j.smute)) j.smute.slice(0, 256).forEach((v, i) => S.smute[i] = int(v, 0) & 0xFFFF);
   return S;
 }
 function demoSong(){
@@ -2183,6 +2229,26 @@ function freePhrase(){
   return -1;
 }
 const audible = t => { const any = S.mix.some(m => m.solo); return !S.mix[t].mute && (!any || S.mix[t].solo); };
+// A muted song block: the chain stays on the song, it just plays silently (Renoise's pattern-matrix mute).
+const blockMuted = (Sx, y, t) => !!(Sx.smute && y >= 0 && y < 256 && (Sx.smute[y] >> t) & 1);
+// Chains and phrases with the same number, when both are free, so the song's numbers match the phrases they open.
+function freePair(){
+  const uc = new Set(), up = new Set();
+  for (const r of S.song) for (const v of r) if (v >= 0) uc.add(v);
+  for (const c of S.chains) if (c) for (const r of c) if (r[0] >= 0) up.add(r[0]);
+  for (let i = 0; i < 256; i++) if (!uc.has(i) && isEmptyChain(S.chains[i]) && !up.has(i) && isEmptyPhrase(S.phrases[i])) return [i, i];
+  return [freeChain(), freePhrase()];
+}
+const phraseFree = id => isEmptyPhrase(S.phrases[id]) && !S.chains.some(c => c && c.some(r => r[0] === id));
+// With chains hidden every song block is one chain holding one phrase: give an empty chain its phrase
+// (the one with its own number if that is free) so it plays and opens straight into the phrase.
+function ensureChainPhrase(cid){
+  if (cid < 0 || !isEmptyChain(S.chains[cid])) return;
+  const pid = phraseFree(cid) ? cid : freePhrase(); if (pid < 0) return toast('No free phrases left.');
+  if (!S.chains[cid]) S.chains[cid] = freshChain();
+  S.chains[cid][0][0] = pid; S.plen[pid] = S.dlen || 16; S.plpb[pid] = 0; saveS();
+}
+const firstPhrase = cid => { const c = cid >= 0 ? S.chains[cid] : null, r = c ? c.find(q => q[0] >= 0) : null; return r ? r[0] : -1; };
 
 /* ---------- sequencer: turns the song into timed note events ---------- */
 function makeSeq(S, mode, o){
@@ -2250,6 +2316,8 @@ function makeSeq(S, mode, o){
       const dur = gv ? gv[T.g % 2] * tick : T.g % 2 === 0 ? 2 * line * sw : 2 * line * (1 - sw);
       const ctsp = ch && !T.empty ? ch[T.cr][1] : 0;
       pos[t] = {row:T.row, cr:T.cr, step:T.step, chain:cid, phrase:pid};
+      // A muted song block still runs its rows (so tempo and timing carry on) but its notes are dropped.
+      const muted = mode === 'song' && blockMuted(S, T.row, t), ev0 = evs.length;
       const ph = pid >= 0 ? S.phrases[pid] : null, r = ph ? ph[T.step] : null;
       let hop = -1;
       if (r){
@@ -2328,6 +2396,8 @@ function makeSeq(S, mode, o){
           if (any) evs.push(m);
         }
       }
+      if (muted){ evs.length = ev0; if (!T.mut) evs.push({type:'off', t:t0, track:t}); }   // entering a muted block silences what is ringing
+      T.mut = muted;
       const L = lenOf(pid);
       if (hop >= 0){ T.step = L; T.next = hop; } else T.step++;
       if (T.step >= L){ T.step = T.next >= 0 ? T.next : 0; T.next = -1; if (mode !== 'phrase'){ T.cr++; settle(T, t); } }
@@ -2679,6 +2749,23 @@ function setSong(s, msg){ tStop(true); S = s; projFile = null; resetCursors(); i
 const MID = ['song', 'chain', 'phrase', 'inst'], VIEWS = ['song', 'chain', 'phrase', 'inst', 'mixer', 'fx', 'project'], GRIDV = new Set(['song', 'chain', 'phrase']);
 const VNAME = {song:'SONG', chain:'CHAIN', phrase:'PHRASE', inst:'INST', mixer:'MIXER', fx:'FX', project:'PROJECT'};
 let tv = 'song', midV = 'song';
+// CHAINS (Project): hidden by default. The chain screen and its data stay, the song just points straight at
+// phrases, Renoise style: a new song block gets its own chain with one phrase in it, and SHIFT+▶ opens the phrase.
+const CHK = 'thunder-chains-v1', ARK = 'thunder-arrange-v1';
+let chainsOn = (() => { try { return localStorage.getItem(CHK) === '1'; } catch(e){ return false; } })();
+// ARRANGE (Project): the song overview at the right of the screen when there is room (unfolded, tablet, computer).
+let arrOn = (() => { try { return localStorage.getItem(ARK) !== '0'; } catch(e){ return true; } })();
+const midList = () => chainsOn ? MID : MID.filter(v => v !== 'chain');
+function chainVis(){
+  document.querySelectorAll('#tTabs [data-v="chain"], #tMap [data-v="chain"]').forEach(b => b.hidden = !chainsOn);
+  $('tMap').classList.toggle('nochain', !chainsOn);
+}
+function setChains(on){
+  chainsOn = on; try { localStorage.setItem(CHK, on ? '1' : '0'); } catch(e){}
+  if (!on){ if (tv === 'chain') tv = 'phrase'; if (midV === 'chain') midV = 'phrase'; }
+  chainVis(); draw();
+}
+function setArr(on){ arrOn = on; try { localStorage.setItem(ARK, on ? '1' : '0'); } catch(e){} document.body.classList.toggle('arron', on); arrSig = ''; draw(); fit(); }
 const cs = {song:{x:0, y:0, top:0}, chain:{x:0, y:0}, phrase:{x:0, y:0, top:0}, inst:{x:0, y:0}, mixer:{x:0, y:0}, fx:{x:0, y:0}, project:{x:0, y:0}};
 let cChain = 0, cPhrase = 0, cInst = 0, cTrack = 0, cFxT = 0, cFxS = 0, lastFxType = 'eq', selA = null, clip = null;
 const last = {chain:0, phrase:0, note:ROOT, vol:255, inst:0, fxc:0, fxv:0};
@@ -2693,7 +2780,7 @@ function getCell(v, x, y){
   const p = S.phrases[cPhrase]; return p ? p[y][x] : -1;
 }
 function setCell(v, x, y, val){
-  if (v === 'song') S.song[y][x] = val;
+  if (v === 'song'){ S.song[y][x] = val; if (val < 0) S.smute[y] &= ~(1 << x); }
   else if (v === 'chain'){ if (!S.chains[cChain]) S.chains[cChain] = freshChain(); S.chains[cChain][y][x] = val; }
   else { if (!S.phrases[cPhrase]) S.phrases[cPhrase] = freshPhrase(); S.phrases[cPhrase][y][x] = val; }
   saveS();
@@ -2740,6 +2827,10 @@ function projRows(){
     {l:'COMMANDS', get:() => cmdOn ? 1 : 0, set:v => setCmd(!!v), min:0, max:1, tog:true, d:+coarse, fmt:onOff, info:() => 'A row of buttons for the two-key commands: change value, clear, select, copy, cut, paste, other chain or phrase, play the song'},
     {l:'STICKY KEYS', get:() => latchOn ? 1 : 0, set:v => setLatch(!!v), min:0, max:1, tog:true, d:1, fmt:onOff, info:() => 'Tap SHIFT or OPTION on its own and it stays lit for the next button, so no command needs two fingers. Tap it again to cancel'},
     {l:'SCREEN', get:() => SCREENS.findIndex(x => x[0] === tScreen), set:v => setScreen(SCREENS[v][0]), min:0, max:SCREENS.length - 1, fmt:v => SCREENS[v][1], info:() => 'Colour of the screen: BY SCREEN gives Song, Chain, Phrase and the rest their own pastel (the same as their tabs), or pick one pastel, or the M8’s black'},
+    {l:'CHAINS', get:() => chainsOn ? 1 : 0, set:v => setChains(!!v), min:0, max:1, tog:true, d:0, fmt:v => v ? 'SHOWN' : 'HIDDEN',
+      info:() => 'HIDDEN: the song opens straight into phrases, like Renoise patterns (each new song block gets its own chain with one phrase). SHOWN brings back the M8 chain screen. Nothing is deleted either way'},
+    {l:'ARRANGE', get:() => arrOn ? 1 : 0, set:v => setArr(!!v), min:0, max:1, tog:true, d:1, fmt:onOff,
+      info:() => 'Song overview at the right of the screen when it’s wide (unfolded, tablet, computer). Alt-click or hold a block to mute it; the phrase stays in place'},
     {l:'EDIT STEP', get:() => kStep, set:v => kStep = v, min:0, max:16, big:4, fmt:v => v + (v === 1 ? ' row' : ' rows'), info:() => 'How far the cursor moves after you type a note or value or delete a row (Renoise’s edit step). Keyboard: { and }'},
     {l:'SKIN', get:() => SKINS.findIndex(k => k.id === skin), set:v => applySkin(SKINS[v].id), min:0, max:SKINS.length - 1, fmt:v => SKINS[v].name.toUpperCase(), info:() => 'The look of the whole app: the ...Seeds skins'},
     {l:'NAME', show:() => S.name, tap:() => { const n = prompt('Song name', S.name); if (n != null){ S.name = n.trim().slice(0, 40) || 'Song'; saveS(); draw(); } }, info:() => 'EDIT renames the song'},
@@ -2859,6 +2950,7 @@ function editTap(){
 }
 function editDouble(wasEmpty){
   const c = cs[tv];
+  if (tv === 'song' && !chainsOn) return newBlock(c, wasEmpty || getCell('song', c.x, c.y) < 0 ? -1 : getCell('song', c.x, c.y));
   if (tv === 'song' || (tv === 'chain' && c.x === 0)){
     const isS = tv === 'song', curV = getCell(tv, c.x, c.y), id = isS ? freeChain() : freePhrase();
     if (id < 0) return toast('No free ' + (isS ? 'chains' : 'phrases') + ' left.');
@@ -2870,6 +2962,33 @@ function editDouble(wasEmpty){
   }
   if (tv === 'phrase' && PK[c.x] === 'note'){ setCell('phrase', c.x, c.y, OFF); return after('note', 'phrase', c.x, c.y, OFF); }
   const r = rowsOf(tv)[c.y]; if (r && r.act && r.dbl) r.act();
+}
+// EDIT×2 on the song with chains hidden: a new block is a chain with one new phrase (numbered alike when
+// they're free). On a filled block it makes a unique copy: the chain and its phrases are all cloned.
+function newBlock(c, src){
+  const [cid, pid] = freePair();
+  if (cid < 0) return toast('No free chains left.');
+  if (src < 0){
+    if (pid < 0) return toast('No free phrases left.');
+    S.chains[cid] = freshChain(); S.chains[cid][0][0] = pid;
+    S.phrases[pid] = freshPhrase(); S.plen[pid] = S.dlen || 16; S.plpb[pid] = 0;
+  } else {
+    S.chains[cid] = clone(S.chains[src] || freshChain());
+    const map = new Map(); let first = true;
+    for (const r of S.chains[cid]){
+      if (r[0] < 0) continue;
+      if (!map.has(r[0])){
+        const np = first && phraseFree(cid) ? cid : freePhrase(); first = false;
+        if (np < 0){ toast('Ran out of free phrases; some rows still share the old ones.'); break; }
+        const op = r[0]; r[0] = np;
+        S.phrases[np] = clone(S.phrases[op] || freshPhrase()); S.plen[np] = plen(op); S.plpb[np] = S.plpb[op] || 0; map.set(op, np);
+      } else r[0] = map.get(r[0]);
+    }
+    if (!S.chains[cid].some(r => r[0] >= 0)) ensureChainPhrase(cid);
+  }
+  setCell('song', c.x, c.y, cid); after('chain', 'song', c.x, c.y, cid);
+  const ph = firstPhrase(cid);
+  return toast((src < 0 ? 'New phrase ' : 'Unique copy: phrase ') + hx(ph) + (ph !== cid ? ' (block ' + hx(cid) + ')' : '') + ' · SHIFT+▶ opens it');
 }
 function del(){
   if (onPset()) return psetSet(cs.phrase.x, cs.phrase.x ? 0 : 16);
@@ -2901,6 +3020,12 @@ function rowOp(op){
     else if (op === 'insert'){ col.splice(c.y, 0, -1); col.length = 256; }
     else { col.splice(c.y, 1); col.push(-1); }
     col.forEach((v, y) => S.song[y][c.x] = v);
+    // block mutes move with their blocks
+    const mb = S.smute.map(m => (m >> c.x) & 1);
+    if (op === 'clear') mb[c.y] = 0;
+    else if (op === 'insert'){ mb.splice(c.y, 0, 0); mb.length = 256; }
+    else { mb.splice(c.y, 1); mb.push(0); }
+    mb.forEach((b, y) => S.smute[y] = (S.smute[y] & ~(1 << c.x)) | (b << c.x));
   } else if (tv === 'chain' || tv === 'phrase'){
     const A = rowsArr(tv);
     if (op === 'clear') A[c.y] = rowBlank(tv);
@@ -2984,7 +3109,15 @@ function tickDots(){
   [...D.children].forEach((e, i) => e.classList.toggle('on', i <= k));
 }
 function psetSet(x, v){ if (x === 0) S.plen[cPhrase] = clamp(v, 1, PROWS); else S.plpb[cPhrase] = clamp(v, 0, 16); saveS(); draw(); }
+// Mutes or unmutes one song block (Alt-click, a long press in ARRANGE, or M on the song in KEYS mode).
+function toggleBlockMute(y, t){
+  if (y < 0 || y > 255 || S.song[y][t] < 0) return toast('Nothing there to mute.');
+  S.smute[y] ^= 1 << t; saveS(); draw();
+  toast((blockMuted(S, y, t) ? 'Muted' : 'Unmuted') + ` row ${hx(y)} · track ${d2(t + 1)}`);
+}
 function go(v){
+  if (v === 'chain' && !chainsOn) v = 'phrase';
+  if (v === 'phrase' && tv === 'song' && !chainsOn) ensureChainPhrase(S.song[cs.song.y][cs.song.x]);
   if (v === 'chain'){ const id = S.song[cs.song.y][cs.song.x]; if (tv === 'song' && id >= 0){ cChain = id; cTrack = cs.song.x; } }
   if (v === 'phrase' && tv === 'song'){ const cid = S.song[cs.song.y][cs.song.x];
     if (cid >= 0){ cChain = cid; cTrack = cs.song.x; const ch = S.chains[cid]; const r = ch ? ch.findIndex(q => q[0] >= 0) : -1; if (r >= 0){ cs.chain.y = r; cPhrase = ch[r][0]; } } }
@@ -3001,8 +3134,9 @@ function nav(dir){
   if (dir === 'right' && (tv === 'inst' || tv === 'mixer' || tv === 'fx')) return go(VIEWS[VIEWS.indexOf(tv) + 1]);
   if (dir === 'left' && (tv === 'mixer' || tv === 'fx' || tv === 'project')) return tv === 'mixer' ? go('inst') : go(VIEWS[VIEWS.indexOf(tv) - 1]);
   if (!MID.includes(tv)) return;
-  if (dir === 'left'){ const i = MID.indexOf(tv); return i > 0 ? go(MID[i - 1]) : null; }
+  if (dir === 'left'){ const M = midList(), i = M.indexOf(tv); return i > 0 ? go(M[i - 1]) : null; }
   // On an empty cell, still change screen: show the chain or phrase that was last open.
+  if (tv === 'song' && !chainsOn){ cTrack = cs.song.x; const e = S.song[cs.song.y][cs.song.x] < 0; go('phrase'); return e ? toast(`Empty block: showing phrase ${hx(cPhrase)}, the last one open. EDIT×2 makes a new one.`) : null; }
   if (tv === 'song'){ if (S.song[cs.song.y][cs.song.x] < 0){ cTrack = cs.song.x; go('chain'); return toast(`Empty row: showing chain ${hx(cChain)}, the last one open.`); } return go('chain'); }
   if (tv === 'chain'){ const ch = S.chains[cChain]; if (!ch || ch[cs.chain.y][0] < 0){ go('phrase'); return toast(`No phrase on that row: showing phrase ${hx(cPhrase)}, the last one open.`); } return go('phrase'); }
   if (tv === 'phrase'){ const p = S.phrases[cPhrase], r = p && p[cs.phrase.y]; cInst = r && r[IC] >= 0 ? r[IC] : last.inst; tv = 'inst'; midV = 'inst'; draw(); }
@@ -3107,6 +3241,7 @@ let CW = 0.6, meterEls = [], masterEls = [];
 const MH = 8, MW = 36;
 const HINT = {
   song:'EDIT add · EDIT×2 new chain · OPT+EDIT clear · EDIT+◀▶ ±1 ▲▼ ±16 · SHIFT+▶ open · OPT+▲▼ page',
+  songP:'EDIT add · EDIT×2 new phrase (on a block: unique copy) · OPT+EDIT clear · EDIT+◀▶ ±1 · SHIFT+▶ open phrase',
   chain:'EDIT add phrase · EDIT×2 new · EDIT+arrows change · SHIFT+▶ open · SHIFT+◀ song · OPT+◀▶ other chain',
   phrase:'EDIT add note · EDIT×2 note off · EDIT+◀▶ ±1 ▲▼ ±octave · OPT+EDIT clear · ▲ from row 0: LEN/LPB · SHIFT+▶ inst',
   inst:'EDIT+◀▶ ±1 ▲▼ ±more · EDIT on › runs it · OPT+◀▶ other instrument · SHIFT+◀ phrase',
@@ -3121,7 +3256,9 @@ function info(){
     return inMode === 'keys' ? `${what} · Shift+▲▼ grow · Ctrl/⌘+C copy · Ctrl/⌘+X cut · Ctrl/⌘+V paste over · Esc cancel`
       : `${what} · arrows extend · OPTION copies · OPTION+EDIT cuts · SHIFT+OPTION cancels`;
   }
-  if (tv === 'song'){ const v = S.song[c.y][c.x]; return `TRACK ${d2(c.x + 1)} · ROW ${hx(c.y)} · ` + (v < 0 ? 'empty' : `chain ${hx(v)}` + (isEmptyChain(S.chains[v]) ? ' (empty)' : '')); }
+  if (tv === 'song'){ const v = S.song[c.y][c.x], mu = blockMuted(S, c.y, c.x) ? ' · MUTED' : '';
+    if (!chainsOn) return `TRACK ${d2(c.x + 1)} · ROW ${hx(c.y)} · ` + (v < 0 ? 'empty · EDIT×2 new phrase' : isEmptyChain(S.chains[v]) ? `block ${hx(v)} · no phrase yet (SHIFT+▶ makes one)` : `phrase ${hx(firstPhrase(v))}` + (isEmptyPhrase(S.phrases[firstPhrase(v)]) ? ' (empty)' : '') + (firstPhrase(v) !== v ? ` · block ${hx(v)}` : '')) + mu;
+    return `TRACK ${d2(c.x + 1)} · ROW ${hx(c.y)} · ` + (v < 0 ? 'empty' : `chain ${hx(v)}` + (isEmptyChain(S.chains[v]) ? ' (empty)' : '')) + mu; }
   if (tv === 'chain'){ const ch = S.chains[cChain], r = ch ? ch[c.y] : [-1, 0];
     return c.x === 0 ? (r[0] < 0 ? 'No phrase. The chain ends at the first empty row.' : `Phrase ${hx(r[0])}` + (isEmptyPhrase(S.phrases[r[0]]) ? ' (empty)' : '')) : `Transpose ${sgn(r[1])} semitones for this row`; }
   if (onPset()){ const len = plen(cPhrase), lpb = S.plpb[cPhrase] || 0, e2 = lpb || S.lpb;
@@ -3187,7 +3324,7 @@ function draw(){
     for (let y = c.top; y < c.top + VR; y++){
       const ln = [{t:hx(y), cls:'rn' + (y % 4 ? '' : ' rn4') + rsel(y), r:y}, ' '];
       for (let t = 0; t < NT; t++){ const v = S.song[y][t], pl = P && tp.mode === 'song' && P[t] && P[t].row === y;
-        ln.push({t:h2(v), cls:cc(t, y, (v < 0 ? 'e' : 'v') + (pl ? ' pl' : '')), x:t, y}, ' '); }
+        ln.push({t:h2(v), cls:cc(t, y, (v < 0 ? 'e' : 'v') + (pl ? ' pl' : '') + (v >= 0 && blockMuted(S, y, t) ? ' sm' : '')), x:t, y}, ' '); }
       L.push(ln);
     }
   } else if (tv === 'chain'){
@@ -3258,7 +3395,9 @@ function draw(){
       else if (r.bottom + m > g.bottom) grid.scrollTop += r.bottom - g.bottom + m; } }
   meterEls = tv === 'mixer' ? [...grid.querySelectorAll('.mt')] : []; masterEls = tv === 'mixer' ? [...grid.querySelectorAll('.mm')] : [];
   $('tTitle').textContent = title; $('tSub').textContent = sub;
-  $('tInfo').textContent = info(); $('tHint').textContent = (tv === 'phrase' ? 'NOW ' + curS() + (inMode === 'keys' ? ' · oct ' + kOct + ' · step ' + kStep : '') + ' · ' : '') + (inMode === 'keys' ? HINTK : HINT)[tv];
+  $('tInfo').textContent = info(); $('tHint').textContent = (tv === 'phrase' ? 'NOW ' + curS() + (inMode === 'keys' ? ' · oct ' + kOct + ' · step ' + kStep : '') + ' · ' : '') +
+    (tv === 'song' && !chainsOn ? (inMode === 'keys' ? HINTK.songP : HINT.songP) : (inMode === 'keys' ? HINTK : HINT)[tv]);
+  drawArr(P);
   const km = inMode === 'keys'; $('tKp').hidden = !km; $('tPad').hidden = km; $('tLegKeys').hidden = !km; $('tLegPad').hidden = km;
   drawPat();
   $('tMode').innerHTML = '<span class="mx">INPUT: </span>' + (km ? 'KEYS' : 'PAD'); $('tMode').classList.toggle('on', km);
@@ -3292,6 +3431,84 @@ function paintMeters(){
     });
   }
 }
+/* ---------- ARRANGE: the song overview beside the screen ---------- */
+// Every filled row of the song as blocks, one column per track. A block shows its phrase (or its chain with
+// CHAINS shown); muted blocks are hatched and keep their number, so the structure stays readable.
+let arrSig = '', arrTap = {t:0, k:''}, arrCurY = -1, arrMuteMode = false;
+const arrEl = $('tArr'), arrGrid = $('tArrGrid');
+const arrShown = () => arrOn && arrEl.offsetWidth > 0;
+function drawArr(P){
+  if (!arrShown()) return;
+  arrEl.classList.toggle('dk', tScreen === 'dark');
+  let lastR = -1; for (let y = 255; y >= 0; y--) if (S.song[y].some(v => v >= 0)){ lastR = y; break; }
+  const N = clamp(Math.max(lastR + 2, 16, cs.song.y + 1), 1, 256);
+  const play = new Array(NT).fill(-1);
+  if (P && tp.mode === 'song') P.forEach((p, t) => { if (p) play[t] = p.row; });
+  const anySolo = S.mix.some(m => m.solo);
+  let h = '';
+  for (let y = 0; y < N; y++){
+    h += `<div class="ar"><span class="rn${y % 4 ? '' : ' r4'}${play.includes(y) ? ' pl' : ''}" data-ry="${y}">${hx(y)}</span>`;
+    for (let t = 0; t < NT; t++){
+      if (t === 8) h += '<span></span>';
+      const v = S.song[y][t];
+      let cls = '', lab = '';
+      if (v >= 0){
+        const empty = isEmptyChain(S.chains[v]), ph = firstPhrase(v);
+        cls = empty ? 'z' : 'f'; lab = chainsOn || ph < 0 ? hx(v) : hx(ph);
+        if (blockMuted(S, y, t)) cls = 'm';
+        if (play[t] === y) cls += ' p';
+      }
+      if (S.mix[t].mute || (anySolo && !S.mix[t].solo)) cls += ' tm';
+      if (cs.song.x === t && cs.song.y === y) cls += ' c';
+      h += `<b class="${cls.trim()}" data-y="${y}" data-t="${t}">${lab}</b>`;
+    }
+    h += '</div>';
+  }
+  const th = '<span></span>' + S.mix.map((m, t) => (t === 8 ? '<span></span>' : '') + `<i data-mt="${t}" class="${m.mute ? 'mu' : ''}">${t + 1}</i>`).join('');
+  const sig = h + th + arrMuteMode;
+  if (sig !== arrSig){
+    arrSig = sig; arrGrid.innerHTML = h; $('tArrTh').innerHTML = th;
+    $('tArrMode').textContent = arrMuteMode ? 'TAP: MUTE' : 'TAP: GO'; $('tArrMode').classList.toggle('on', arrMuteMode);
+  }
+  const nm = S.smute.reduce((a, m) => { for (; m; m &= m - 1) a++; return a; }, 0);
+  $('tArrSub').textContent = (lastR + 1) + (lastR ? ' rows' : ' row') + (nm ? ` · ${nm} muted` : '');
+  // Keep the cursor's row in view when it moves, and the play row while the song plays.
+  const fy = tp.on && tp.mode === 'song' && play.some(r => r >= 0) ? Math.min(...play.filter(r => r >= 0)) : cs.song.y;
+  if (fy !== arrCurY){ arrCurY = fy; const row = arrGrid.children[fy];
+    if (row){ const g = arrGrid.getBoundingClientRect(), r = row.getBoundingClientRect();
+      if (r.top < g.top + 4) arrGrid.scrollTop -= g.top - r.top + 22; else if (r.bottom > g.bottom - 4) arrGrid.scrollTop += r.bottom - g.bottom + 22; } }
+}
+// A tap moves the song cursor there (from the phrase screen it opens that block's phrase); a second tap on the
+// same block opens its phrase. Alt-click, a long press, or TAP: MUTE mutes the block instead.
+function arrGo(y, t){
+  cs.song.x = t; cs.song.y = y; cTrack = t;
+  const k = y + ':' + t, now = performance.now(), dbl = arrTap.k === k && now - arrTap.t < 380;
+  arrTap = {t:dbl ? 0 : now, k:dbl ? '' : k};
+  const filled = S.song[y][t] >= 0;
+  if (filled && (dbl || tv === 'phrase')){ tv = 'song'; go('phrase'); return; }
+  if (tv !== 'song') go('song'); else draw();
+}
+let arrPress = null;
+arrGrid.addEventListener('pointerdown', e => {
+  const rn = e.target.closest('[data-ry]');
+  if (rn){ const y = +rn.dataset.ry; cs.song.y = y; if (tp.on && tp.mode === 'song') tStart('song', {row:y}); else draw(); return; }
+  const b = e.target.closest('b[data-y]'); if (!b) return;
+  const y = +b.dataset.y, t = +b.dataset.t;
+  if (e.altKey || arrMuteMode){ e.preventDefault(); toggleBlockMute(y, t); return; }
+  arrPress = {id:e.pointerId, y, t, x0:e.clientX, y0:e.clientY, done:false,
+    tm:setTimeout(() => { if (arrPress && !arrPress.done){ arrPress.done = true; if (navigator.vibrate) try { navigator.vibrate(12); } catch(_){} toggleBlockMute(y, t); } }, 450)};
+});
+arrGrid.addEventListener('pointermove', e => { if (arrPress && e.pointerId === arrPress.id && Math.hypot(e.clientX - arrPress.x0, e.clientY - arrPress.y0) > 8){ clearTimeout(arrPress.tm); arrPress = null; } });
+const arrUp = e => {
+  if (!arrPress || e.pointerId !== arrPress.id) return;
+  const p = arrPress; arrPress = null; clearTimeout(p.tm);
+  if (!p.done && e.type === 'pointerup') arrGo(p.y, p.t);
+};
+arrGrid.addEventListener('pointerup', arrUp); arrGrid.addEventListener('pointercancel', arrUp);
+arrGrid.addEventListener('contextmenu', e => e.preventDefault());
+$('tArrTh').addEventListener('click', e => { const i = e.target.closest('[data-mt]'); if (!i) return; const m = S.mix[+i.dataset.mt]; m.mute = !m.mute; mixChanged(); draw(); });
+$('tArrMode').addEventListener('click', () => { arrMuteMode = !arrMuteMode; draw(); toast(arrMuteMode ? 'Tapping a block now mutes or unmutes it.' : 'Tapping a block goes to it again.'); });
+
 let raf = 0;
 const mbuf = new Float32Array(512), mbuf2 = new Float32Array(1024);
 // CPU meter: the browser's own audio load where it reports one (Chrome's renderCapacity), otherwise
@@ -3373,6 +3590,7 @@ grid.addEventListener('pointerdown', e => {
   const s = e.target.closest('[data-x]'); if (!s) return;
   const x = +s.dataset.x, y = +s.dataset.y, c = cs[tv];
   if (y === -1){ S.mix[x].mute = !S.mix[x].mute; mixChanged(); draw(); return; }
+  if (tv === 'song' && e.altKey && y >= 0){ e.preventDefault(); toggleBlockMute(y, x); return; }
   const was = GRIDV.has(tv) || tv === 'mixer' ? c.x === x && c.y === y : c.y === y;
   c.x = x; c.y = y; if (!was) draw();
   drag = {id:e.pointerId, y0:e.clientY, acc:0, edit:was, moved:false, sy:c.y};
@@ -3573,6 +3791,7 @@ function keysDown(e){
     return false;
   }
   if (kind === 'fxc') return k.length === 1 && /[a-z]/i.test(k) ? fxLetter(k) : false;
+  if (tv === 'song' && lo === 'm'){ toggleBlockMute(cs.song.y, cs.song.x); return true; }
   if (k.length === 1 && HEXK.includes(lo)){ typeHex(HEXK.indexOf(lo)); return true; }
   return false;
 }
@@ -3623,7 +3842,8 @@ $('tKp').addEventListener('pointerdown', e => {
 $('tKp').addEventListener('click', e => { const b = e.target.closest('button[data-a]'); if (b && e.detail === 0 && !b.disabled) kpAction(b.dataset.a); });
 $('tMode').addEventListener('click', () => setInput(inMode === 'keys' ? 'pad' : 'keys'));
 const HINTK = {
-  song:'Type hex · Enter add or open · Enter×2 new chain · Del clear · Alt+arrows ±1/±16 · Shift+→ open · Shift+↑↓ lines',
+  song:'Type hex · Enter add or open · Enter×2 new chain · Del clear · M mute block · Alt+arrows ±1/±16 · Shift+→ open · Shift+↑↓ lines',
+  songP:'Type hex · Enter add · Enter×2 new phrase (unique copy on a block) · M mute block · Del clear · Shift+→ open phrase · Shift+↑↓ lines',
   chain:'Type hex · Enter add or open · Enter×2 new phrase · Del clear · [ ] other chain · Shift+→ open · Shift+↑↓ lines',
   phrase:'Notes Z–/ and Q–P · 1 off · −/= octave · Del/Bksp clear row · Ins add row · Shift+↑↓ lines · Ctrl+C/V',
   inst:'Alt+arrows change · Enter runs › rows · [ ] other instrument · Shift+← phrase',
@@ -3712,6 +3932,8 @@ setTimeout(() => checkUpdate(false), 3000);
 buildPads();
 refreshAll();
 loadCur();
+if (!chainsOn){ if (tv === 'chain') tv = 'phrase'; if (midV === 'chain') midV = 'phrase'; }
+chainVis(); document.body.classList.toggle('arron', arrOn);
 try { if (localStorage.getItem(VK) !== 'synth') setView('tracker'); } catch(e){ setView('tracker'); }
 })();
 </script>

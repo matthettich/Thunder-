@@ -1656,7 +1656,7 @@ let plFailed = false;
    buffers, so the sequencer only triggers buffers, which keeps 16 tracks cheap on a phone. The same event list
    drives live playback and offline renders, so a render sounds like what you hear. */
 const TK = 'thunder-song-v1', VK = 'thunder-view-v1';
-const NT = 16, NI = 16, ROOT = 48, OFF = 200, TICKS = 6, BASEW = 52, LINES = 21;
+const NT = 16, NI = 16, ROOT = 48, OFF = 200, TICKS = 6, BASEW = 52, FITROWS = 18;
 const NN = ['C-','C#','D-','D#','E-','F-','F#','G-','G#','A-','A#','B-'];
 const hx = (v, n = 2) => ((v & (n === 1 ? 15 : 255)) >>> 0).toString(16).toUpperCase().padStart(n, '0');
 const h2 = v => v < 0 ? '--' : hx(v);
@@ -2842,10 +2842,12 @@ function measure(){
 function fit(){
   if (view !== 'tracker') return;
   const W = scr.clientWidth - 24, H = scr.clientHeight - 16; if (W <= 0 || H <= 0) return;
-  scr.style.fontSize = Math.max(8, Math.min(30, W / (BASEW * CW), H / (LINES * 1.3))).toFixed(2) + 'px';
+  // Height: the phrase's LEN line, its column header and 16 rows (18 lines) must fit in the grid, with the
+  // title line and up to three info lines (0.8em each) around it: ~5.5em of extras.
+  scr.style.fontSize = Math.max(8, Math.min(30, W / (BASEW * CW), H / (FITROWS * 1.3 + 5.5))).toFixed(2) + 'px';
 }
 // Song shows 16 rows like the M8, more when the screen is tall (unfolded in portrait).
-function songRows(){ const fs = parseFloat(scr.style.fontSize) || 14, h = grid.clientHeight; return h > 0 ? clamp(Math.floor(h / (fs * 1.3)) - 1, 8, 48) : 16; }
+function songRows(){ const fs = parseFloat(scr.style.fontSize) || 14, h = grid.clientHeight; return h > 0 ? clamp(Math.floor(h / (fs * 1.3) + 0.05) - 1, 8, 48) : 16; }
 const BLK = ' ▁▂▃▄▅▆▇█';
 const lvl = p => p <= 0.0001 ? 0 : clamp((20 * Math.log10(p) + 48) / 48, 0, 1);
 function draw(){
@@ -3357,14 +3359,14 @@ addEventListener('keydown', e => {
   e.stopImmediatePropagation();
   if (e.key === 'Escape'){ e.preventDefault(); hideHelp(); }
 }, true);
-updView = makeSeg($('segView'), [['synth', 'Synth'], ['tracker', 'Tracker']], () => view, setView);
+updView = makeSeg($('segView'), [['tracker', 'Tracker'], ['synth', 'Synth']], () => view, setView);
 /* ===TRACKER END=== */
 
 /* ---------- boot ---------- */
 buildPads();
 refreshAll();
 loadCur();
-try { if (localStorage.getItem(VK) === 'tracker') setView('tracker'); } catch(e){}
+try { if (localStorage.getItem(VK) !== 'synth') setView('tracker'); } catch(e){ setView('tracker'); }
 })();
 </script>
 

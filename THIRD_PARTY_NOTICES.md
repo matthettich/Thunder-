@@ -1,10 +1,26 @@
 # Third-party code
 
-...Thunder's Plaits layer runs Mutable Instruments Plaits, compiled to WebAssembly from
-https://github.com/pichenettes/eurorack (the `plaits` and `stmlib` folders). The wrapper and
-build script are in the `plaits` folder of this repo.
+...Thunder's synthesis and effects module (`dsp/`, compiled to WebAssembly and embedded in
+`index.html`) is built from the following MIT-licensed projects. The wrappers and the build
+script, including two small patches, are in the `dsp` folder.
 
-Copyright 2016–2023 Emilie Gillet.
+## Mutable Instruments: Plaits, Rings, Clouds, Elements (and stmlib)
+
+https://github.com/pichenettes/eurorack. Copyright Emilie Gillet.
+"Mutable Instruments", "Plaits", "Rings", "Clouds" and "Elements" are names of Mutable Instruments'
+products; ...Thunder is not affiliated with or endorsed by Mutable Instruments.
+
+## Airwindows: Density and ToTape6
+
+https://github.com/airwindows/airwindows. Copyright (c) 2018 Chris Johnson.
+
+## DaisySP: Chorus and Decimator
+
+https://github.com/electro-smith/DaisySP. Copyright (c) 2020 Electrosmith, Corp.
+
+---
+
+All three are released under the MIT License:
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -20,6 +36,3 @@ NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPO
 NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES
 OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-"Mutable Instruments" and "Plaits" are names of Mutable Instruments' products; ...Thunder is not
-affiliated with or endorsed by Mutable Instruments.

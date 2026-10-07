@@ -11,13 +11,13 @@ An 8-pad drum synth for the browser, built for a Galaxy Z Fold 6, for making one
   - Additive: harmonic, odd, membrane, bell, bar, chord
   - Noise: white, pink, brown, blue, 808 metal, digital LFSR, crackle, sample-and-hold
   - Recorded samples
-- **Recording.** Tap Rec, then a pad. Capture starts when sound crosses the threshold and stops after a set stretch of quiet. You can also load an audio file.
+- **Samples.** Load an audio file into any layer with Load sample, then pitch, reverse and filter it like any other layer.
 - **Export.** Mono WAV, 44.1k or 48k, 16 or 24-bit, normalised and tail-trimmed. Save one pad or all 8 as a zip, or share straight to Koala on Android.
 - **Kits.** Kits save in the browser automatically and can be saved or loaded as `.json`, recorded samples included.
 
 ## Running it
 
-It's a plain web app with no build step: `index.html`, `manifest.webmanifest`, `sw.js` and the `icons` folder. Turn on GitHub Pages for this repo (Settings → Pages → deploy from `main`, root folder), then open **https://matthettich.github.io/Thunder-/** in Chrome. The microphone needs the page served over https, which Pages provides.
+It's a plain web app with no build step: `index.html`, `manifest.webmanifest`, `sw.js` and the `icons` folder. Turn on GitHub Pages for this repo (Settings → Pages → deploy from `main`, root folder), then open **https://matthettich.github.io/Thunder-/** in Chrome.
 
 ## Install it
 

@@ -17,7 +17,7 @@
 <style>
 /* Layout: Seeds "Minimal" skin, light only (as in Seeds). Full-width bands split by 1px ink lines:
    grey control bands, a black monitor screen for the waveform, white module cards with thick
-   family-coloured borders, and a grey recorder dock with the 8 pads. */
+   family-coloured borders, and a grey dock with the 8 pads. */
 :root{
   --bench:#ffffff; --panel:#ffffff; --panel2:#f3f3f3; --side:#efefef; --ink:#111111; --muted:#555555;
   --track:#e6e6e6; --inv:#ffffff; --voice:#e8def9; --screen:#000000; --screen-ink:#ffffff; --screen-line:#3a3a3a;
@@ -42,7 +42,6 @@ select{background:var(--panel); border:1px solid var(--ink); min-height:34px; pa
 input[type=text]{background:var(--panel); border:1px solid var(--ink); min-height:34px; padding:0 9px; min-width:0}
 input[type=range]{width:100%; accent-color:var(--ink); height:30px; margin:0; touch-action:pan-y}
 .sp{flex:1}
-.dot{width:12px; height:12px; border-radius:50%!important; background:var(--rec); display:inline-block; flex:none}
 
 /* top bar, like the Seeds title bar */
 .top{display:flex; align-items:center; gap:10px; padding-block:9px; padding-inline:16px; border-bottom:1px solid var(--ink); flex:none; flex-wrap:wrap; background:var(--bench)}
@@ -108,14 +107,6 @@ input[type=range]{width:100%; accent-color:var(--ink); height:30px; margin:0; to
 
 /* recorder dock */
 .dock{flex:none; background:var(--side); border-top:1px solid var(--ink); padding-block:9px 11px; padding-inline:16px; display:grid; gap:8px}
-.dock>header{display:flex; align-items:baseline; gap:10px; min-width:0}
-.rstat{font-size:12.5px; color:var(--muted); min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1}
-.recbar{display:flex; gap:8px; align-items:center; flex-wrap:wrap}
-.recbar .row{flex:1 1 230px; max-width:380px}
-#bRec{font-size:15px; padding:6px 14px}
-#bRec.on{background:var(--ink); color:var(--inv)}
-.meter{width:140px; height:14px; border:1px solid var(--ink); background:var(--panel); display:block; flex:none}
-.recmore{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:2px 18px; border:1px solid var(--ink); background:var(--panel); padding:6px 10px}
 .pads{display:grid; grid-template-columns:repeat(8,minmax(0,1fr)); gap:6px}
 .pad{height:70px; border:1px solid var(--ink); background:var(--panel); display:flex; flex-direction:column;
   justify-content:space-between; align-items:flex-start; padding:6px 8px; text-align:left; font-size:12.5px; touch-action:none; min-width:0; gap:0}
@@ -123,11 +114,8 @@ input[type=range]{width:100%; accent-color:var(--ink); height:30px; margin:0; to
 .pad .pn{white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:100%}
 .pad.sel{border-width:3.5px; padding:3.5px 5.5px}
 .pad.hit{background:var(--ink); color:var(--inv)}
-.pad.recmode{border-color:var(--rec); border-style:dashed}
-.pad.armed{border:3.5px solid var(--rec); padding:3.5px 5.5px}
-.pad.recording{background:var(--rec); color:#fff; border-color:var(--rec)}
 
-.toast{position:fixed; left:50%; transform:translateX(-50%); bottom:calc(190px + env(safe-area-inset-bottom,0px));
+.toast{position:fixed; left:50%; transform:translateX(-50%); bottom:calc(110px + env(safe-area-inset-bottom,0px));
   background:var(--ink); color:var(--inv); padding:9px 15px; font-size:13px; z-index:9; max-width:calc(100% - 32px)}
 
 @media (max-width:600px){
@@ -140,8 +128,7 @@ input[type=range]{width:100%; accent-color:var(--ink); height:30px; margin:0; to
   .top .sp{display:none}
   .top button{padding-inline:8px}
   .wave{height:120px}
-  .meter{width:auto; flex:1 1 60px}
-  .toast{bottom:calc(250px + env(safe-area-inset-bottom,0px))}
+    .toast{bottom:calc(150px + env(safe-area-inset-bottom,0px))}
 }
 @media (prefers-reduced-motion: reduce){*{transition:none!important}}
 </style>
@@ -225,6 +212,7 @@ input[type=range]{width:100%; accent-color:var(--ink); height:30px; margin:0; to
       <button class="sm" id="lOn">On</button>
       <span class="famtag" id="lFam"></span>
       <div class="sp"></div>
+      <button class="sm" id="bLoad">Load sample</button>
       <button class="sm" id="lRand">Random</button>
       <button class="sm" id="lCopy">Copy</button>
       <button class="sm" id="lPaste">Paste</button>
@@ -236,18 +224,9 @@ input[type=range]{width:100%; accent-color:var(--ink); height:30px; margin:0; to
 </div>
 
 <div class="dock">
-  <header><span class="ttl">Recorder</span><span class="rstat" id="rStat">Tap Rec, then a pad. Recording starts when sound crosses the line.</span></header>
-  <div class="recmore" id="recMore" hidden></div>
-  <div class="recbar">
-    <button id="bRec"><span class="dot"></span>Rec</button>
-    <button class="sm" id="bLoad">Load file</button>
-    <button class="sm" id="bRecMore" aria-expanded="false" aria-label="Recording settings">⚙</button>
-    <canvas class="meter" id="meter" aria-label="Input level"></canvas>
-    <div class="row" id="thrRow"></div>
-    <input type="file" id="fileIn" accept="audio/*,.wav,.mp3,.ogg,.m4a,.flac" hidden>
-  </div>
   <div class="pads" id="pads"></div>
 </div>
+<input type="file" id="fileIn" accept="audio/*,.wav,.mp3,.ogg,.m4a,.flac" hidden>
 <div class="toast" id="toast" hidden></div>
 
 <script>
@@ -749,16 +728,12 @@ function renderPads(){
     const {p, n} = padEls[i];
     n.textContent = v.name || '—';
     p.classList.toggle('sel', i === cur);
-    p.classList.toggle('recmode', rec.mode && rec.state === 'idle');
-    p.classList.toggle('armed', rec.target === i && rec.state === 'armed');
-    p.classList.toggle('recording', rec.target === i && rec.state === 'rec');
     p.setAttribute('aria-label', `Pad ${i + 1}, ${v.name}`);
   });
 }
 function flash(i){ const p = padEls[i].p; p.classList.add('hit'); setTimeout(() => p.classList.remove('hit'), 90); }
 function select(i){ if (i === cur) return; cur = i; refreshAll(); }
 function padPress(i){
-  if (rec.mode){ armPad(i); return; }
   play(i); select(i);
 }
 function refreshAll(){
@@ -958,119 +933,15 @@ $('bNo').addEventListener('click', () => { $('confirmRow').hidden = true; pendin
 $('bFactory').addEventListener('click', () => ask('Replace all 8 pads with the factory kit?', () => setKit(factoryKit())));
 $('bClearKit').addEventListener('click', () => ask('Clear all 8 pads?', () => setKit({name:'New kit', voices:Array.from({length:8}, (_, i) => mkVoice('Pad ' + (i + 1), [{type:'sine', b:0.25, pAmt:24, pDec:50, atk:0.1, dec:400}]))})));
 
-/* ---------- recorder ---------- */
-const rec = {mode:false, state:'idle', target:-1, thr:-36, preMs:12, stopMs:250, maxS:6, into:'free', norm:true,
-  stream:null, node:null, src:null, ring:[], chunks:[], len:0, quiet:0, level:0};
-const thrRow = makeRow({l:'Threshold', min:-70, max:0, c:'int', d:-36, f:v => v + ' dB'}, 'thr', () => rec, {idp:'rec', on:() => {}});
-$('thrRow').replaceWith(thrRow.r); thrRow.r.id = 'thrRow'; thrRow.refresh();
-const more = $('recMore');
-for (const [k, d] of [['preMs',{l:'Pre-roll', min:0, max:100, c:'int', d:12, f:v => v + ' ms'}],
-                      ['stopMs',{l:'Stop after', min:30, max:2000, c:'log', d:250, f:ms}],
-                      ['maxS',{l:'Longest', min:0.5, max:8, c:'half', d:6, f:v => v + ' s'}]]){
-  const r = makeRow(d, k, () => rec, {idp:'rec', on:() => {}}); more.append(r.r); r.refresh();
-}
-const intoRow = el('div', 'segrow'); intoRow.append(el('span', null, 'Into')); const intoSeg = el('div', 'seg'); intoRow.append(intoSeg); more.append(intoRow);
-makeSeg(intoSeg, [['free','Next free layer'],['sel','Selected layer']], () => rec.into, v => rec.into = v);
-const normRow = el('div', 'segrow'); normRow.append(el('span', null, 'Level')); const normSeg = el('div', 'seg'); normRow.append(normSeg); more.append(normRow);
-makeSeg(normSeg, [[true,'Normalise'],[false,'As is']], () => rec.norm, v => rec.norm = v);
-$('bRecMore').addEventListener('click', () => { more.hidden = !more.hidden; $('bRecMore').classList.toggle('on', !more.hidden); $('bRecMore').setAttribute('aria-expanded', String(!more.hidden)); });
-
-function rStat(msg){ $('rStat').textContent = msg; }
-function setRecMode(on){
-  rec.mode = on; $('bRec').classList.toggle('on', on); $('bRec').setAttribute('aria-pressed', on);
-  if (!on){ rec.state = 'idle'; rec.target = -1; rStat('Tap Rec, then a pad. Recording starts when sound crosses the line.'); }
-  else { rStat('Tap the pad to record into.'); startMic(); }
-  renderPads();
-}
-$('bRec').addEventListener('click', () => setRecMode(!rec.mode));
-async function startMic(){
-  if (rec.stream) return true;
-  audio();
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ micFail(); return false; }
-  try {
-    rec.stream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false, noiseSuppression:false, autoGainControl:false}});
-  } catch(e){ micFail(e); return false; }
-  rec.src = ctx.createMediaStreamSource(rec.stream);
-  rec.node = ctx.createScriptProcessor(1024, 1, 1);
-  const mute = ctx.createGain(); mute.gain.value = 0;
-  rec.src.connect(rec.node); rec.node.connect(mute); mute.connect(ctx.destination);
-  rec.node.onaudioprocess = onMic;
-  meterLoop();
-  return true;
-}
-function micFail(e){
-  setRecMode(false);
-  rStat(inClaude ? 'The mic is blocked inside Claude. Use Load file here, or open the standalone copy to record.'
-                 : 'No mic access. Allow the microphone for this site in Chrome, then try again.');
-}
-function onMic(e){
-  const x = e.inputBuffer.getChannelData(0), sr = ctx.sampleRate, thr = Math.pow(10, rec.thr / 20);
-  let pk = 0; for (let i = 0; i < x.length; i++){ const a = Math.abs(x[i]); if (a > pk) pk = a; }
-  rec.level = Math.max(pk, rec.level * 0.8);
-  if (rec.state === 'armed' && pk >= thr){
-    let first = 0; while (first < x.length && Math.abs(x[first]) < thr) first++;
-    const preN = Math.round(rec.preMs / 1000 * sr);
-    const hist = []; let hl = 0; for (const c of rec.ring){ hist.push(c); hl += c.length; }
-    hist.push(x.slice(0, first)); hl += first;
-    const pre = new Float32Array(hl); let o = 0; for (const c of hist){ pre.set(c, o); o += c.length; }
-    rec.chunks = [pre.slice(Math.max(0, hl - preN)), x.slice(first)];
-    rec.len = rec.chunks[0].length + rec.chunks[1].length; rec.quiet = 0; rec.state = 'rec';
-    rStat('Recording… tap the pad to stop.'); renderPads();
-    return;
-  }
-  if (rec.state === 'rec'){
-    rec.chunks.push(x.slice()); rec.len += x.length;
-    if (pk < thr * 0.5) rec.quiet += x.length; else rec.quiet = 0;
-    if (rec.quiet / sr * 1000 >= rec.stopMs || rec.len / sr >= rec.maxS) finishRec();
-    return;
-  }
-  rec.ring.push(x.slice()); if (rec.ring.length > 12) rec.ring.shift();
-}
-function armPad(i){
-  if (rec.state === 'rec'){ finishRec(); return; }
-  if (rec.state === 'armed' && rec.target === i){ rec.state = 'idle'; rec.target = -1; rStat('Cancelled. Tap a pad to arm it.'); renderPads(); return; }
-  select(i); rec.target = i; rec.state = 'armed'; rec.ring = [];
-  rStat(`Pad ${i + 1} armed. Make a sound louder than ${rec.thr} dB.`); renderPads();
-  startMic();
-}
-function finishRec(){
-  if (rec.state !== 'rec') return;
-  const sr = ctx.sampleRate; let n = rec.len;
-  const keepTail = Math.round(sr * 0.03); n = Math.max(1, n - Math.max(0, rec.quiet - keepTail));
-  const d = new Float32Array(n); let o = 0;
-  for (const c of rec.chunks){ if (o >= n) break; const take = Math.min(c.length, n - o); d.set(c.subarray(0, take), o); o += take; }
-  const fl = Math.min(n, Math.round(sr * 0.006)); for (let i = 0; i < fl; i++) d[n - 1 - i] *= i / fl;
-  if (rec.norm){ let pk = 0; for (let i = 0; i < n; i++){ const a = Math.abs(d[i]); if (a > pk) pk = a; } if (pk > 0) for (let i = 0; i < n; i++) d[i] *= 0.966 / pk; }
-  const t = rec.target; rec.chunks = []; rec.state = 'idle'; rec.target = -1;
-  assignSample(t, d, sr, 'Rec ' + new Date().toTimeString().slice(0, 5));
-  setRecMode(false);
-  rStat(`Recorded ${(n / sr).toFixed(2)} s into pad ${t + 1}.`);
-  play(t);
-}
+/* ---------- load an audio file as a sample layer ---------- */
 function assignSample(vi, data, sr, name){
-  const v = kit.voices[vi];
-  let li = rec.into === 'free' ? v.layers.findIndex(l => !l.on) : v.sel; if (li < 0) li = v.sel;
+  const v = kit.voices[vi], li = v.sel;
   const lenMs = data.length / sr * 1000;
   v.layers[li] = freshLayer({on:true, type:'sample', level:0.9, mode:'AHD', atk:0.1, hold:Math.min(8000, Math.round(lenMs)), dec:40,
     sample:{data, sr, name}});
-  v.sel = li; v.len = Math.max(v.len, Math.min(8, data.length / sr + 0.1));
+  v.len = Math.max(v.len, Math.min(8, data.length / sr + 0.1));
   cur = vi; changed(vi); refreshAll();
 }
-function meterLoop(){
-  const cv = $('meter'), dpr = window.devicePixelRatio || 1;
-  const draw = () => {
-    const w = cv.clientWidth, h = cv.clientHeight; if (cv.width !== Math.round(w * dpr)){ cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr); }
-    const g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, w, h);
-    const pos = db => Math.max(0, Math.min(1, (db + 70) / 70)) * w;
-    const ldb = rec.level > 0 ? 20 * Math.log10(rec.level) : -100;
-    g.fillStyle = rec.state === 'rec' ? cssv('--rec') : cssv('--ink'); g.fillRect(0, 0, pos(ldb), h);
-    g.fillStyle = cssv('--rec'); g.fillRect(pos(rec.thr) - 1, 0, 2, h);
-    rec.level *= 0.92;
-    if (rec.stream) requestAnimationFrame(draw);
-  };
-  draw();
-}
-(function drawIdleMeter(){ const cv = $('meter'); const g = cv.getContext('2d'); g.clearRect(0, 0, cv.width, cv.height); })();
 $('bLoad').addEventListener('click', () => $('fileIn').click());
 $('fileIn').addEventListener('change', async e => {
   const f = e.target.files[0]; e.target.value = ''; if (!f) return;
@@ -1080,7 +951,7 @@ $('fileIn').addEventListener('change', async e => {
     const n = Math.min(b.length, Math.round(b.sampleRate * 8)), d = new Float32Array(n);
     for (let c = 0; c < b.numberOfChannels; c++){ const ch = b.getChannelData(c); for (let i = 0; i < n; i++) d[i] += ch[i] / b.numberOfChannels; }
     assignSample(cur, d, b.sampleRate, f.name.replace(/\.[^.]+$/, '').slice(0, 24));
-    toast(`Loaded ${f.name} into pad ${cur + 1}` + (b.length > n ? ' (first 8 s)' : ''));
+    toast(`Loaded ${f.name} into pad ${cur + 1}, layer ${V().sel + 1}` + (b.length > n ? ' (first 8 s)' : ''));
     play(cur);
   } catch(err){ toast('Couldn’t read that audio file.'); }
 });

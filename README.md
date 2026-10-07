@@ -19,6 +19,8 @@ An 8-pad drum synth and 16-track tracker for the browser, built for a Galaxy Z F
 - **MIDI.** Plug in a controller, tap MIDI ▾ → Connect MIDI. Pads answer notes 36–43 with velocity; Learn pads lets you assign any note.
 - **Kits.** Kits save in the browser automatically and can be saved or loaded as `.json`, recorded samples included.
 
+**Pad effects.** Each pad can have up to 6 effects, run top to bottom after the layers: EQ, Compressor, Reverb and Tape delay (Airwindows EQ, Pressure4, Galactic and TapeDelay2, the same as the tracker's track effects), Rings, Clouds, Saturation, Tape, Chorus and Bitcrush. Each effect card has a level meter showing the peak coming out of that effect while the pad plays, with the last peak in dB beside it. Reverb and delay keep the dry hit at full level until their Mix passes the half-way point.
+
 ## Skins
 
 **Skin ▾** in the top bar (or SKIN in the tracker's Project screen) switches between the ...Seeds skins: Pastel (follows your system), Pastel light, Minimal, Minimal colors, Monotone, Minimal black, Minimal colors black and Neon. The choice is remembered.

@@ -134,6 +134,10 @@ input[type=range]{width:100%; accent-color:var(--ink); height:30px; margin:0; to
 .fxhead .n{font-weight:600; font-size:14px; display:flex; align-items:center; gap:7px}
 .fxhead .n::before{content:""; width:9px; height:9px; background:var(--fx); flex:none}
 .fxhead .cr{font-size:12px; color:var(--muted)}
+.fxvu{width:90px; height:10px; border:1px solid var(--line); background:var(--panel2); position:relative; overflow:hidden; flex:none; margin-left:6px}
+.fxvu i{position:absolute; left:0; top:0; bottom:0; width:0; background:var(--meter-ok)}
+.fxvu i.warm{background:var(--meter-ok)} .fxvu i.hot{background:var(--meter-hot)} .fxvu i.clip{background:var(--meter-clip)}
+.fxdb{font:500 11px/1 var(--mono, "JetBrains Mono", monospace); color:var(--muted); min-width:4ch; text-align:right; flex:none}
 .fxgrid{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:0 22px}
 .fxempty{padding:10px 12px 12px; margin:0}
 .secs{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:8px 22px; padding:10px 12px 12px}
@@ -462,7 +466,7 @@ body.trkv .toast{bottom:calc(var(--k) * 2 + 40px + env(safe-area-inset-bottom,0p
     </header>
     <div class="fxtail" id="fxTail"></div>
     <div id="fxList"></div>
-    <p class="note fxempty" id="fxEmpty">No effects on this pad yet. Add Rings to turn any hit into a tuned resonance, Clouds for granular clouds and reverb, or Saturation, Tape, Chorus and Bitcrush to colour it.</p>
+    <p class="note fxempty" id="fxEmpty">No effects on this pad yet. EQ, Compressor, Reverb and Tape delay shape and place the sound; Rings turns any hit into a tuned resonance, Clouds makes granular clouds; Saturation, Tape, Chorus and Bitcrush colour it. Each effect’s meter shows the level coming out of it.</p>
   </section>
   </div>
 </div>
@@ -822,7 +826,33 @@ function renderLayer(L, V, sr, out, N){
 }
 
 /* ---------- per-pad effects ---------- */
+// The mixing effects (EQ, compressor, reverb, delay) run through the tracker's effect module (TX, tfx.wasm)
+// offline; `tx` is that module's effect number and map() turns these rows into its 0–1 parameters.
+const dBf = v => (v > 0.05 ? '+' : v < -0.05 ? '−' : '±') + Math.abs(v).toFixed(1) + ' dB';
+const khzf = v => v.toFixed(1) + ' kHz', hzf = v => Math.round(v) + ' Hz', pcf = v => Math.round(v * 100) + '%';
+const wetDry = v => `W ${Math.round(Math.min(1, v * 2) * 100)} · D ${Math.round(Math.min(1, 2 - v * 2) * 100)}`;
+const sq01 = v => Math.sqrt(Math.max(0, Math.min(1, v)));
 const FX = {
+  eq:{name:'EQ', tx:6, segs:[], rows:{bass:{l:'Bass', min:-12, max:12, c:'half', d:0, f:dBf}, mid:{l:'Mid', min:-12, max:12, c:'half', d:0, f:dBf},
+      treble:{l:'Treble', min:-12, max:12, c:'half', d:0, f:dBf}, bfreq:{l:'Bass freq', min:30, max:1600, c:'log', d:280, f:hzf},
+      tfreq:{l:'Treb freq', min:1, max:16, c:'log', d:3.4, f:khzf}, lowpass:{l:'Lowpass', min:1, max:16, c:'log', d:16, f:v => v >= 15.9 ? 'Open' : khzf(v)},
+      highpass:{l:'Highpass', min:20, max:1600, c:'log', d:20, f:v => v <= 20.5 ? 'Off' : hzf(v)}, output:{l:'Output', min:-18, max:18, c:'half', d:0, f:dBf}}, init:{},
+    map:f => [(f.treble + 12) / 24, (f.mid + 12) / 24, (f.bass + 12) / 24, sq01((f.lowpass - 1) / 15), sq01((f.tfreq - 1) / 15), sq01((f.bfreq - 30) / 1570),
+      f.highpass <= 20.5 ? 0 : sq01((f.highpass - 30) / 1570), (f.output + 18) / 36]},
+  comp:{name:'Compressor', tx:7, segs:[], rows:{pressure:{l:'Pressure', min:0, max:1, c:'lin', d:0.4, f:v => v ? pcf(v) : 'Off'}, speed:{l:'Speed', min:0, max:1, c:'lin', d:0.2, f:pcf},
+      mewiness:{l:'Mewiness', min:-1, max:1, c:'lin', d:1, f:v => v.toFixed(2)}, output:{l:'Output', min:0, max:1, c:'lin', d:1, f:pcf}, mix:{l:'Mix', min:0, max:1, c:'lin', d:1, f:pcf}}, init:{},
+    map:f => [f.pressure, f.speed, (f.mewiness + 1) / 2, f.output, f.mix]},
+  reverb:{name:'Reverb', tx:8, segs:[], rows:{replace:{l:'Replace', min:0, max:1, c:'lin', d:0.5, f:pcf}, brightness:{l:'Brightness', min:0, max:1, c:'lin', d:0.5, f:pcf},
+      detune:{l:'Detune', min:0, max:1, c:'lin', d:0.5, f:pcf}, bigness:{l:'Bigness', min:0, max:1, c:'lin', d:1, f:pcf},
+      mix:{l:'Mix', min:0, max:1, c:'lin', d:0.35, f:wetDry}}, init:{},
+    // Galactic's own mix turns the dry hit down fast (−9 dB at 30%), so it runs fully wet and the blend happens
+    // here, like the delay's: dry stays full until half way, wet reaches full at half way.
+    map:f => [f.replace, f.brightness, f.detune, f.bigness, 1], blend:true},
+  delay:{name:'Tape delay', tx:9, segs:[], rows:{time:{l:'Time', min:70, max:1800, c:'log', d:250, f:v => Math.round(v) + ' ms'}, regen:{l:'Feedback', min:0, max:1, c:'lin', d:0.37, f:pcf},
+      tone:{l:'Tone', min:0, max:1, c:'lin', d:0.5, f:pcf}, reso:{l:'Resonance', min:0, max:1, c:'lin', d:0, f:pcf}, flutter:{l:'Flutter', min:0, max:1, c:'lin', d:0, f:pcf},
+      mix:{l:'Mix', min:0, max:1, c:'lin', d:0.25, f:wetDry}}, init:{},
+    // TapeDelay2's tape runs through 88200 samples at "speed" 1–26 per sample, so speed sets the time.
+    map:(f, sr) => [Math.pow((Math.max(1, Math.min(26, 88200 / (f.time / 1000 * sr))) - 1) / 25, 0.25), f.regen, f.tone, f.reso, f.flutter, f.mix]},
   rings:{name:'Rings resonator', segs:[['model','Model',[[0,'Modal'],[1,'Sympathetic'],[2,'String'],[3,'FM voice'],[4,'Quantized'],[5,'String + verb']]], ['poly','Voices',[[1,'1'],[2,'2'],[4,'4']]]],
     rows:{note:{l:'Note', min:24, max:84, c:'int', d:48}, structure:{l:'Structure', min:0, max:1, c:'lin', d:0.4}, brightness:{l:'Brightness', min:0, max:1, c:'lin', d:0.5},
       damping:{l:'Damping', min:0, max:1, c:'lin', d:0.6}, position:{l:'Position', min:0, max:1, c:'lin', d:0.3}, input:{l:'Input', min:0, max:2, c:'lin', d:1}, mix:{l:'Mix', min:0, max:1, c:'lin', d:0.8}},
@@ -841,7 +871,7 @@ const FX = {
   crush:{name:'Bitcrush', segs:[['smooth','Crush',[[false,'Hard'],[true,'Smooth']]]], rows:{down:{l:'Downsample', min:0, max:1, c:'lin', d:0.4}, bits:{l:'Bits', min:1, max:16, c:'int', d:8},
       mix:{l:'Mix', min:0, max:1, c:'lin', d:1}}, init:{smooth:false}},
 };
-const FX_CREDIT = {rings:'Mutable Instruments Rings', clouds:'Mutable Instruments Clouds', density:'Airwindows Density', tape:'Airwindows ToTape6', chorus:'DaisySP Chorus', crush:'DaisySP Decimator'};
+const FX_CREDIT = {eq:'Airwindows EQ', comp:'Airwindows Pressure4', reverb:'Airwindows Galactic', delay:'Airwindows TapeDelay2', rings:'Mutable Instruments Rings', clouds:'Mutable Instruments Clouds', density:'Airwindows Density', tape:'Airwindows ToTape6', chorus:'DaisySP Chorus', crush:'DaisySP Decimator'};
 function freshFx(type){ const d = FX[type], f = Object.assign({type, on:true}, d.init); for (const k in d.rows) f[k] = d.rows[k].d; return f; }
 function resample(a, from, to){
   if (from === to) return a;
@@ -861,7 +891,28 @@ function chunked(a, chunk, inPtr, proc, outPtrs){
   }
   return out;
 }
+let TX = null;
+function txRun(f, a, sr){
+  const d = FX[f.type], x = TX.exports, h = x.tfx_new(d.tx, sr); if (h < 0) return a;
+  const out = new Float32Array(a.length);
+  try {
+    const p = new Array(12).fill(0); d.map(f, sr).forEach((v, i) => p[i] = v);
+    new Float32Array(x.memory.buffer, x.tfx_params(h), 12).set(p);
+    for (let off = 0; off < a.length; off += 128){
+      const n = Math.min(128, a.length - off), L = new Float32Array(x.memory.buffer, x.tfx_l(), 128), R = new Float32Array(x.memory.buffer, x.tfx_r(), 128);
+      L.fill(0); R.fill(0); const c = a.subarray(off, off + n); L.set(c); R.set(c);
+      x.tfx_process(h, n);
+      const L2 = new Float32Array(x.memory.buffer, x.tfx_l(), 128), R2 = new Float32Array(x.memory.buffer, x.tfx_r(), 128);
+      for (let i = 0; i < n; i++) out[off + i] = (L2[i] + R2[i]) * 0.5;
+    }
+  } finally { x.tfx_free(h); }
+  if (d.blend){ const w = Math.min(1, f.mix * 2), dr = Math.min(1, 2 - f.mix * 2); for (let i = 0; i < out.length; i++) out[i] = a[i] * dr + out[i] * w; }
+  return out;
+}
+const fxReady = f => FX[f.type] && (FX[f.type].tx != null ? !!TX : !!PL);
 function applyFx(f, a, sr){
+  if (!fxReady(f)) return a;
+  if (FX[f.type].tx != null) return txRun(f, a, sr);
   const x = PL.exports;
   switch (f.type){
     case 'rings': {
@@ -897,18 +948,23 @@ function applyFx(f, a, sr){
   }
   return a;
 }
-function renderVoice(V, sr){
+// Peak level per 256-sample block, for the per-effect meters on the synth page.
+const VUB = 256;
+function blockPeaks(a){ const n = Math.ceil(a.length / VUB), e = new Float32Array(n);
+  for (let b = 0; b < n; b++){ let m = 0; const end = Math.min(a.length, (b + 1) * VUB); for (let i = b * VUB; i < end; i++){ const v = a[i] < 0 ? -a[i] : a[i]; if (v > m) m = v; } e[b] = m; }
+  return e; }
+function renderVoice(V, sr, stages){
   const N = Math.max(1, Math.ceil(voiceLen(V) * sr)), out = new Float32Array(N);
   for (const L of V.layers) if (L.on && L.level > 0) renderLayer(L, V, sr, out, N);
   const g = Math.pow(10, V.level / 20), dr = V.drive;
   if (dr > 0.001){ const k = 1 + dr*dr*24, nrm = 1 / Math.tanh(k); for (let i = 0; i < N; i++) out[i] = Math.tanh(out[i] * k) * nrm * g; }
   else for (let i = 0; i < N; i++) out[i] *= g;
   let buf = out;
-  const fxOn = PL && (V.fx || []).some(f => f.on);
+  const fxOn = (V.fx || []).some(f => f.on && fxReady(f));
   if (fxOn){
     const tailN = Math.round((V.tail || 0) * sr), ext = new Float32Array(Math.min(N + tailN, sr * 12)); ext.set(out.subarray(0, Math.min(N, ext.length)));
     buf = ext;
-    for (const f of V.fx) if (f.on && FX[f.type]) buf = applyFx(f, buf, sr);
+    for (const f of V.fx) if (f.on && FX[f.type]){ buf = applyFx(f, buf, sr); if (stages) stages.set(f, blockPeaks(buf)); }
   }
   let end = buf.length; while (end > 1 && Math.abs(buf[end-1]) < 1e-4) end--;
   const res = buf.slice(0, Math.max(end, 1)), fl = Math.min(res.length, Math.round(sr * 0.002));
@@ -1065,7 +1121,7 @@ function audio(){
 function prerender(){ let i = 0; const step = () => { if (i < 8){ ensure(i++); setTimeout(step, 0); } }; step(); }
 function ensure(i){
   const sr = ctx ? ctx.sampleRate : 48000;
-  if (dirty[i] || !cache[i] || cache[i].sr !== sr){ cache[i] = {sr, data:renderVoice(kit.voices[i], sr)}; dirty[i] = false; bufs[i] = null; }
+  if (dirty[i] || !cache[i] || cache[i].sr !== sr){ const st = new Map(); cache[i] = {sr, data:renderVoice(kit.voices[i], sr, st), st}; dirty[i] = false; bufs[i] = null; }
   return cache[i];
 }
 function buffer(i){
@@ -1082,7 +1138,7 @@ function playNote(i, semis, vel = 1){
   audio();
   const src = ctx.createBufferSource(), g = ctx.createGain();
   src.buffer = buffer(i); src.playbackRate.value = Math.pow(2, semis / 12); g.gain.value = vel;
-  src.connect(g); g.connect(master); src.start(); flash(i);
+  src.connect(g); g.connect(master); src.start(); flash(i); vuHit(i, Math.pow(2, semis / 12), vel);
 }
 function play(i, vel = 1){
   audio();
@@ -1093,9 +1149,36 @@ function play(i, vel = 1){
   g.gain.value = vel;
   src.buffer = buffer(i); src.connect(g); g.connect(master); src.start();
   const rec = {src, g}; playing[i] = rec; src.onended = () => { if (playing[i] === rec) playing[i] = null; };
-  flash(i);
+  flash(i); vuHit(i, 1, vel, true);
+}
+/* ---------- effect meters: each effect card shows the level coming out of it while the pad sounds ---------- */
+// Pads are rendered ahead of time, so the levels after each effect are stored with the render (cache[i].st)
+// and the meters replay them in step with the sound.
+const hits = Array.from({length:8}, () => []);
+let vuRaf = 0, vuEls = [];
+function vuHit(i, rate, vel, mono){ const c = cache[i]; if (!c) return; if (mono) hits[i].length = 0; hits[i].push({t0:ctx.currentTime, rate, vel, c}); if (hits[i].length > 8) hits[i].shift(); if (!vuRaf) vuRaf = requestAnimationFrame(vuFrame); }
+function vuFrame(){
+  vuRaf = 0; if (!ctx) return;
+  const now = ctx.currentTime, H = hits[cur]; let live = false;
+  for (let i = 0; i < 8; i++) hits[i] = hits[i].filter(h => (now - h.t0) * h.rate * h.c.sr < h.c.data.length + h.c.sr * 0.3);
+  for (const m of vuEls){
+    let pk = 0;
+    for (const h of H){ const env = h.c.st && h.c.st.get(m.f); if (!env) continue;
+      const b = Math.floor((now - h.t0) * h.rate * h.c.sr / VUB); if (b >= 0 && b < env.length){ const v = env[b] * h.vel; if (v > pk) pk = v; } }
+    m.lv = Math.max(pk, m.lv * 0.88); if (m.lv < 0.0005) m.lv = 0;
+    if (pk >= m.pk || now - m.pt > 1.2){ m.pk = pk; m.pt = now; }
+    const db = m.lv > 0 ? 20 * Math.log10(m.lv) : -99, w = Math.max(0, Math.min(1, (db + 48) / 48));
+    m.bar.style.width = (w * 100).toFixed(1) + '%';
+    m.bar.className = db > -1 ? 'clip' : db > -6 ? 'hot' : db > -12 ? 'warm' : '';
+    m.txt.textContent = m.pk > 0.00002 ? (20 * Math.log10(m.pk)).toFixed(1) : '−∞';
+    if (m.lv > 0) live = true;
+  }
+  if (live || hits.some(h => h.length)) vuRaf = requestAnimationFrame(vuFrame);
 }
 
+// Keys belong to a text box or dropdown only while it is on screen; one left focused on a hidden page
+// (say the synth's add-effect list, after switching to the tracker) must not swallow the keys.
+function typing(e){ const t = e.target; return !!(t && t.matches && t.matches('input[type=text],select') && t.getClientRects().length); }
 /* ---------- change handling ---------- */
 let rTimer = 0, sTimer = 0;
 function changed(i = cur, light){
@@ -1250,13 +1333,14 @@ Object.keys(FX).forEach(k => { const o = document.createElement('option'); o.val
 $('fxAdd').addEventListener('change', e => {
   const t = e.target.value; e.target.value = ''; if (!t) return;
   const v = V(); v.fx = v.fx || []; if (v.fx.length >= 6) return toast('Up to 6 effects per pad.');
-  v.fx.push(freshFx(t)); if (!PL) toast(plFailed ? 'Effects couldn’t load in this view. They work in the installed app.' : 'Effects are still loading.');
+  e.target.blur();
+  v.fx.push(freshFx(t)); if (!fxReady(v.fx[v.fx.length - 1])) toast(plFailed ? 'Effects couldn’t load in this view. They work in the installed app.' : 'Effects are still loading.');
   renderFx(); changed();
 });
 const tailRow = makeRow({l:'Tail', min:0, max:8, c:'half', d:2, f:v => v.toFixed(1) + ' s'}, 'tail', V, {idp:'fx', noTrack:true, on:() => changed()});
 $('fxTail').append(tailRow.r);
 function renderFx(){
-  const v = V(), list = $('fxList'); v.fx = v.fx || []; list.innerHTML = '';
+  const v = V(), list = $('fxList'); v.fx = v.fx || []; list.innerHTML = ''; vuEls = [];
   $('fxTitle').textContent = 'Effects · Pad ' + (cur + 1);
   $('fxEmpty').hidden = v.fx.length > 0; $('fxTail').hidden = v.fx.length === 0; tailRow.refresh();
   v.fx.forEach((f, idx) => {
@@ -1268,6 +1352,8 @@ function renderFx(){
     const up = mk('↑', () => { v.fx.splice(idx - 1, 0, v.fx.splice(idx, 1)[0]); renderFx(); changed(); }, 'Move up'); up.disabled = idx === 0;
     const dn = mk('↓', () => { v.fx.splice(idx + 1, 0, v.fx.splice(idx, 1)[0]); renderFx(); changed(); }, 'Move down'); dn.disabled = idx === v.fx.length - 1;
     mk('✕', () => { v.fx.splice(idx, 1); renderFx(); changed(); }, 'Remove effect');
+    const vu = el('span', 'fxvu'), bar = el('i'), txt = el('b', null, '−∞'); vu.title = 'Level out of this effect (dB peak)'; vu.append(bar); head.insertBefore(vu, head.querySelector('.sp')); head.insertBefore(txt, head.querySelector('.sp'));
+    txt.className = 'fxdb'; vuEls.push({f, bar, txt, lv:0, pk:0, pt:0});
     const grid = el('div', 'fxgrid');
     for (const [key, label, opts] of d.segs){
       const sr = el('div', 'segrow'); sr.append(el('span', null, label)); const sg = el('div', 'seg'); sr.append(sg); grid.append(sr);
@@ -1336,7 +1422,7 @@ function refreshAll(){
   ensure(cur); drawWave();
 }
 document.addEventListener('keydown', e => {
-  if (view === 'tracker' || e.target.matches('input[type=text],select') || e.repeat || e.ctrlKey || e.metaKey) return;
+  if (view === 'tracker' || typing(e) || e.repeat || e.ctrlKey || e.metaKey) return;
   if (e.altKey && /^Digit[1-7]$/.test(e.code)){ e.preventDefault(); setView('tracker'); go(VIEWS[+e.code.slice(5) - 1]); return; }
   // Keyboard: Renoise-style notes play the selected pad chromatically (C-4 = its own pitch);
   // Shift+1–8 or ◀ ▶ pick a pad; − = (or numpad / *) change the octave; Space plays the pad.
@@ -1646,6 +1732,13 @@ let plFailed = false;
     if (instance.exports._initialize) instance.exports._initialize();
     PL = instance;
   } catch(e){ plFailed = true; }
+  try {
+    const bin = atob($('tfxWasm').textContent.trim()), u8 = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+    const z = () => 0, {instance} = await WebAssembly.instantiate(u8, {wasi_snapshot_preview1:{fd_close:z, fd_seek:z, fd_write:z, proc_exit:z}});
+    if (instance.exports._initialize) instance.exports._initialize();
+    TX = instance;
+  } catch(e){}
   for (let i = 0; i < 8; i++){ const v = kit.voices[i]; if (v.layers.some(l => l.on && (l.type === 'plaits' || l.type === 'elements')) || (v.fx || []).some(f => f.on)) dirty[i] = true; }
   refreshLayer(); renderFx();
   ensure(cur); drawWave(); renderStrip();
@@ -3144,7 +3237,7 @@ function fileKeys(e){
   return false;
 }
 document.addEventListener('keydown', e => {
-  if (e.target.matches('input[type=text],select')) return;
+  if (typing(e)) return;
   if (fileKeys(e)){ e.preventDefault(); return; }
   if (view !== 'tracker') return;
   if (globalKeys(e)){ e.preventDefault(); return; }
@@ -3154,7 +3247,7 @@ document.addEventListener('keydown', e => {
   if (e.repeat){ if (!(b in held) && b !== 'play') dirPress(b); return; }
   press(b, true);
 });
-document.addEventListener('keyup', e => { if (view !== 'tracker' || inMode === 'keys') return; const b = KEYB[e.key]; if (b){ e.preventDefault(); release(b, true); } });
+document.addEventListener('keyup', e => { if (view !== 'tracker' || inMode === 'keys' || typing(e)) return; const b = KEYB[e.key]; if (b){ e.preventDefault(); release(b, true); } });
 window.addEventListener('blur', releaseAll);
 $('projIn').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) loadProjFile(f); });
 new ResizeObserver(() => { fit(); draw(); }).observe(scr);
@@ -3369,7 +3462,7 @@ $('helpX').addEventListener('click', hideHelp);
 // Runs before the synth and tracker key handlers: ? or F1 toggles help, and while it is open the keys
 // only scroll it (Esc closes).
 addEventListener('keydown', e => {
-  if (e.target.matches && e.target.matches('input[type=text],select')) return;
+  if (typing(e)) return;
   const tog = e.key === 'F1' || (e.key === '?' && !e.ctrlKey && !e.metaKey && !e.altKey);
   if (tog){ e.preventDefault(); e.stopImmediatePropagation(); if (helpOpen()) hideHelp(); else showHelp(); return; }
   if (!helpOpen()) return;

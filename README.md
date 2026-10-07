@@ -17,4 +17,11 @@ An 8-pad drum synth for the browser, built for a Galaxy Z Fold 6, for making one
 
 ## Running it
 
-It's a single `index.html` with no build step. Turn on GitHub Pages for this repo (Settings → Pages → deploy from `main`, root folder) and open the Pages address in Chrome on the phone. The microphone needs the page served over https, which Pages provides.
+It's a plain web app with no build step: `index.html`, `manifest.webmanifest`, `sw.js` and the `icons` folder. Turn on GitHub Pages for this repo (Settings → Pages → deploy from `main`, root folder), then open **https://matthettich.github.io/Thunder-/** in Chrome. The microphone needs the page served over https, which Pages provides.
+
+## Install it
+
+- **Android (Chrome):** open the address, tap **⋮** → **Install app** (or **Add to Home screen**).
+- **Mac / PC (Chrome or Edge):** click the install icon in the address bar.
+
+It opens full screen with its own icon and works offline once it has loaded. To update, push a new `index.html`; open the app while online and it picks up the change (close and reopen once if you still see the old version).

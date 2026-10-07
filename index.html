@@ -1931,7 +1931,11 @@ function undoStep(dir){
   const from = dir < 0 ? undo.past : undo.future, to = dir < 0 ? undo.future : undo.past;
   if (!from.length) return toast(dir < 0 ? 'Nothing to undo' : 'Nothing to redo');
   to.push(undo.cur); undo.cur = from.pop();
-  undo.busy = true; S = normSong(JSON.parse(undo.cur)); saveS(); undo.busy = false;
+  // Swap the contents in place rather than the object: the running sequencer holds this object, so
+  // replacing it would keep playing the old song (the screen would show the undo, the speakers wouldn't).
+  undo.busy = true; const n = normSong(JSON.parse(undo.cur));
+  for (const k of Object.keys(S)) if (!(k in n)) delete S[k];
+  Object.assign(S, n); saveS(); undo.busy = false;
   if (rt){ rtAllFx(); rtRoute(); rt.pl.applyMix(); }
   draw(); toast(dir < 0 ? 'Undo' : 'Redo');
 }
@@ -2688,8 +2692,9 @@ function nav(dir){
   if (tv === 'fx' && dir === 'left') return go('mixer');
   if (!MID.includes(tv)) return;
   if (dir === 'left'){ const i = MID.indexOf(tv); return i > 0 ? go(MID[i - 1]) : null; }
-  if (tv === 'song'){ if (S.song[cs.song.y][cs.song.x] < 0) return toast('Empty. Tap EDIT to put a chain here.'); return go('chain'); }
-  if (tv === 'chain'){ const ch = S.chains[cChain]; if (!ch || ch[cs.chain.y][0] < 0) return toast('Empty. Tap EDIT on the PH column to add a phrase.'); return go('phrase'); }
+  // On an empty cell, still change screen: show the chain or phrase that was last open.
+  if (tv === 'song'){ if (S.song[cs.song.y][cs.song.x] < 0){ cTrack = cs.song.x; go('chain'); return toast(`Empty row: showing chain ${hx(cChain)}, the last one open.`); } return go('chain'); }
+  if (tv === 'chain'){ const ch = S.chains[cChain]; if (!ch || ch[cs.chain.y][0] < 0){ go('phrase'); return toast(`No phrase on that row: showing phrase ${hx(cPhrase)}, the last one open.`); } return go('phrase'); }
   if (tv === 'phrase'){ const p = S.phrases[cPhrase], r = p && p[cs.phrase.y]; cInst = r && r[2] >= 0 ? r[2] : last.inst; tv = 'inst'; midV = 'inst'; draw(); }
 }
 function optDir(dir){

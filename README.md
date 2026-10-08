@@ -130,3 +130,17 @@ It opens full screen with its own icon and works offline once it has loaded. To 
 ## Credits
 
 Synthesis and effects come from Mutable Instruments (Plaits, Rings, Clouds, Elements; Emilie Gillet), Airwindows (Chris Johnson) and DaisySP (Electrosmith), all MIT licensed. See `THIRD_PARTY_NOTICES.md`; build sources are in `dsp/` (the tracker's effects module is in `dsp/tfx/`).
+
+## Desktop app (Electron)
+
+The `electron` folder wraps the same `index.html` as a desktop app for Windows, macOS or Linux. You need [Node.js](https://nodejs.org) (the LTS version).
+
+```
+cd electron
+npm install
+npm start            # run it
+npm run dist:win     # Windows installer + portable .exe  → electron/dist
+npm run dist:mac     # macOS .dmg (build this on a Mac)   → electron/dist
+```
+
+`npm start` and the `dist` scripts copy the current `index.html`, manifest and icons into `electron/app` first, so the desktop app always matches the site. MIDI and the save/open dialogs are allowed; audio keeps playing when the window is in the background. The builds aren't code-signed: Windows SmartScreen asks once (More info → Run anyway), and on a Mac right-click the app → Open the first time.

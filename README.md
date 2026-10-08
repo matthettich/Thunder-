@@ -13,6 +13,7 @@ An 8-pad drum synth and 16-track tracker for the browser, built for a Galaxy Z F
   - Plaits: all 24 models of Mutable Instruments Plaits (synth voices, 6-op FM, chords, speech, strings, modal, drums), run from the original code
   - Elements: Mutable Instruments' modal voice, with bow, blow and strike exciters and modal, string or strings resonators
   - Samples loaded from audio files
+  - PWM sampler: a sample (or a built-in cymbal) played like old hardware, with a clock of 2–32 kHz that follows the pitch and no smoothing, through 1-bit PWM (PC speaker / Atari), NES DPCM, or 2–8-bit PCM (6-bit is the TR-909 cymbal sound). Load sample on a PWM layer keeps its clock and mode
 - **Samples.** Load an audio file into any layer with Load sample, then pitch, reverse and filter it like any other layer.
 - **Export.** Mono WAV, 44.1k or 48k, 16 or 24-bit, normalised and tail-trimmed. Save one pad or all 8 as a zip, or share straight to Koala on Android. Optionally add the note to the file name (for example `03 Pluck C3.wav`).
 - **Effects per pad.** Up to 6 in any order, with a tail length: Rings resonator, Clouds (granular, stretch, delay, spectral, with a hold-the-tail switch), Airwindows Density saturation and ToTape6, DaisySP chorus and bitcrush.
@@ -35,6 +36,7 @@ The **⚙ Settings** button in the top bar holds everything that isn't the sound
 - **Hide chains page** (on by default) hides the M8 chain screen; see Tracker below.
 - **Display steps as decimal** (on by default) numbers the rows in decimal: song rows 000–255, phrase rows 00–31, chain rows 00–15, the arrange overview too. Off shows the M8's hex. Phrase, chain and instrument numbers and values stay hex.
 - **Follow playhead** (off by default) scrolls Song and Phrase with the playhead while the song plays; the cursor rides along and Phrase switches to whatever the cursor's track is playing.
+- **Show side panel** (on by default): the grey column at the right on wide screens. Turn it off for more room.
 - **Text size** (60–200%) makes the tracker's text and lines bigger or smaller. Bigger shows fewer rows; when a line gets wider than the screen it scrolls sideways to follow the cursor.
 
 ## Skins
@@ -55,7 +57,7 @@ Press **?** (or F1, or the **?** button at the top right) for a help screen with
 
 Tap **Tracker** at the top for an M8-style sequencer that plays the kit. 16 tracks, built the M8 way:
 
-- **Song** – 256 rows × 16 tracks of chain numbers. Each track loops back to the top of its block of filled rows when it reaches an empty row.
+- **Song** – 256 rows × 16 tracks of chain numbers (up to 32: Settings → Song → Tracks; Song and Mixer then show as many tracks as fit and scroll sideways with the cursor, or by swiping left and right). Each track loops back to the top of its block of filled rows when it reaches an empty row.
 - **Chain** – up to 16 phrases in order, each with a transpose.
 
 **Chains are hidden by default** (Settings → Hide chains page, or Project → CHAINS). The song then works like Renoise's pattern sequence: EDIT×2 (Enter×2) on an empty song cell makes a new block that already holds one phrase (numbered the same when that's free), and SHIFT+▶ goes straight from the song to that phrase. EDIT×2 on a filled block makes a unique copy of it and its phrase. Nothing is deleted: set CHAINS to SHOWN and the chain screen is back, with everything in it.
@@ -67,7 +69,7 @@ Tap **Tracker** at the top for an M8-style sequencer that plays the kit. 16 trac
 - **FX** – up to 4 effects per track and 4 on the master, running live as the song plays (see below).
 - **Project** – tempo, LPB (lines per beat, like Renoise: 4 = 16ths, 8 = 32nds, 3 or 6 = triplets), TICKS (ticks a step, 6 by default), PATTERN LEN (how many rows a new phrase starts with, 16 by default; ALL PHRASES TO sets every phrase to it), swing, limiter, render settings, renders, and project files (song and kit together).
 
-**Chords and polyphony.** Tracks 9–16 are polyphonic. A phrase opened from one of them shows four note columns (N1–N4), so a row can hold a chord, and notes ring over each other up to 4 per track (a fifth steals the oldest). A note OFF in any note column releases every note on the track; on synth slots that's their release, drum pads stop at once. Tracks 1–8 stay monophonic and play only N1. Instruments 08–0F play the synth slots in new songs (older songs keep their instruments as they were). Songs saved before the chord columns open with their notes in N1.
+**Chords and polyphony.** Tracks 9 and up are polyphonic. A phrase opened from one of them shows four note columns (N1–N4), so a row can hold a chord, and notes ring over each other up to 4 per track (a fifth steals the oldest). A note OFF in any note column releases every note on the track; on synth slots that's their release, drum pads stop at once. Tracks 1–8 stay monophonic and play only N1. Instruments 08–0F play the synth slots in new songs (older songs keep their instruments as they were). Songs saved before the chord columns open with their notes in N1.
 
 **FX column.** Named and laid out like the M8's. Sequencer commands:
 

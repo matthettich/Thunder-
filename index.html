@@ -1389,8 +1389,8 @@ $('vPlay').addEventListener('click', () => play(cur));
 $('wave').addEventListener('pointerdown', () => play(cur));
 $('vRand').addEventListener('click', () => { randVoice(V()); afterVoiceSwap(); play(cur); });
 $('vInit').addEventListener('click', () => { const n = V().name; kit.voices[cur] = mkVoice(n, [{type:'sine', b:0.25, pAmt:24, pDec:50, atk:0.1, dec:400}]); afterVoiceSwap(); });
-$('vCopy').addEventListener('click', () => { clipVoice = JSON.stringify(voiceToJSON(V())); toast('Copied pad ' + (cur + 1)); });
-$('vPaste').addEventListener('click', () => { if (!clipVoice) return toast('Copy a pad first'); kit.voices[cur] = voiceFromJSON(JSON.parse(clipVoice)); afterVoiceSwap(); toast('Pasted into pad ' + (cur + 1)); });
+$('vCopy').addEventListener('click', () => { clipVoice = JSON.stringify(voiceToJSON(V())); toast('Copied pad ' + hx(cur)); });
+$('vPaste').addEventListener('click', () => { if (!clipVoice) return toast('Copy a pad first'); kit.voices[cur] = voiceFromJSON(JSON.parse(clipVoice)); afterVoiceSwap(); toast('Pasted into pad ' + hx(cur)); });
 function afterVoiceSwap(){ changed(cur); refreshAll(); }
 
 /* ---------- layer editor ---------- */
@@ -1505,7 +1505,7 @@ const tailRow = makeRow({l:'Tail', min:0, max:8, c:'half', d:2, f:v => v.toFixed
 $('fxTail').append(tailRow.r);
 function renderFx(){
   const v = V(), list = $('fxList'); v.fx = v.fx || []; list.innerHTML = ''; vuEls = [];
-  $('fxTitle').textContent = 'Effects · Pad ' + (cur + 1);
+  $('fxTitle').textContent = 'Effects · ' + (isSyn(cur) ? 'Synth ' : 'Pad ') + hx(cur);
   $('fxEmpty').hidden = v.fx.length > 0; $('fxTail').hidden = v.fx.length === 0; tailRow.refresh();
   v.fx.forEach((f, idx) => {
     const d = FX[f.type]; if (!d) return;
@@ -1555,8 +1555,8 @@ function buildPads(){
   const host = $('pads');
   for (let i = 0; i < NSLOT; i++){
     const p = el('button', 'pad' + (isSyn(i) ? ' syn' : '')); p.type = 'button';
-    const p1 = el('span', 'p1'), b = el('b', null, String(i + 1)), m = el('span', 'pm'), n = el('span', 'pn');
-    p1.append(b, m); p.append(p1, n); host.append(p); padEls.push({p, n, m});
+    const p1 = el('span', 'p1'), b = el('b', null, hx(i)), m = el('span', 'pm'), n = el('span', 'pn');
+    p1.append(b, m); p.append(p1, n); host.append(p); padEls.push({p, n, m, b});
     // Synth slots sound while the pad is held, then release.
     p.addEventListener('pointerdown', e => { e.preventDefault(); try { p.setPointerCapture(e.pointerId); } catch(_){} padPress(i, true); });
     const up = () => { if (padHeld[i]){ releaseNote(padHeld[i]); padHeld[i] = null; } };
@@ -1566,13 +1566,18 @@ function buildPads(){
 }
 function renderPads(){
   kit.voices.forEach((v, i) => {
-    const {p, n, m} = padEls[i];
+    const {p, n, m, b} = padEls[i];
     n.textContent = v.name || '—';
+    // The number is the tracker instrument that plays this pad (00–0F, as in a phrase's I column); normally it's the
+    // pad's own number. If instruments were pointed elsewhere it lists the ones that play it, or shows -- for none.
+    let ins = [i]; try { ins = S.insts.map((I, k) => I.pad === i ? k : -1).filter(k => k >= 0); } catch(e){}   // S may not exist yet at start-up
+    b.textContent = ins.length ? ins.slice(0, 2).map(k => hx(k)).join(' ') + (ins.length > 2 ? '+' : '') : '--';
+    p.title = ins.length ? `Instrument ${ins.map(k => hx(k)).join(', ')} in the tracker` : 'No tracker instrument plays this pad';
     m.textContent = midi.on && !isSyn(i) ? (midi.notes[i] >= 0 ? noteName(midi.notes[i]) : '—') : '';
     p.classList.toggle('sel', i === cur);
     p.classList.toggle('learn', midi.learn && midi.target !== i);
     p.classList.toggle('learning', midi.learn && midi.target === i);
-    p.setAttribute('aria-label', `${isSyn(i) ? 'Synth' : 'Pad'} ${i + 1}, ${v.name}`);
+    p.setAttribute('aria-label', `${isSyn(i) ? 'Synth' : 'Pad'} ${hx(i)}, ${v.name}`);
   });
 }
 function flash(i){ const p = padEls[i].p; p.classList.add('hit'); setTimeout(() => p.classList.remove('hit'), 90); }
@@ -1581,11 +1586,11 @@ const padHeld = new Array(NSLOT).fill(null);
 function padPress(i, held){
   if (held && isSyn(i) && !midi.learn){ if (padHeld[i]) releaseNote(padHeld[i]); padHeld[i] = holdNote(i, 0, 1); select(i); return; }
   if (midi.learn && isSyn(i)){ select(i); return midiStatus('Synth slots play from every note that isn’t mapped to a pad: select one and play.'); }
-  if (midi.learn){ midi.target = i; select(i); renderPads(); midiStatus(`Now hit a note on the controller for pad ${i + 1}.`); return; }
+  if (midi.learn){ midi.target = i; select(i); renderPads(); midiStatus(`Now hit a note on the controller for pad ${hx(i)}.`); return; }
   play(i); select(i);
 }
 function refreshAll(){
-  $('vNum').textContent = (isSyn(cur) ? 'Synth ' : 'Pad ') + (cur + 1);
+  $('vNum').textContent = (isSyn(cur) ? 'Synth ' : 'Pad ') + hx(cur);
   $('vName').value = V().name; $('kitName').value = kit.name;
   vRows.forEach(r => r.refresh()); updChoke();
   refreshLayer(); renderPads(); renderFx();
@@ -1855,7 +1860,7 @@ $('fileIn').addEventListener('change', async e => {
     const n = Math.min(b.length, Math.round(b.sampleRate * 8)), d = new Float32Array(n);
     for (let c = 0; c < b.numberOfChannels; c++){ const ch = b.getChannelData(c); for (let i = 0; i < n; i++) d[i] += ch[i] / b.numberOfChannels; }
     assignSample(cur, d, b.sampleRate, f.name.replace(/\.[^.]+$/, '').slice(0, 24));
-    toast(`Loaded ${f.name} into pad ${cur + 1}, layer ${V().sel + 1}` + (b.length > n ? ' (first 8 s)' : ''));
+    toast(`Loaded ${f.name} into pad ${hx(cur)}, layer ${V().sel + 1}` + (b.length > n ? ' (first 8 s)' : ''));
     play(cur);
   } catch(err){ toast('Couldn’t read that audio file.'); }
 });
@@ -2147,7 +2152,7 @@ const isPolyT = t => t >= NPAD && t < NT;
 const freshInst = i => ({pad:i % NSLOT, tsp:0, vol:255, pan:128, rev:0, ofs:0});   // instruments 08–0F play the synth slots
 const freshMix = () => ({vol:224, pan:128, mute:false, solo:false});
 function freshSong(){
-  return {app:'thunder-song', v:3, name:'Song 1', bpm:120, swing:50, limiter:true, renderFrom:0, master:224,
+  return {app:'thunder-song', v:4, name:'Song 1', bpm:120, swing:50, limiter:true, renderFrom:0, master:224,
     song:Array.from({length:256}, () => new Array(NT).fill(-1)), chains:new Array(256).fill(null), phrases:new Array(256).fill(null),
     insts:Array.from({length:NI}, (_, i) => freshInst(i)), mix:Array.from({length:NT}, freshMix),
     tfx:Array.from({length:NT}, freshChainFx), mfx:freshChainFx(), lpb:4, ticks:TICKS, dlen:16, plen:new Array(256).fill(16), plpb:new Array(256).fill(0),
@@ -2186,8 +2191,11 @@ function normSong(j){
     return o; }); });
   // Phrases with nothing in them take the project's default length, so a new one starts at that size.
   for (let i = 0; i < 256; i++){ const p = S.phrases[i]; if (!p || p.every(r => r.every(v => v < 0))) S.plen[i] = S.dlen; }
+  // Songs saved before v4 came from the 8-pad days, when instruments 08–0F were set to replay pads 00–07. Point those
+  // (only the ones still on that old default) at the synth slots 08–0F they're numbered for.
+  const old8 = !(int(j.v, 1) >= 4);
   if (Array.isArray(j.insts)) j.insts.slice(0, NI).forEach((o, i) => { if (o && typeof o === 'object'){ const I = S.insts[i];
-    I.pad = clamp(int(o.pad, I.pad), 0, NSLOT - 1); I.tsp = clamp(int(o.tsp, 0), -48, 48); I.vol = clamp(int(o.vol, 255), 0, 255);
+    I.pad = clamp(int(o.pad, I.pad), 0, NSLOT - 1); if (old8 && i >= NPAD && I.pad === i - NPAD) I.pad = i; I.tsp = clamp(int(o.tsp, 0), -48, 48); I.vol = clamp(int(o.vol, 255), 0, 255);
     I.pan = clamp(int(o.pan, 128), 0, 255); I.rev = o.rev ? 1 : 0; I.ofs = clamp(int(o.ofs, 0), 0, 255); } });
   if (Array.isArray(j.mix)) j.mix.slice(0, NT).forEach((o, i) => { if (o && typeof o === 'object'){ const m = S.mix[i];
     m.vol = clamp(int(o.vol, 224), 0, 255); m.pan = clamp(int(o.pan, 128), 0, 255); m.mute = !!o.mute; m.solo = !!o.solo; } });
@@ -2914,7 +2922,7 @@ function after(k, v, x, y, val){
 function pickUp(x, y){
   const p = S.phrases[cPhrase]; if (!p || y < 0) return;
   const r = p[y], k = PK[x], got = [];
-  if (r[IC] >= 0 && (r[IC] !== last.inst || r[IC] !== cInst)){ last.inst = cInst = r[IC]; const I = S.insts[r[IC]]; got.push(`instrument ${hx(r[IC])} (pad ${I.pad + 1} ${(kit.voices[I.pad] || {}).name || ''})`.replace(' )', ')')); }
+  if (r[IC] >= 0 && (r[IC] !== last.inst || r[IC] !== cInst)){ last.inst = cInst = r[IC]; const I = S.insts[r[IC]]; got.push(`instrument ${hx(r[IC])} (pad ${hx(I.pad)} ${(kit.voices[I.pad] || {}).name || ''})`.replace(' )', ')')); }
   if (k === 'note' && r[x] >= 0 && r[x] !== OFF && r[x] !== last.note){ last.note = r[x]; got.push('note ' + noteS(r[x])); }
   if (k === 'vol' && r[VC] >= 0 && r[VC] !== last.vol){ last.vol = r[VC]; got.push('volume ' + hx(r[VC])); }
   if (k === 'fxc' || k === 'fxv'){ const cx = k === 'fxc' ? x : x - 1, fc = r[cx], fv = Math.max(0, r[cx + 1]);
@@ -3299,7 +3307,7 @@ function info(){
     if (k === 'note'){ const cn = c.x ? `Chord note ${c.x + 1}: ` : '';
       return cn + (v < 0 ? 'No note' : v === OFF ? 'Note off: releases every note on this track' : `${noteS(v)} · ` + (v === ROOT ? 'the pad’s own pitch' : `${sgn(v - ROOT)} st from the pad’s pitch`)); }
     if (k === 'vol') return v < 0 ? 'Volume: full' : `Volume ${hx(v)} · ${dB(curve(v))}`;
-    if (k === 'inst'){ if (v < 0) return 'Instrument: same as the last note on this track'; const I = S.insts[v] || S.insts[0]; return `Instrument ${hx(v)} → ${isSyn(I.pad) ? 'synth' : 'pad'} ${I.pad + 1} ${(kit.voices[I.pad] || {}).name || ''}`; }
+    if (k === 'inst'){ if (v < 0) return 'Instrument: same as the last note on this track'; const I = S.insts[v] || S.insts[0]; return `Instrument ${hx(v)} → ${isSyn(I.pad) ? 'synth' : 'pad'} ${hx(I.pad)} ${(kit.voices[I.pad] || {}).name || ''}`; }
     const ci = k === 'fxc' ? v : r[c.x - 1], vv = k === 'fxc' ? r[c.x + 1] : v;
     return ci < 0 || !FXC[ci] ? 'No command. EDIT adds one; EDIT+▲▼ or letters pick from ' + FXC.join(' ') : `${FXC[ci]} ${h2(vv)} · ${FXI[FXC[ci]](Math.max(0, vv))}`;
   }
@@ -3404,7 +3412,7 @@ function draw(){
     L.push([{t:'MASTER ', cls:'lb'}, {t:hx(S.master), cls:'v' + (c.y === 5 ? ' cur' : ''), x:0, y:5}, '  ', {t:dB(curve(S.master)), cls:'lb'}, '   ', {t:mn ? 'FX ' + fxList(S.mfx) : 'FX --', cls:mn ? 'cf' : 'e'}]);
     for (const ch of ['L', 'R']) L.push([{t:ch + '   ', cls:'lb'}, {t:'', cls:'mm m1'}, {t:'', cls:'mm m2'}, {t:'', cls:'mm m3'}, {t:'', cls:'mm e'}, ' ', {t:'', cls:'mm lb'}]);
   } else {
-    if (tv === 'inst'){ title = 'INST ' + hx(cInst); const I = S.insts[cInst]; sub = 'PAD ' + (I.pad + 1); }
+    if (tv === 'inst'){ title = 'INST ' + hx(cInst); const I = S.insts[cInst]; sub = (isSyn(I.pad) ? 'SYNTH ' : 'PAD ') + hx(I.pad); }
     if (tv === 'project') sub = S.name;
     if (tv === 'fx'){ title = 'FX ' + fxWho(cFxT); const A = cFxT >= NT ? S.mfx : S.tfx[cFxT]; sub = fxList(A) || 'no effects'; }
     rowsOf(tv).forEach((r, y) => {

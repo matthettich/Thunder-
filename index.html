@@ -166,6 +166,10 @@ input[type=range]{width:100%; accent-color:var(--ink); height:30px; margin:0; to
 .pad.hit .pm{color:var(--inv)}
 .pad.learn{border-style:dashed}
 .pad.learning{border:3.5px solid var(--pl); padding:3.5px 5.5px}
+/* MIDI learn: every slider gets a dashed outline, the one waiting for a knob a solid one; learned sliders show their CC. */
+body.mlearn .row input[type=range]{outline:1.5px dashed var(--muted); outline-offset:3px}
+body.mlearn .row.mtarget input[type=range]{outline:3px solid var(--pl); outline-offset:3px}
+.row label[data-cc]::after{content:" " attr(data-cc); font-size:9px; font-weight:600; letter-spacing:.04em; color:var(--muted); white-space:nowrap}
 .selrow{display:grid; grid-template-columns:70px minmax(0,1fr); align-items:center; gap:6px; font-size:12.5px; min-height:36px}
 .selrow>span{color:var(--muted)}
 .selrow select{width:100%}
@@ -492,11 +496,12 @@ body.arrtiny .tarr{width:200px} body.arrtiny .tagrid b{color:transparent}
     <div class="pbody">
       <div class="btnrow">
         <button id="bMidiOn">Connect MIDI</button>
-        <button id="bLearn">Learn pads</button>
-        <button id="bMidiReset">Reset to notes 36–43</button>
+        <button id="bLearn">Learn</button>
+        <button id="bUnlearn">Unlearn</button>
+        <button id="bMidiReset">Reset all</button>
         <div class="segrow"><span>Velocity</span><div class="seg" id="segVel"></div></div>
       </div>
-      <p class="note" id="midiNote">Plug a controller into the phone (USB-C), tap Connect MIDI, and the pads answer notes 36–43. To change a pad’s note, tap Learn pads, tap the pad, then hit a key or pad on the controller.</p>
+      <p class="note" id="midiNote">Plug a controller in (USB-C on the phone), tap Connect MIDI, and pads 00–07 answer notes 36–43; other notes play the selected synth. Tap <b>Learn</b>, then: tap any pad (drums or synths) and hit a key to give it that note, or touch any slider and turn a knob to put it on that knob. A knob works the slider for whichever pad, layer or effect is open. Select a pad or slider in Learn and tap <b>Unlearn</b> to clear it.</p>
     </div>
   </section>
 
@@ -1488,6 +1493,7 @@ function refreshLayer(){
   for (const r of rows) if (r.getObj === Lc) r.refresh();
   pitchReadout();
   renderStrip();
+  try { ccBadges(); } catch(e){}
 }
 srcRows.burst.inp.addEventListener('input', () => { srcRows.spacing.r.hidden = !(Lc().burst > 0); });
 
@@ -1530,6 +1536,7 @@ function renderFx(){
     }
     slot.append(head, grid); list.append(slot);
   });
+  try { ccBadges(); } catch(e){}
 }
 
 /* ---------- strip & pads ---------- */
@@ -1573,7 +1580,7 @@ function renderPads(){
     let ins = [i]; try { ins = S.insts.map((I, k) => I.pad === i ? k : -1).filter(k => k >= 0); } catch(e){}   // S may not exist yet at start-up
     b.textContent = ins.length ? ins.slice(0, 2).map(k => hx(k)).join(' ') + (ins.length > 2 ? '+' : '') : '--';
     p.title = ins.length ? `Instrument ${ins.map(k => hx(k)).join(', ')} in the tracker` : 'No tracker instrument plays this pad';
-    m.textContent = midi.on && !isSyn(i) ? (midi.notes[i] >= 0 ? noteName(midi.notes[i]) : '—') : '';
+    m.textContent = midi.on ? (midi.notes[i] >= 0 ? noteName(midi.notes[i]) : isSyn(i) ? '' : '—') : '';
     p.classList.toggle('sel', i === cur);
     p.classList.toggle('learn', midi.learn && midi.target !== i);
     p.classList.toggle('learning', midi.learn && midi.target === i);
@@ -1585,8 +1592,7 @@ function select(i){ if (i === cur) return; cur = i; refreshAll(); }
 const padHeld = new Array(NSLOT).fill(null);
 function padPress(i, held){
   if (held && isSyn(i) && !midi.learn){ if (padHeld[i]) releaseNote(padHeld[i]); padHeld[i] = holdNote(i, 0, 1); select(i); return; }
-  if (midi.learn && isSyn(i)){ select(i); return midiStatus('Synth slots play from every note that isn’t mapped to a pad: select one and play.'); }
-  if (midi.learn){ midi.target = i; select(i); renderPads(); midiStatus(`Now hit a note on the controller for pad ${hx(i)}.`); return; }
+  if (midi.learn){ midi.target = i; midi.ccTarget = ''; select(i); renderPads(); ccBadges(); midiStatus(`Now hit a note on the controller for pad ${hx(i)}` + (midi.notes[i] >= 0 ? ` (now ${noteName(midi.notes[i])}; Unlearn removes it).` : '.')); return; }
   play(i); select(i);
 }
 function refreshAll(){
@@ -1595,6 +1601,7 @@ function refreshAll(){
   vRows.forEach(r => r.refresh()); updChoke();
   refreshLayer(); renderPads(); renderFx();
   ensure(cur); drawWave();
+  try { ccBadges(); } catch(e){}   // sliders may have been rebuilt (another layer type or effect)
 }
 document.addEventListener('keydown', e => {
   if (view === 'tracker' || typing(e) || e.repeat || e.ctrlKey || e.metaKey) return;
@@ -1866,25 +1873,63 @@ $('fileIn').addEventListener('change', async e => {
 });
 
 /* ---------- MIDI ---------- */
+// Notes play pads (all 16: drum pads hit, synth pads hold until the key is let go); notes mapped to no pad play the
+// selected synth slot chromatically. LEARN: tap a pad and hit a note, or touch a slider and turn a knob (CC).
+// A learned knob drives that control for whichever pad, layer or effect is open, like most hardware.
 const MKEY = 'thunder-midi-v1';
-const midi = {on:false, learn:false, target:-1, notes:[36,37,38,39,40,41,42,43], vel:true, access:null};
-try { const m = JSON.parse(localStorage.getItem(MKEY) || 'null'); if (m && Array.isArray(m.notes) && m.notes.length === 8){ midi.notes = m.notes; midi.vel = m.vel !== false; midi.want = !!m.want; } } catch(e){}
-const saveMidi = () => { try { localStorage.setItem(MKEY, JSON.stringify({notes:midi.notes, vel:midi.vel, want:midi.on})); } catch(e){} };
+const DEFNOTES = [36,37,38,39,40,41,42,43, -1,-1,-1,-1,-1,-1,-1,-1];
+const midi = {on:false, learn:false, target:-1, ccTarget:'', notes:DEFNOTES.slice(), cc:{}, vel:true, access:null};
+try { const m = JSON.parse(localStorage.getItem(MKEY) || 'null');
+  if (m && Array.isArray(m.notes)){ midi.notes = DEFNOTES.map((d, i) => Number.isInteger(m.notes[i]) ? m.notes[i] : d); midi.vel = m.vel !== false; midi.want = !!m.want; }
+  if (m && m.cc && typeof m.cc === 'object') for (const k in m.cc) if (typeof m.cc[k] === 'string') midi.cc[k] = m.cc[k];
+} catch(e){}
+const saveMidi = () => { try { localStorage.setItem(MKEY, JSON.stringify({notes:midi.notes, cc:midi.cc, vel:midi.vel, want:midi.on})); } catch(e){} };
 function midiStatus(msg){ $('midiStat').textContent = msg; }
+const ccName = k => { const [ch, n] = k.split(':'); return 'CC ' + n + (+ch ? ' ch ' + (+ch + 1) : ''); };
+const rowLabel = id => { const e = document.getElementById(id), r = e && e.closest('.row'), l = r && r.querySelector('label'); return l ? l.textContent : id; };
+// Shows each slider's knob next to its name, and marks the one waiting to learn.
+function ccBadges(){
+  document.querySelectorAll('.row label[data-cc], .row.mtarget').forEach(r => { delete r.dataset.cc; r.removeAttribute('title'); r.classList.remove('mtarget'); });
+  for (const k in midi.cc){ const e = document.getElementById(midi.cc[k]), r = e && e.closest('.row'), l = r && r.querySelector('label');
+    if (l){ l.dataset.cc = ccName(k).replace(' ch ', '/'); l.title = l.textContent + ' · ' + ccName(k); } }
+  if (midi.learn && midi.ccTarget){ const e = document.getElementById(midi.ccTarget), r = e && e.closest('.row'); if (r) r.classList.add('mtarget'); }
+  document.body.classList.toggle('mlearn', midi.learn);
+}
+// A knob moved: set the slider it's learned to (if it's on screen right now) exactly as dragging it would.
+function ccMove(k, v){
+  const id = midi.cc[k]; if (!id) return false;
+  const e = document.getElementById(id); if (!e || e.disabled) return true;
+  e.value = Math.round(v / 127 * (+e.max - +e.min) + +e.min);
+  e.dispatchEvent(new Event('input', {bubbles:true})); return true;
+}
 function onMidi(e){
   const [st, d1, d2] = e.data; if (!st) return;
-  const on = (st & 0xf0) === 0x90 && d2 > 0, off = (st & 0xf0) === 0x80 || ((st & 0xf0) === 0x90 && !d2);
-  if (off){ const h = midiHeld.get(d1); if (h){ midiHeld.delete(d1); releaseNote(h); } return; }
+  const ty = st & 0xf0, ch = st & 0x0f;
+  if (ty === 0xb0){
+    const k = ch + ':' + d1;
+    if (midi.learn && midi.ccTarget){
+      for (const q in midi.cc) if (midi.cc[q] === midi.ccTarget) delete midi.cc[q];   // one knob per slider
+      midi.cc[k] = midi.ccTarget; const nm = rowLabel(midi.ccTarget); midi.ccTarget = ''; saveMidi(); ccBadges(); ccMove(k, d2);
+      const m = `${nm} now follows ${ccName(k)}. Touch another slider or tap a pad, or Done.`; midiStatus(m); toast(m); return;
+    }
+    if (!ccMove(k, d2) && midi.learn) toast('Touch a slider first, then turn the knob.');
+    return;
+  }
+  const on = ty === 0x90 && d2 > 0, off = ty === 0x80 || (ty === 0x90 && !d2);
+  if (off){ const h = midiHeld.get(d1); if (h){ midiHeld.delete(d1); [].concat(h).forEach(x => releaseNote(x)); } return; }
   if (!on) return;
   if (midi.learn && midi.target >= 0){
     const t = midi.target; midi.notes = midi.notes.map((n, i) => i === t ? d1 : (n === d1 ? -1 : n));
     midi.target = -1; saveMidi(); renderPads();
-    midiStatus(`Pad ${t + 1} now plays ${noteName(d1)} (${d1}). Tap another pad, or Done.`); flash(t); return;
+    const m = `Pad ${hx(t)} now plays ${noteName(d1)} (${d1}). Tap another pad, touch a slider, or Done.`; midiStatus(m); toast(m); flash(t); return;
   }
-  const vel = midi.vel ? Math.max(0.05, d2 / 127) : 1;
-  let hit = false; midi.notes.forEach((n, i) => { if (n === d1){ play(i, vel); hit = true; } });
+  const vel = midi.vel ? Math.max(0.05, d2 / 127) : 1, held = [];
+  let hit = false;
+  midi.notes.forEach((n, i) => { if (n !== d1) return; hit = true;
+    if (isSyn(i)) held.push(holdNote(i, 0, vel)); else play(i, vel); });   // synth pads sound until the key is let go
   // Notes that aren't mapped to a pad play the selected synth slot, middle C (60) at its own pitch.
-  if (!hit && isSyn(cur)){ releaseNote(midiHeld.get(d1)); midiHeld.set(d1, holdNote(cur, d1 - 60, vel)); }
+  if (!hit && isSyn(cur)) held.push(holdNote(cur, d1 - 60, vel));
+  if (held.length){ const old = midiHeld.get(d1); if (old) [].concat(old).forEach(x => releaseNote(x)); midiHeld.set(d1, held); }
 }
 const midiHeld = new Map();
 function hookInputs(){
@@ -1901,14 +1946,34 @@ async function connectMidi(){
     midi.access.onstatechange = hookInputs;
   } catch(err){ midiStatus(inClaude ? 'MIDI is blocked inside Claude. Use the installed app.' : 'MIDI permission was refused. Allow it for this site in Chrome.'); }
 }
+function setLearn(on){
+  midi.learn = on; midi.target = -1; midi.ccTarget = '';
+  $('bLearn').classList.toggle('on', on); $('bLearn').textContent = on ? 'Done' : 'Learn';
+  if (on){ if (!midi.on) connectMidi(); const m = 'Learning: tap a pad and hit a note, or touch a slider and turn a knob.'; midiStatus(m); toast(m); }
+  else if (midi.access) hookInputs();
+  renderPads(); ccBadges();
+}
 $('bMidiOn').addEventListener('click', connectMidi);
-$('bLearn').addEventListener('click', () => {
-  midi.learn = !midi.learn; midi.target = -1;
-  $('bLearn').classList.toggle('on', midi.learn); $('bLearn').textContent = midi.learn ? 'Done' : 'Learn pads';
-  if (midi.learn){ if (!midi.on) connectMidi(); midiStatus('Tap a pad, then hit a note on the controller.'); } else if (midi.access) hookInputs();
-  renderPads();
+$('bLearn').addEventListener('click', () => setLearn(!midi.learn));
+// While learning, touching a slider picks it as the one the next knob turn goes to.
+document.addEventListener('pointerdown', e => {
+  if (!midi.learn) return;
+  const r = e.target.closest && e.target.closest('.row'), inp = r && r.querySelector('input[type=range][id]'); if (!inp) return;
+  midi.target = -1; midi.ccTarget = inp.id; renderPads(); ccBadges();
+  const k = Object.keys(midi.cc).find(q => midi.cc[q] === inp.id);
+  midiStatus(`${rowLabel(inp.id)}: turn a knob on the controller` + (k ? ` (now ${ccName(k)}; Unlearn removes it)` : '') + '.');
+}, true);
+$('bUnlearn').addEventListener('click', () => {
+  if (midi.ccTarget){ let n = 0; for (const q in midi.cc) if (midi.cc[q] === midi.ccTarget){ delete midi.cc[q]; n++; }
+    midiStatus(n ? `${rowLabel(midi.ccTarget)} no longer follows a knob.` : 'That slider had no knob.'); midi.ccTarget = ''; }
+  else if (midi.target >= 0){ const t = midi.target; midi.notes[t] = -1; midi.target = -1; midiStatus(`Pad ${hx(t)} no longer has a note.`); }
+  else return midiStatus('With Learn on, tap a pad or touch a slider, then Unlearn.');
+  saveMidi(); renderPads(); ccBadges();
 });
-$('bMidiReset').addEventListener('click', () => { midi.notes = [36,37,38,39,40,41,42,43]; saveMidi(); renderPads(); midiStatus('Pads reset to notes 36–43.'); });
+$('bMidiReset').addEventListener('click', () => {
+  if (!confirm('Reset every pad to notes 36–43 (synth pads off) and forget every learned knob?')) return;
+  midi.notes = DEFNOTES.slice(); midi.cc = {}; saveMidi(); renderPads(); ccBadges(); midiStatus('Pads reset to notes 36–43; knobs forgotten.');
+});
 makeSeg($('segVel'), [[true,'On'],[false,'Off']], () => midi.vel, v => { midi.vel = v; saveMidi(); });
 if (midi.want && navigator.requestMIDIAccess) connectMidi();
 

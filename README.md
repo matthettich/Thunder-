@@ -34,6 +34,7 @@ The **⚙ Settings** button in the top bar holds everything that isn't the sound
 
 - **Hide chains page** (on by default) hides the M8 chain screen; see Tracker below.
 - **Display steps as decimal** (on by default) numbers the rows in decimal: song rows 000–255, phrase rows 00–31, chain rows 00–15, the arrange overview too. Off shows the M8's hex. Phrase, chain and instrument numbers and values stay hex.
+- **Follow playhead** (off by default) scrolls Song and Phrase with the playhead while the song plays; the cursor rides along and Phrase switches to whatever the cursor's track is playing.
 - **Text size** (60–200%) makes the tracker's text and lines bigger or smaller. Bigger shows fewer rows; when a line gets wider than the screen it scrolls sideways to follow the cursor.
 
 ## Skins

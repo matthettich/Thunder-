@@ -3009,6 +3009,19 @@ let stepDec = (() => { try { return localStorage.getItem(SDK) !== '0'; } catch(e
 let tScale = (() => { try { const v = parseInt(localStorage.getItem(TSK), 10); return v >= 60 && v <= 200 ? v : 100; } catch(e){ return 100; } })();
 // A row number as it is shown: n digits in decimal (3 for the 256 song rows), hex otherwise.
 const rS = (y, n = 2) => stepDec ? String(y).padStart(n, '0') : hx(y, n === 1 ? 1 : 2);
+// FOLLOW (Project): while the song plays, the cursor rides the playhead (Renoise's follow). Off by default.
+const FLK = 'thunder-follow-v1';
+let followOn = (() => { try { return localStorage.getItem(FLK) === '1'; } catch(e){ return false; } })();
+function setFollow(on){ followOn = on; try { localStorage.setItem(FLK, on ? '1' : '0'); } catch(e){} if (on) followPlay(); draw(); }
+// Song: the cursor's row follows its track. Chain and Phrase: they switch to what the cursor's track is
+// playing and the cursor rides along. Not while a selection is being made.
+function followPlay(){
+  if (!followOn || !tp.on || !tp.pos || selA || sdrag || drag) return;
+  const P = tp.pos, own = P[tv === 'song' ? cs.song.x : cTrack] || P.find(Boolean); if (!own) return;
+  if (tv === 'song'){ if (tp.mode === 'song') cs.song.y = own.row; }
+  else if (tv === 'chain'){ if (tp.mode !== 'phrase' && own.chain >= 0){ cChain = own.chain; cs.chain.y = own.cr; } }
+  else if (tv === 'phrase'){ if (own.phrase >= 0){ cPhrase = own.phrase; cs.phrase.y = own.step; } }
+}
 function setStepDec(on){ stepDec = on; try { localStorage.setItem(SDK, on ? '1' : '0'); } catch(e){} arrSig = ''; draw(); }
 function setTScale(v){ tScale = clamp(Math.round(v / 10) * 10, 60, 200); try { localStorage.setItem(TSK, String(tScale)); } catch(e){} fit(); draw(); }
 function setArr(m){ arrMode = m; try { localStorage.setItem(ARK, String(m)); } catch(e){} arrBody(); arrSig = ''; draw(); fit(); }
@@ -3083,6 +3096,8 @@ function projRows(){
       info:() => 'Row numbers in Song, Chain, Phrase and Arrange: DECIMAL counts 0, 1, 2… (song rows 000–255, phrase rows 00–31); HEX is the M8’s 00–FF. Phrase, chain and instrument numbers and the values stay hex'},
     {l:'TEXT SIZE', get:() => tScale, set:v => setTScale(v), min:60, max:200, step:10, big:20, d:100, fmt:v => v + '%',
       info:() => 'Size of the text and lines on the tracker screen. Bigger shows fewer rows (and scrolls sideways when a line no longer fits); drag a finger up or down anywhere on the screen to scroll'},
+    {l:'FOLLOW', ck:'Follow playhead', get:() => followOn ? 1 : 0, set:v => setFollow(!!v), min:0, max:1, tog:true, d:0, fmt:onOff,
+      info:() => 'While the song plays, Song and Phrase scroll with the playhead: the cursor rides along, and Phrase (and Chain) switch to what the cursor’s track is playing. Off leaves the screen where you put it'},
     {l:'NAME', sec:'Song', gap:true, show:() => S.name, tap:() => { const n = prompt('Song name', S.name); if (n != null){ S.name = n.trim().slice(0, 40) || 'Song'; saveS(); draw(); } }, info:() => 'EDIT renames the song'},
     {l:'TEMPO', get:() => S.bpm, set:v => S.bpm = v, min:40, max:300, big:10, d:120, fmt:v => v + ' BPM', after:rtAllFx, info:() => 'Beats per minute, 4 steps to a beat. Track delays follow it'},
     {l:'LPB', get:() => S.lpb, set:v => S.lpb = v, min:1, max:16, big:4, d:4, fmt:v => v + ' lines/beat · 1/' + (v * 4), info:() => 'Lines per beat, like Renoise: 4 makes each row a 16th, 8 a 32nd, 3 or 6 triplets. A phrase can set its own on its LEN line'},
@@ -3850,7 +3865,7 @@ function frame(){
   if (tp.on && ctx){
     let ch = false;
     while (tp.q.length && tp.q[0].t <= ctx.currentTime + 0.01){ const e = tp.q.shift(); if (!tp.pos) tp.pos = new Array(NT).fill(null); e.pos.forEach((q, i) => { if (q) tp.pos[i] = q; }); tp.bpm = e.bpm; tp.tks = e.tks; tp.line = e.line; tp.st = e.t; ch = true; }
-    if (!tp.seq.alive() && !tp.q.length && ctx.currentTime > tp.seq.time + 0.3) tStop(); else if (ch) draw();
+    if (!tp.seq.alive() && !tp.q.length && ctx.currentTime > tp.seq.time + 0.3) tStop(); else if (ch){ followPlay(); draw(); }
   }
   tickDots();
   cpuMeter();

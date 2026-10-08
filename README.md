@@ -16,14 +16,29 @@ An 8-pad drum synth and 16-track tracker for the browser, built for a Galaxy Z F
 - **Samples.** Load an audio file into any layer with Load sample, then pitch, reverse and filter it like any other layer.
 - **Export.** Mono WAV, 44.1k or 48k, 16 or 24-bit, normalised and tail-trimmed. Save one pad or all 8 as a zip, or share straight to Koala on Android. Optionally add the note to the file name (for example `03 Pluck C3.wav`).
 - **Effects per pad.** Up to 6 in any order, with a tail length: Rings resonator, Clouds (granular, stretch, delay, spectral, with a hold-the-tail switch), Airwindows Density saturation and ToTape6, DaisySP chorus and bitcrush.
-- **MIDI.** Plug in a controller, tap MIDI ▾ → Connect MIDI. Pads 00–07 answer notes 36–43 with velocity; other notes play the selected synth. **Learn**: tap any of the 16 pads and hit a key to give it that note (synth pads hold while the key is down), or touch any slider and turn a knob to put it on that CC. A learned knob works that slider for whichever pad, layer or effect is open, and shows its CC next to the slider's name. **Unlearn** clears the selected pad or slider; **Reset all** goes back to the defaults. Mappings are kept on the device.
+- **MIDI.** Plug in a controller, tap ⚙ Settings → MIDI → Connect MIDI. Pads 00–07 answer notes 36–43 with velocity; other notes play the selected synth. **Learn**: tap any of the 16 pads and hit a key to give it that note (synth pads hold while the key is down), or touch any slider and turn a knob to put it on that CC. A learned knob works that slider for whichever pad, layer or effect is open, and shows its CC next to the slider's name. **Unlearn** clears the selected pad or slider; **Reset all** goes back to the defaults. Mappings are kept on the device.
 - **Kits.** Kits save in the browser automatically and can be saved or loaded as `.json`, recorded samples included.
 
 **Pad effects.** Each pad can have up to 6 effects, run top to bottom after the layers: EQ, Compressor, Reverb and Tape delay (Airwindows EQ, Pressure4, Galactic and TapeDelay2, the same as the tracker's track effects), Rings, Clouds, Saturation, Tape, Chorus and Bitcrush. Each effect card has a level meter showing the peak coming out of that effect while the pad plays, with the last peak in dB beside it. Reverb and delay keep the dry hit at full level until their Mix passes the half-way point.
 
+## Settings
+
+The **⚙ Settings** button in the top bar holds everything that isn't the sound itself.
+
+- **On the synth page** it opens a Settings band with tabs: **Kit** (save, load, factory, clear), **MIDI**, **Export**, **Skin** and **Audio**. It remembers the last tab.
+- **On the tracker page** it opens a full-screen menu with everything on the Project screen as touch controls (checkboxes, dropdowns, sliders with − and +, buttons), grouped into Input, Screen, Song, Render, Project file and App, plus the same Audio settings. The Project screen is still there and changes the same settings. Esc or Back closes it.
+
+**Audio** picks the output device (Chrome, Edge and the desktop app on a computer; Android plays through the system's output, so pick it in the system's media output switcher), the overall level, the latency (Lowest, Balanced or Safest, for when you hear crackles) and the sample rate (Device, 44.1k or 48k). The output and level change at once; latency and rate need **Restart audio**, which reloads the app with your song and kit kept. **Show device names** appears when the browser only numbers the outputs (it asks for the microphone once, just to get the names, and closes it). **Test sound** plays a short tone.
+
+**Tracker display settings** (in the menu and on the Project screen):
+
+- **Hide chains page** (on by default) hides the M8 chain screen; see Tracker below.
+- **Display steps as decimal** (on by default) numbers the rows in decimal: song rows 000–255, phrase rows 00–31, chain rows 00–15, the arrange overview too. Off shows the M8's hex. Phrase, chain and instrument numbers and values stay hex.
+- **Text size** (60–200%) makes the tracker's text and lines bigger or smaller. Bigger shows fewer rows; when a line gets wider than the screen it scrolls sideways to follow the cursor.
+
 ## Skins
 
-**Skin ▾** in the top bar (or SKIN in the tracker's Project screen) switches between the ...Seeds skins: Pastel (follows your system), Pastel light, Minimal, Minimal colors, Monotone, Minimal black, Minimal colors black and Neon. The choice is remembered.
+**Settings → Skin** (or SKIN in the tracker's settings and Project screen) switches between the ...Seeds skins: Pastel (follows your system), Pastel light, Minimal, Minimal colors, Monotone, Minimal black, Minimal colors black and Neon. The choice is remembered.
 
 ## Synth slots
 
@@ -42,7 +57,7 @@ Tap **Tracker** at the top for an M8-style sequencer that plays the kit. 16 trac
 - **Song** – 256 rows × 16 tracks of chain numbers. Each track loops back to the top of its block of filled rows when it reaches an empty row.
 - **Chain** – up to 16 phrases in order, each with a transpose.
 
-**Chains are hidden by default** (Project → CHAINS). The song then works like Renoise's pattern sequence: EDIT×2 (Enter×2) on an empty song cell makes a new block that already holds one phrase (numbered the same when that's free), and SHIFT+▶ goes straight from the song to that phrase. EDIT×2 on a filled block makes a unique copy of it and its phrase. Nothing is deleted: set CHAINS to SHOWN and the chain screen is back, with everything in it.
+**Chains are hidden by default** (Settings → Hide chains page, or Project → CHAINS). The song then works like Renoise's pattern sequence: EDIT×2 (Enter×2) on an empty song cell makes a new block that already holds one phrase (numbered the same when that's free), and SHIFT+▶ goes straight from the song to that phrase. EDIT×2 on a filled block makes a unique copy of it and its phrase. Nothing is deleted: set CHAINS to SHOWN and the chain screen is back, with everything in it.
 
 **Arrange.** On a wide screen (the Fold unfolded, a tablet, a computer) a blue song overview sits at the right of the tracker: every filled song row as blocks, one column per track, with the playing rows lit. Tap a block to go to it (from the Phrase screen it opens that block's phrase), tap it twice to open its phrase, tap a row number to play from there, and tap a track number to mute the track. **Alt-click or hold a block to mute it**: it stays on the song with its phrase, just silent, so you can drop the hi-hats out of a section and bring them back without touching the phrases. TAP: MUTE in its header makes every tap a mute (handy on touch). Muted blocks are struck through on the Song screen too, and M toggles the block under the cursor in KEYS mode. Drag the grip on its left edge to make it wider (the blocks get bigger with it), or double-tap the grip to jump between big and normal; it remembers the size. Project → ARRANGE: AUTO (the default) shows it when the screen is at least 600 × 500, which includes the Fold 6 unfolded in either orientation; ON shows it at any size; OFF hides it. Its info line shows this screen's size.
 - **Phrase** – up to 32 rows of note, volume, instrument and three effects. **ROWS** (− 16 +, at the right of the tab bar) sets how many rows the open phrase plays, 1–32; tap the number to type one. On the Chain screen it changes the phrase on the cursor's row. Press ▲ on the top row to reach the same LEN plus LPB (lines per beat for this phrase; -- uses the song's).
@@ -110,7 +125,7 @@ These screen, transport and undo keys also work in PAD mode.
 
 **Screen colour.** Every tracker screen has its own pastel, on its tab and its button in the side map: Song blue, Chain lilac, Phrase mint, Inst peach, Mixer butter, FX pink, Project aqua. Project → SCREEN set to BY SCREEN (the default) colours the screen to match; or pick one pastel for all of them (blue, lilac, mint, peach, butter), or the M8's black. The pastels use dark text at readable contrast.
 
-On touch, tap a cell to move there, tap it again to open or add, and drag up or down on it to change the value. Tap a track number to mute it.
+On touch, tap a cell to move there, tap it again to open or add, and drag up or down on the cursor's cell to change the value. Drag a finger up or down anywhere else on the screen (between or beside the lines, the title, the info lines) to scroll through the rows; sideways too when big text makes the lines wider than the screen. Tap a track number to mute it.
 
 **Rendering.** Project → RENDER SONG saves a stereo WAV; RENDER STEMS saves a zip with the mix plus one WAV per track. Stems are all the same length and include each track's effects; they skip the limiter and the master effects. Rate, bits and normalising follow the Export settings.
 

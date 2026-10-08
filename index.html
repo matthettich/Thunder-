@@ -38,6 +38,42 @@
 *{box-sizing:border-box; border-radius:0}
 [hidden]{display:none!important}
 /* help sheet: a full-screen page over everything, in the same bands-and-lines look */
+/* settings sheets: the synth's Settings band tabs and the tracker's full-screen settings menu */
+.top #bSet .setg{font-size:15px; line-height:1}
+.setband .bar{gap:10px}
+.setband .settabs{flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none}
+.setband .settabs button{flex:none; padding-inline:14px}
+.audrow{display:flex; align-items:center; gap:6px; flex-wrap:wrap; min-height:34px; font-size:12.5px}
+.audrow>span:first-child{color:var(--muted); width:70px; flex:none}
+.audrow select{flex:1 1 220px; min-width:0}
+.audrow input[type=range]{flex:1 1 200px; width:auto; min-width:120px}
+.audrow output{min-width:64px; text-align:right; font-variant-numeric:tabular-nums}
+.tset{z-index:59}
+.tset .hhead .lbl{font-size:12.5px}
+.tset .tsec{padding-top:6px}
+.tset h3{font-size:13px; font-weight:600; letter-spacing:.06em; text-transform:uppercase; margin:16px 0 4px; padding-bottom:5px; border-bottom:1px solid var(--line)}
+.tset .tsr{display:grid; grid-template-columns:minmax(120px,190px) minmax(0,1fr); gap:4px 14px; align-items:center; padding:9px 0; border-bottom:1px solid var(--track)}
+.tset .tsr .tsl{font-size:13.5px; font-weight:500}
+.tset .tsr .tsc{display:flex; align-items:center; gap:6px; flex-wrap:wrap; min-width:0}
+.tset .tsr .tsi{grid-column:2; color:var(--muted); font-size:12px; line-height:1.4}
+.tset .tsr select{min-width:0; flex:1 1 200px; max-width:340px}
+.tset .tsr input[type=text]{flex:1 1 200px; max-width:340px}
+.tset .tsr input[type=range]{flex:1 1 160px; width:auto; min-width:110px}
+.tset .tsr output{min-width:120px; font-variant-numeric:tabular-nums; font-size:13px}
+.tset .tsr .stp{min-width:40px; padding-inline:0}
+.tset .tsr.ck{grid-template-columns:minmax(0,1fr)}
+.tset .tsr.ck .tsi{grid-column:1; padding-left:30px}
+.tset label.cb{display:flex; align-items:center; gap:10px; font-size:13.5px; font-weight:500; cursor:pointer; min-height:34px}
+.tset label.cb input{width:20px; height:20px; margin:0; accent-color:var(--ink); flex:none}
+.tset .tsr.act{grid-template-columns:minmax(120px,190px) minmax(0,1fr)}
+.tset .tsr.act .tsi{grid-column:auto}
+.tset #tsetAud .band{border:1px solid var(--line); margin-top:8px}
+body.tsetv .toast{z-index:70; bottom:calc(24px + env(safe-area-inset-bottom,0px))}
+@media (max-width:560px){ .tset .tsr, .tset .tsr.act{grid-template-columns:minmax(0,1fr)} .tset .tsr .tsi, .tset .tsr.act .tsi{grid-column:1} .tset .hhead .lbl{display:none} }
+@media (max-width:600px){ body.trkv .top #bSet .setx{display:none} }
+@media (max-width:480px){ .top #bSet .setx{display:none} }
+.help.tset .hhead b{display:inline}
+.tset #tsetAud .band .bar .ttl{display:none}
 .help{position:fixed; inset:0; z-index:60; display:flex; flex-direction:column; background:var(--bench); color:var(--ink)}
 .help .hhead{display:flex; align-items:center; gap:10px; padding:9px 16px; border-bottom:1px solid var(--line); background:var(--side); flex:none}
 .help #helpNav{flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; min-width:0; flex:0 1 auto}
@@ -458,10 +494,7 @@ body.arrtiny .tarr{width:200px} body.arrtiny .tagrid b{color:transparent}
   <div class="seg" id="segView" role="group" aria-label="Screen"></div>
   <input id="kitName" class="kitname" type="text" aria-label="Kit name" spellcheck="false">
   <div class="sp"></div>
-  <button id="bKit" aria-expanded="false">Kit ▾</button>
-  <button id="bMidi" aria-expanded="false">MIDI ▾</button>
-  <button id="bExport" aria-expanded="false">Export ▾</button>
-  <button id="bSkin" aria-expanded="false">Skin ▾</button>
+  <button id="bSet" aria-expanded="false" aria-label="Settings" title="Settings: kit, MIDI, export, skin and audio (in the tracker: the Project settings)"><span class="setg">⚙&#xFE0E;</span><span class="setx">Settings</span></button>
   <button type="button" class="tsong" id="tSong" aria-label="Play or stop the song" title="Play the song from the tracker's cursor row, or stop it" hidden>▶ SONG</button>
   <button type="button" class="tmode" id="tMode" aria-label="Switch input mode" hidden>INPUT: PAD</button>
   <button type="button" class="tcpu" id="tCpu" aria-label="Audio load"><span>CPU --</span><i></i></button>
@@ -469,6 +502,10 @@ body.arrtiny .tarr{width:200px} body.arrtiny .tagrid b{color:transparent}
 </div>
 
 <div class="main" id="main">
+  <section class="band grey setband" id="pSet" hidden>
+    <div class="bar"><span class="ttl">Settings</span><div class="seg settabs" id="segSet" aria-label="Settings section"></div><div class="sp"></div><button class="sm" id="bSetX" aria-label="Close settings">Close ✕</button></div>
+  </section>
+
   <section class="band grey" id="pKit" hidden>
     <div class="bar"><span class="ttl">Kit</span></div>
     <div class="pbody">
@@ -521,6 +558,19 @@ body.arrtiny .tarr{width:200px} body.arrtiny .tagrid b{color:transparent}
         <button id="bShKit" hidden>Share all 8…</button>
       </div>
       <p class="note" id="exNote">Mono WAV one-shots, trimmed at the tail. In Koala, import them from Files into a sample pad; in SunVox, load them into a Sampler module.</p>
+    </div>
+  </section>
+
+  <section class="band grey" id="pAudio" hidden>
+    <div class="bar"><span class="ttl">Audio</span><span class="lbl" id="audStat">Audio starts with the first sound</span></div>
+    <div class="pbody">
+      <div class="audrow"><span>Output</span><select id="audOut" aria-label="Audio output device"><option value="">System default</option></select>
+        <button class="sm" id="audNames" hidden>Show device names</button><button class="sm" id="audTest">Test sound</button></div>
+      <div class="audrow"><span>Level</span><input type="range" id="audLvl" min="0" max="100" step="1" aria-label="Output level"><output id="audLvlV"></output></div>
+      <div class="segrow"><span>Latency</span><div class="seg" id="segLat"></div></div>
+      <div class="segrow"><span>Rate</span><div class="seg" id="segARate"></div></div>
+      <div class="btnrow" id="audRestartRow" hidden><span class="lbl">Latency and rate change when audio restarts. That reloads ...Thunder; your song and kit are kept.</span><button id="audRestart" class="on">Restart audio</button></div>
+      <p class="note" id="audNote">Output picks where everything plays: the synth, the tracker and previews. Level is the overall volume after the tracker’s master. Lowest latency answers the pads fastest; Safest uses a bigger buffer if you hear crackles. Rate: Device uses the output’s own rate.</p>
     </div>
   </section>
 
@@ -684,9 +734,11 @@ body.arrtiny .tarr{width:200px} body.arrtiny .tagrid b{color:transparent}
 <p>...Thunder has two pages: the <b>Synth</b>, where you build an 8-pad kit, and the <b>Tracker</b>, an M8-style sequencer that plays that kit. Switch with <b>Synth / Tracker</b> at the top. Everything saves in the browser as you work; <b>Save</b> writes a project file (song and kit) you can keep or move to another device.</p>
 <h3>How a song fits together</h3>
 <p><b>Song</b> (256 rows × 16 tracks of chain numbers) → <b>Chain</b> (up to 16 phrases, each with a transpose) → <b>Phrase</b> (up to 32 rows of note, volume, instrument and three effects) → <b>Inst</b> (which pad a note plays, with transpose, volume, pan, reverse and start). <b>Mixer</b>, <b>FX</b> and <b>Project</b> sit around them.</p>
-<p><b>Chains are hidden by default</b> (Project → CHAINS), Renoise style: EDIT×2 on an empty song cell makes a block that already holds a phrase, SHIFT+▶ opens that phrase, and EDIT×2 on a filled block makes a unique copy. Set CHAINS to SHOWN for the M8 chain screen; nothing is lost either way.</p>
+<p><b>Chains are hidden by default</b> (⚙ Settings → Hide chains page, or Project → CHAINS), Renoise style: EDIT×2 on an empty song cell makes a block that already holds a phrase, SHIFT+▶ opens that phrase, and EDIT×2 on a filled block makes a unique copy. Set CHAINS to SHOWN for the M8 chain screen; nothing is lost either way.</p>
 <p><b>Arrange</b> (wide screens): the blue overview at the right shows the whole song. Tap a block to go to it, twice to open its phrase, a row number to play from there. <b>Alt-click or hold a block to mute it</b>: the phrase stays in place, silent, so you can drop parts in and out while arranging. TAP: MUTE makes every tap a mute; M does it on the Song screen in KEYS mode.</p>
 <p>The screens are laid out like the M8's map: Song ▶ Chain ▶ Phrase ▶ Inst left to right, Project above, Mixer below, FX to the right of the Mixer. You move between them with the screen keys below, the tabs, or the map in the side panel.</p>
+<h3>Settings</h3>
+<p><b>⚙ Settings</b> at the top: on the synth page it holds Kit, MIDI, Export, Skin and Audio (output device, level, latency, rate); in the tracker it opens every Project setting as a touch menu, plus Audio. There you can also turn off <b>Display steps as decimal</b> (row numbers in hex, M8 style) and change the <b>Text size</b> of the tracker screen. Drag a finger up or down anywhere on the tracker screen to scroll; drag on the cursor's cell to change its value.</p>
 <h3>Drum pads and synths</h3>
 <p>The kit has 16 slots. <b>1–8</b> are drum pads: one-shots that play their whole sound. <b>9–16</b> are synths for melodies and chords (Bass, Pluck, Keys, Pad, Lead, Bell, Organ, Sub to start): a note holds at its sustain level for as long as you hold it, up to the slot’s Max len, then fades over its release when you let go. C-4 plays middle C. In the tracker, instruments 08–0F play the synth slots in a new song.</p>
 <h3>Chords and polyphony</h3>
@@ -704,6 +756,10 @@ body.arrtiny .tarr{width:200px} body.arrtiny .tagrid b{color:transparent}
 <p>Each track and the master have 4 effect slots (FX screen, or EDIT on the Mixer’s FX row): EQ, compressor, reverb, tape delay, saturation, tape, chorus, bitcrush, Rings and Clouds. Renders include them; stems skip the master effects and limiter.</p></section>
     <section id="hSynth"><h2>Synth page</h2><table><tr><td><kbd>Z</kbd>–<kbd>/</kbd> · <kbd>Q</kbd>–<kbd>P</kbd></td><td>Play the selected pad chromatically; C-4 is its own pitch. On a synth slot (9–16) notes hold while the keys are down, so you can play chords</td></tr><tr><td><kbd>−</kbd> <kbd>=</kbd></td><td>Octave down / up</td></tr><tr><td><kbd>Shift</kbd> <kbd>1</kbd>–<kbd>8</kbd> or <kbd>◀</kbd> <kbd>▶</kbd></td><td>Pick a pad (◀▶ go through all 16 slots)</td></tr><tr><td><kbd>Space</kbd></td><td>Play the pad as it is</td></tr><tr><td><kbd>Alt</kbd> <kbd>1</kbd>–<kbd>7</kbd></td><td>Jump into a tracker screen</td></tr></table><p><b>Kit ▾</b> saves and loads kits, <b>Export ▾</b> writes WAVs for Koala and SunVox, <b>MIDI ▾</b> connects a controller (notes not mapped to a pad play the selected synth slot, held until note-off), <b>Skin ▾</b> changes the look.</p><h2>Files and rendering</h2><p><b>Project</b> holds SAVE, SAVE AS and LOAD PROJECT, plus RENDER SONG (a stereo WAV) and RENDER STEMS (a zip with the mix and one WAV per track). In desktop Chrome and Edge, Save writes straight back to the file you opened or last saved; other browsers download a copy, and Save As asks for a name first. The song also saves itself in the browser as you work.</p><p>More detail in the <a href="https://github.com/matthettich/Thunder-#readme" target="_blank" rel="noopener">README on GitHub</a>.</p></section>
   </div></div>
+</div>
+<div class="help tset" id="tset" hidden role="dialog" aria-modal="true" aria-label="Tracker settings">
+  <div class="hhead"><b>SETTINGS</b><span class="lbl">Everything on the Project screen, plus audio</span><div class="sp"></div><button type="button" id="tsetX" aria-label="Close settings"><span class="hx">Close </span>✕</button></div>
+  <div class="hbody" id="tsetBody" tabindex="-1"><div class="hwrap"><div id="tsetList"></div><section class="tsec" id="tsetAud"><h3>Audio</h3></section></div></div>
 </div>
 <div class="toast" id="toast" hidden></div>
 
@@ -1256,6 +1312,15 @@ const noteName = m => NOTE[((m % 12) + 12) % 12].replace('♯', '#') + (Math.flo
 const V = () => kit.voices[cur];
 const Lc = () => V().layers[V().sel];
 
+/* ---------- audio settings (kept on the device) ---------- */
+// Output device, level, latency and sample rate. Latency and rate are fixed when the AudioContext is made,
+// so changing them asks for a restart; the output device and level change live.
+const AUK = 'thunder-audio-v1';
+const aset = (() => { const d = {sink:'', lat:'interactive', rate:0, vol:90};
+  try { const o = JSON.parse(localStorage.getItem(AUK) || '{}'); return Object.assign(d, o && typeof o === 'object' ? o : {}); } catch(e){ return d; } })();
+function asetSave(){ try { localStorage.setItem(AUK, JSON.stringify(aset)); } catch(e){} }
+let aLive = null; // the latency and rate the running context was made with
+
 /* ---------- audio ---------- */
 let ctx = null, master = null;
 const cpu = {cap:null, t:0};
@@ -1263,9 +1328,13 @@ const playing = new Array(NSLOT).fill(null);
 function audio(){
   if (!ctx){
     const AC = window.AudioContext || window.webkitAudioContext;
-    ctx = new AC({latencyHint:'interactive'});
+    const ao = {latencyHint:aset.lat || 'interactive'}; if (aset.rate) ao.sampleRate = aset.rate;
+    try { ctx = new AC(ao); } catch(e){ ctx = new AC({latencyHint:'interactive'}); }
+    aLive = {lat:ao.latencyHint, rate:aset.rate};
+    if (aset.sink && ctx.setSinkId) ctx.setSinkId(aset.sink).catch(() => { audStatus(); });
     try { if (ctx.renderCapacity){ ctx.renderCapacity.addEventListener('update', e => { cpu.cap = {avg:e.averageLoad, peak:e.peakLoad, under:e.underrunRatio, t:performance.now()}; }); ctx.renderCapacity.start({updateInterval:0.5}); } } catch(e){}
-    master = ctx.createGain(); master.gain.value = 0.9; master.connect(ctx.destination);
+    master = ctx.createGain(); master.gain.value = clamp(aset.vol, 0, 100) / 100; master.connect(ctx.destination);
+    ctx.addEventListener && ctx.addEventListener('statechange', () => audStatus());
     for (let i = 0; i < NSLOT; i++) dirty[i] = true;
     setTimeout(prerender, 30);
   }
@@ -1798,14 +1867,80 @@ makeSeg($('segBits'), [[16,'16'],[24,'24']], () => ex.bits, v => ex.bits = v);
 makeSeg($('segNorm'), [[true,'Normalise'],[false,'As is']], () => ex.norm, v => ex.norm = v);
 makeSeg($('segNoteName'), [[false,'Pad name'],[true,'+ note']], () => ex.noteName, v => ex.noteName = v);
 
-/* ---------- kit panel ---------- */
-function togglePanel(id, btn){ const p = $(id), open = p.hidden; ['pKit','pExport','pMidi','pSkin'].forEach(x => $(x).hidden = true);
-  ['bKit','bExport','bMidi','bSkin'].forEach(x => { $(x).classList.remove('on'); $(x).setAttribute('aria-expanded', 'false'); });
-  if (open){ p.hidden = false; $(btn).classList.add('on'); $(btn).setAttribute('aria-expanded', 'true'); $('main').scrollTop = 0; } }
-$('bKit').addEventListener('click', () => togglePanel('pKit', 'bKit'));
-$('bExport').addEventListener('click', () => togglePanel('pExport', 'bExport'));
-$('bMidi').addEventListener('click', () => togglePanel('pMidi', 'bMidi'));
-$('bSkin').addEventListener('click', () => togglePanel('pSkin', 'bSkin'));
+/* ---------- settings (synth page): Kit, MIDI, Export, Skin and Audio under one button ---------- */
+const SETTABS = [['pKit', 'Kit'], ['pMidi', 'MIDI'], ['pExport', 'Export'], ['pSkin', 'Skin'], ['pAudio', 'Audio']], STABK = 'thunder-settab-v1';
+let setTab = (() => { try { const v = localStorage.getItem(STABK); if (SETTABS.some(t => t[0] === v)) return v; } catch(e){} return 'pKit'; })();
+const setOpen = () => !$('pSet').hidden;
+function showSetTab(){
+  const open = setOpen() && view !== 'tracker';
+  SETTABS.forEach(([id]) => { if ($(id).parentNode === $('main')) $(id).hidden = !open || id !== setTab; });
+  if (open && setTab === 'pAudio') audRefresh();
+}
+const updSetTabs = makeSeg($('segSet'), SETTABS, () => setTab, v => { setTab = v; try { localStorage.setItem(STABK, v); } catch(e){} showSetTab(); });
+function toggleSettings(open = !setOpen()){
+  $('pSet').hidden = !open; $('bSet').classList.toggle('on', open); $('bSet').setAttribute('aria-expanded', String(open));
+  updSetTabs(); showSetTab(); if (open) $('main').scrollTop = 0;
+}
+$('bSet').addEventListener('click', () => { if (view === 'tracker') return tsetOpen() ? tsetHide() : tsetShow(); toggleSettings(); });
+$('bSetX').addEventListener('click', () => toggleSettings(false));
+
+/* ---------- audio settings panel ---------- */
+const sinkOk = !!(window.AudioContext && 'setSinkId' in AudioContext.prototype);
+let audDevs = [];
+function audStatus(){
+  const st = $('audStat'); if (!st) return;
+  if (!ctx){ st.textContent = 'Audio starts with the first sound'; return; }
+  const ms = v => Math.round(v * 1000);
+  st.textContent = `${(ctx.sampleRate / 1000).toFixed(ctx.sampleRate % 1000 ? 1 : 0)} kHz · latency ${ms(ctx.baseLatency || 0)} ms` +
+    (ctx.outputLatency ? ` + ${ms(ctx.outputLatency)} ms output` : '') + (ctx.state !== 'running' ? ' · ' + ctx.state : '');
+  const sel = $('audOut');
+  if (ctx.sinkId != null && typeof ctx.sinkId === 'string' && sel.value !== ctx.sinkId && [...sel.options].some(o => o.value === ctx.sinkId)) sel.value = ctx.sinkId;
+}
+async function audRefresh(){
+  const sel = $('audOut'), md = navigator.mediaDevices;
+  audDevs = [];
+  if (md && md.enumerateDevices){ try { audDevs = (await md.enumerateDevices()).filter(d => d.kind === 'audiooutput' && d.deviceId && d.deviceId !== 'default'); } catch(e){} }
+  sel.innerHTML = ''; sel.append(new Option('System default', ''));
+  audDevs.forEach((d, i) => sel.append(new Option(d.label || (d.deviceId === 'communications' ? 'Communications device' : 'Output ' + (i + 1)), d.deviceId)));
+  if (aset.sink && !audDevs.some(d => d.deviceId === aset.sink)) sel.append(new Option('Saved device (not connected)', aset.sink));
+  sel.value = aset.sink || '';
+  sel.disabled = !sinkOk;
+  $('audNames').hidden = !sinkOk || !audDevs.length || audDevs.every(d => d.label);
+  if (!sinkOk) $('audNote').textContent = 'This browser plays through the system’s output and doesn’t let a web app pick another one. On Android, choose the output in the system’s media output switcher (or plug in the interface); on a computer, Chrome and Edge (and the desktop app) can pick it here.';
+  $('audLvl').value = aset.vol; audLvlShow();
+  updLat(); updARate(); audRestartRow(); audStatus();
+}
+function audLvlShow(){ const v = aset.vol; $('audLvlV').textContent = v <= 0 ? '−∞ dB' : (20 * Math.log10(v / 100)).toFixed(1) + ' dB'; }
+function audRestartRow(){ $('audRestartRow').hidden = !(ctx && aLive && (aLive.lat !== aset.lat || aLive.rate !== aset.rate)); }
+$('audOut').addEventListener('change', async e => {
+  const id = e.target.value, name = e.target.selectedOptions[0] ? e.target.selectedOptions[0].textContent : '';
+  aset.sink = id; asetSave();
+  if (ctx && ctx.setSinkId){
+    try { await ctx.setSinkId(id); toast('Playing through ' + (id ? name : 'the system default') + '.'); }
+    catch(err){ toast('Couldn’t switch to that output' + (err && err.message ? ': ' + err.message : '.')); }
+  } else if (sinkOk) toast('Saved. It plays through ' + (id ? name : 'the system default') + ' from the first sound.');
+  audStatus();
+});
+$('audNames').addEventListener('click', async () => {
+  // Browsers only name output devices once the page has been allowed a microphone; it's closed again at once.
+  try { const s = await navigator.mediaDevices.getUserMedia({audio:true}); s.getTracks().forEach(t => t.stop()); }
+  catch(e){ toast('No permission, so the devices stay numbered.'); }
+  audRefresh();
+});
+$('audTest').addEventListener('click', () => {
+  audio(); const t = ctx.currentTime + 0.02, o = ctx.createOscillator(), g = ctx.createGain();
+  o.frequency.value = 523.25; g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.35, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0005, t + 0.45);
+  o.connect(g); g.connect(master); o.start(t); o.stop(t + 0.5); setTimeout(audStatus, 250);
+});
+$('audLvl').addEventListener('input', e => {
+  aset.vol = clamp(+e.target.value, 0, 100); audLvlShow();
+  if (master) master.gain.setTargetAtTime(aset.vol / 100, ctx.currentTime, 0.02);
+});
+$('audLvl').addEventListener('change', asetSave);
+const updLat = makeSeg($('segLat'), [['interactive', 'Lowest'], ['balanced', 'Balanced'], ['playback', 'Safest']], () => aset.lat, v => { aset.lat = v; asetSave(); audRestartRow(); });
+const updARate = makeSeg($('segARate'), [[0, 'Device'], [44100, '44.1k'], [48000, '48k']], () => aset.rate, v => { aset.rate = v; asetSave(); audRestartRow(); });
+$('audRestart').addEventListener('click', () => { try { save(); } catch(e){} applyUpdate(); });
+if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) navigator.mediaDevices.addEventListener('devicechange', () => { if (!$('pAudio').hidden) audRefresh(); });
 /* ---------- skins (the ...Seeds set) ---------- */
 const SKINS = [
   {id:'auto', name:'Pastel (follows your system)', base:'pastel', dots:['#d6dbe4', '#dce7f6', '#f5eec6', '#f6dae3']},
@@ -2034,7 +2169,7 @@ const FXI = {
   DEL:v => `Delay the note ${ticksS(v)} (${S.ticks || TICKS} ticks a step unless TIC changes it)`,
   GRV:v => v ? `Groove: ${(v >> 4) || 6} ticks on even steps, ${(v & 15) || 6} on odd. Here it sets the groove for all tracks` : 'Groove off: back to the project swing',
   GGR:v => v ? `Global groove: ${(v >> 4) || 6} ticks on even steps, ${(v & 15) || 6} on odd (6 6 is straight)` : 'Groove off: back to the project swing',
-  HOP:v => `End this phrase here; the next phrase starts at row ${hx(v & 15, 1)}`,
+  HOP:v => `End this phrase here; the next phrase starts at row ${rS(v & 15, 1)}`,
   INS:v => `Play this note with instrument ${hx(v)} (wins over the I column)`,
   KIL:v => v ? `Stop the note after ${ticksS(v)}` : 'Stop the note now',
   OFF:v => `Fade the note out after ${ticksS(v)}`,
@@ -2652,7 +2787,7 @@ function tStart(mode, o){
   tStop(true);
   const r = rtInit();
   const seq = makeSeq(S, mode, o);
-  if (!seq.alive()){ toast(mode === 'song' ? `Row ${hx(o.row)} is empty. Put a chain on it, or move to a row that has some.` : 'Nothing to play here yet.'); draw(); return; }
+  if (!seq.alive()){ toast(mode === 'song' ? `Row ${rS(o.row, 3)} is empty. Put a chain on it, or move to a row that has some.` : 'Nothing to play here yet.'); draw(); return; }
   for (let i = 0; i < NSLOT; i++) ensure(i);
   seq.time = ctx.currentTime + 0.08;
   Object.assign(tp, {on:true, mode, seq, q:[], pos:null, bpm:seq.bpm, tks:seq.tks, st:0});
@@ -2728,7 +2863,7 @@ async function renderOut(stems){
   rendering = true; tStop();
   try {
     const sr = ex.sr, seq = makeSeq(S, 'song', {row:S.renderFrom, once:true});
-    if (!seq.alive()) return toast(`Nothing to render: row ${hx(S.renderFrom)} is empty. Set RENDER FROM to the first row of the song.`);
+    if (!seq.alive()) return toast(`Nothing to render: row ${rS(S.renderFrom, 3)} is empty. Set RENDER FROM to the first row of the song.`);
     const evs = []; let guard = 0;
     while (seq.alive() && seq.time < 1200 && guard++ < 100000){ const r = seq.step(); for (const e of r.evs) evs.push(e); }
     const notes = evs.filter(e => e.type === 'note');
@@ -2867,6 +3002,14 @@ function setChains(on){
   if (!on){ if (tv === 'chain') tv = 'phrase'; if (midV === 'chain') midV = 'phrase'; }
   chainVis(); draw();
 }
+// STEP NUMBERS (Project): row numbers in decimal (the default) or the M8's hex. TEXT SIZE scales the screen's text.
+const SDK = 'thunder-stepdec-v1', TSK = 'thunder-textsize-v1';
+let stepDec = (() => { try { return localStorage.getItem(SDK) !== '0'; } catch(e){ return true; } })();
+let tScale = (() => { try { const v = parseInt(localStorage.getItem(TSK), 10); return v >= 60 && v <= 200 ? v : 100; } catch(e){ return 100; } })();
+// A row number as it is shown: n digits in decimal (3 for the 256 song rows), hex otherwise.
+const rS = (y, n = 2) => stepDec ? String(y).padStart(n, '0') : hx(y, n === 1 ? 1 : 2);
+function setStepDec(on){ stepDec = on; try { localStorage.setItem(SDK, on ? '1' : '0'); } catch(e){} arrSig = ''; draw(); }
+function setTScale(v){ tScale = clamp(Math.round(v / 10) * 10, 60, 200); try { localStorage.setItem(TSK, String(tScale)); } catch(e){} fit(); draw(); }
 function setArr(m){ arrMode = m; try { localStorage.setItem(ARK, String(m)); } catch(e){} arrBody(); arrSig = ''; draw(); fit(); }
 const cs = {song:{x:0, y:0, top:0}, chain:{x:0, y:0}, phrase:{x:0, y:0, top:0}, inst:{x:0, y:0}, mixer:{x:0, y:0}, fx:{x:0, y:0}, project:{x:0, y:0}};
 let cChain = 0, cPhrase = 0, cInst = 0, cTrack = 0, cFxT = 0, cFxS = 0, lastFxType = 'eq', selA = null, clip = null;
@@ -2925,17 +3068,21 @@ function fxRows(){
 }
 function projRows(){
   return [
-    {l:'INPUT', get:() => inMode === 'keys' ? 1 : 0, set:v => setInput(v ? 'keys' : 'pad'), min:0, max:1, tog:true, d:0, fmt:v => v ? 'KEYS' : 'PAD', info:() => 'PAD: M8-style d-pad and four keys. KEYS: type notes and hex, with an on-screen keypad on touch screens'},
+    {l:'INPUT', sec:'Input', get:() => inMode === 'keys' ? 1 : 0, set:v => setInput(v ? 'keys' : 'pad'), min:0, max:1, tog:true, d:0, fmt:v => v ? 'KEYS' : 'PAD', info:() => 'PAD: M8-style d-pad and four keys. KEYS: type notes and hex, with an on-screen keypad on touch screens'},
     {l:'COMMANDS', get:() => cmdOn ? 1 : 0, set:v => setCmd(!!v), min:0, max:1, tog:true, d:+coarse, fmt:onOff, info:() => 'A row of buttons for the two-key commands: change value, clear, select, copy, cut, paste, other chain or phrase, play the song'},
     {l:'STICKY KEYS', get:() => latchOn ? 1 : 0, set:v => setLatch(!!v), min:0, max:1, tog:true, d:1, fmt:onOff, info:() => 'Tap SHIFT or OPTION on its own and it stays lit for the next button, so no command needs two fingers. Tap it again to cancel'},
-    {l:'SCREEN', get:() => SCREENS.findIndex(x => x[0] === tScreen), set:v => setScreen(SCREENS[v][0]), min:0, max:SCREENS.length - 1, fmt:v => SCREENS[v][1], info:() => 'Colour of the screen: BY SCREEN gives Song, Chain, Phrase and the rest their own pastel (the same as their tabs), or pick one pastel, or the M8’s black'},
-    {l:'CHAINS', get:() => chainsOn ? 1 : 0, set:v => setChains(!!v), min:0, max:1, tog:true, d:0, fmt:v => v ? 'SHOWN' : 'HIDDEN',
-      info:() => 'HIDDEN: the song opens straight into phrases, like Renoise patterns (each new song block gets its own chain with one phrase). SHOWN brings back the M8 chain screen. Nothing is deleted either way'},
-    {l:'ARRANGE', get:() => arrMode, set:v => setArr(v), tap:() => setArr((arrMode + 1) % 3), min:0, max:2, d:1, fmt:v => ['OFF', 'AUTO', 'ON'][v],
-      info:() => `Song overview at the right. AUTO shows it on wide screens (600 × 500 and up), ON at any size. This screen: ${innerWidth} × ${innerHeight}` + (arrMode === 1 && !arrEl.offsetWidth ? ' (too small for AUTO)' : '')},
     {l:'EDIT STEP', get:() => kStep, set:v => kStep = v, min:0, max:16, big:4, fmt:v => v + (v === 1 ? ' row' : ' rows'), info:() => 'How far the cursor moves after you type a note or value or delete a row (Renoise’s edit step). Keyboard: { and }'},
-    {l:'SKIN', get:() => SKINS.findIndex(k => k.id === skin), set:v => applySkin(SKINS[v].id), min:0, max:SKINS.length - 1, fmt:v => SKINS[v].name.toUpperCase(), info:() => 'The look of the whole app: the ...Seeds skins'},
-    {l:'NAME', show:() => S.name, tap:() => { const n = prompt('Song name', S.name); if (n != null){ S.name = n.trim().slice(0, 40) || 'Song'; saveS(); draw(); } }, info:() => 'EDIT renames the song'},
+    {l:'SCREEN', sec:'Screen', gap:true, opts:true, get:() => SCREENS.findIndex(x => x[0] === tScreen), set:v => setScreen(SCREENS[v][0]), min:0, max:SCREENS.length - 1, fmt:v => SCREENS[v][1], info:() => 'Colour of the screen: BY SCREEN gives Song, Chain, Phrase and the rest their own pastel (the same as their tabs), or pick one pastel, or the M8’s black'},
+    {l:'SKIN', opts:true, get:() => SKINS.findIndex(k => k.id === skin), set:v => applySkin(SKINS[v].id), min:0, max:SKINS.length - 1, fmt:v => SKINS[v].name.toUpperCase(), info:() => 'The look of the whole app: the ...Seeds skins'},
+    {l:'CHAINS', ck:'Hide chains page', inv:true, get:() => chainsOn ? 1 : 0, set:v => setChains(!!v), min:0, max:1, tog:true, d:0, fmt:v => v ? 'SHOWN' : 'HIDDEN',
+      info:() => 'HIDDEN: the song opens straight into phrases, like Renoise patterns (each new song block gets its own chain with one phrase). SHOWN brings back the M8 chain screen. Nothing is deleted either way'},
+    {l:'ARRANGE', opts:true, get:() => arrMode, set:v => setArr(v), tap:() => setArr((arrMode + 1) % 3), min:0, max:2, d:1, fmt:v => ['OFF', 'AUTO', 'ON'][v],
+      info:() => `Song overview at the right. AUTO shows it on wide screens (600 × 500 and up), ON at any size. This screen: ${innerWidth} × ${innerHeight}` + (arrMode === 1 && !arrEl.offsetWidth ? ' (too small for AUTO)' : '')},
+    {l:'STEP NUMBERS', ck:'Display steps as decimal', get:() => stepDec ? 1 : 0, set:v => setStepDec(!!v), min:0, max:1, tog:true, d:1, fmt:v => v ? 'DECIMAL' : 'HEX',
+      info:() => 'Row numbers in Song, Chain, Phrase and Arrange: DECIMAL counts 0, 1, 2… (song rows 000–255, phrase rows 00–31); HEX is the M8’s 00–FF. Phrase, chain and instrument numbers and the values stay hex'},
+    {l:'TEXT SIZE', get:() => tScale, set:v => setTScale(v), min:60, max:200, step:10, big:20, d:100, fmt:v => v + '%',
+      info:() => 'Size of the text and lines on the tracker screen. Bigger shows fewer rows (and scrolls sideways when a line no longer fits); drag a finger up or down anywhere on the screen to scroll'},
+    {l:'NAME', sec:'Song', gap:true, show:() => S.name, tap:() => { const n = prompt('Song name', S.name); if (n != null){ S.name = n.trim().slice(0, 40) || 'Song'; saveS(); draw(); } }, info:() => 'EDIT renames the song'},
     {l:'TEMPO', get:() => S.bpm, set:v => S.bpm = v, min:40, max:300, big:10, d:120, fmt:v => v + ' BPM', after:rtAllFx, info:() => 'Beats per minute, 4 steps to a beat. Track delays follow it'},
     {l:'LPB', get:() => S.lpb, set:v => S.lpb = v, min:1, max:16, big:4, d:4, fmt:v => v + ' lines/beat · 1/' + (v * 4), info:() => 'Lines per beat, like Renoise: 4 makes each row a 16th, 8 a 32nd, 3 or 6 triplets. A phrase can set its own on its LEN line'},
     {l:'TICKS', get:() => S.ticks || TICKS, set:v => S.ticks = v, min:1, max:32, big:4, d:TICKS, fmt:v => v + ' ticks a step', info:() => 'How many ticks each step is cut into for DEL, RET, KIL, OFF, ARC, PSL and GRV (6 like the M8). A TIC command in a phrase changes it from that row on'},
@@ -2945,18 +3092,18 @@ function projRows(){
     {l:'SWING', get:() => S.swing, set:v => S.swing = v, min:50, max:75, big:5, d:50, fmt:v => v + '%', info:() => '50% is straight; higher pushes every second step later'},
     {l:'LIMITER', get:() => S.limiter ? 1 : 0, set:v => S.limiter = !!v, min:0, max:1, tog:true, d:1, fmt:onOff, after:rtRoute, info:() => 'Catches peaks on the master. Renders use it on the mix only, so stems stay clean'},
     {l:'MASTER', get:() => S.master, set:v => S.master = v, min:0, max:255, big:16, d:224, after:rtRoute, info:v => 'Master level ' + dB(curve(v))},
-    {l:'RENDER FROM', get:() => S.renderFrom, set:v => S.renderFrom = v, min:0, max:255, big:16, d:0, fmt:v => 'ROW ' + hx(v), gap:true, info:() => 'Renders play from this row until each track reaches an empty row'},
+    {l:'RENDER FROM', sec:'Render', get:() => S.renderFrom, set:v => S.renderFrom = v, min:0, max:255, big:16, d:0, fmt:v => 'ROW ' + rS(v, 3), gap:true, info:() => 'Renders play from this row until each track reaches an empty row'},
     {l:'RATE', get:() => ex.sr === 48000 ? 1 : 0, set:v => ex.sr = v ? 48000 : 44100, min:0, max:1, tog:true, d:1, fmt:v => v ? '48K' : '44.1K', info:() => 'Sample rate for renders (shared with the synth’s export)'},
     {l:'BITS', get:() => ex.bits === 24 ? 1 : 0, set:v => ex.bits = v ? 24 : 16, min:0, max:1, tog:true, d:1, fmt:v => v ? '24' : '16', info:() => 'Bit depth for renders'},
     {l:'NORMALISE', get:() => ex.norm ? 1 : 0, set:v => ex.norm = !!v, min:0, max:1, tog:true, d:1, fmt:onOff, info:() => 'Raise the mix to just under 0 dB. Stems get the same gain, so they still add up to the mix'},
     {l:'› RENDER SONG', act:() => renderOut(false), gap:true, info:() => 'Stereo WAV of the song, from RENDER FROM to the end'},
     {l:'› RENDER STEMS', act:() => renderOut(true), info:() => 'A zip with the mix plus one stereo WAV per track, all the same length'},
     ...(canShare && lastR ? [{l:'› SHARE LAST RENDER', act:shareLast, info:() => 'Send the last render to Koala, SunVox or another app'}] : []),
-    {l:'› SAVE', act:() => saveProj(false), gap:true, info:() => (projFile ? 'Saves over ' + projFile.name : 'Saves the song and kit as one .json file') + ' · Ctrl/⌘+S'},
+    {l:'› SAVE', sec:'Project file', act:() => saveProj(false), gap:true, info:() => (projFile ? 'Saves over ' + projFile.name : 'Saves the song and kit as one .json file') + ' · Ctrl/⌘+S'},
     {l:'› SAVE AS', act:() => saveProj(true), info:() => 'Saves to a new file, keeping the old one · Shift+Ctrl/⌘+S'},
     {l:'› LOAD PROJECT', act:openProj, info:() => 'Load a project file (song and kit) · Ctrl/⌘+O'},
     ...(canShareProj() ? [{l:'› SHARE PROJECT', act:shareProj, info:() => 'Send the project file (song and kit) to Drive, email, a chat or your other device, then open it there with LOAD PROJECT'}] : []),
-    {l:'› UPDATE APP', gap:true, act:() => checkUpdate(true), info:() => 'Reloads with the newest version (your song and kit are kept). The app also checks by itself when it opens'},
+    {l:'› UPDATE APP', sec:'App', gap:true, act:() => checkUpdate(true), info:() => 'Reloads with the newest version (your song and kit are kept). The app also checks by itself when it opens'},
     {l:'› NEW SONG', dbl:true, act:() => setSong(freshSong(), 'New song. The kit is unchanged.'), info:() => 'Clears the song, keeps the kit. Tap EDIT twice'},
     {l:'› LOAD DEMO', dbl:true, act:() => setSong(demoSong(), 'Loaded the starter beat.'), info:() => 'Replaces the song with the starter beat. Tap EDIT twice'},
   ];
@@ -3030,7 +3177,7 @@ function bump(d, big){
     mixChanged(); draw(); return;
   }
   const r = rowsOf(tv)[c.y]; if (!r || !r.get) return;
-  r.set(clamp(r.get() + d * (big ? (r.big || 1) : 1), r.min, r.max)); if (r.after) r.after(); saveS(); draw();
+  r.set(clamp(r.get() + d * (big ? (r.big || 1) : (r.step || 1)), r.min, r.max)); if (r.after) r.after(); saveS(); draw();
 }
 let lastTap = {t:0, key:'', empty:false};
 function editTap(){
@@ -3216,7 +3363,7 @@ function psetSet(x, v){ if (x === 0) S.plen[cPhrase] = clamp(v, 1, PROWS); else 
 function toggleBlockMute(y, t){
   if (y < 0 || y > 255 || S.song[y][t] < 0) return toast('Nothing there to mute.');
   S.smute[y] ^= 1 << t; saveS(); draw();
-  toast((blockMuted(S, y, t) ? 'Muted' : 'Unmuted') + ` row ${hx(y)} · track ${d2(t + 1)}`);
+  toast((blockMuted(S, y, t) ? 'Muted' : 'Unmuted') + ` row ${rS(y, 3)} · track ${d2(t + 1)}`);
 }
 function go(v){
   if (v === 'chain' && !chainsOn) v = 'phrase';
@@ -3360,8 +3507,8 @@ function info(){
       : `${what} · arrows extend · OPTION copies · OPTION+EDIT cuts · SHIFT+OPTION cancels`;
   }
   if (tv === 'song'){ const v = S.song[c.y][c.x], mu = blockMuted(S, c.y, c.x) ? ' · MUTED' : '';
-    if (!chainsOn) return `TRACK ${d2(c.x + 1)} · ROW ${hx(c.y)} · ` + (v < 0 ? 'empty · EDIT×2 new phrase' : isEmptyChain(S.chains[v]) ? `block ${hx(v)} · no phrase yet (SHIFT+▶ makes one)` : `phrase ${hx(firstPhrase(v))}` + (isEmptyPhrase(S.phrases[firstPhrase(v)]) ? ' (empty)' : '') + (firstPhrase(v) !== v ? ` · block ${hx(v)}` : '')) + mu;
-    return `TRACK ${d2(c.x + 1)} · ROW ${hx(c.y)} · ` + (v < 0 ? 'empty' : `chain ${hx(v)}` + (isEmptyChain(S.chains[v]) ? ' (empty)' : '')) + mu; }
+    if (!chainsOn) return `TRACK ${d2(c.x + 1)} · ROW ${rS(c.y, 3)} · ` + (v < 0 ? 'empty · EDIT×2 new phrase' : isEmptyChain(S.chains[v]) ? `block ${hx(v)} · no phrase yet (SHIFT+▶ makes one)` : `phrase ${hx(firstPhrase(v))}` + (isEmptyPhrase(S.phrases[firstPhrase(v)]) ? ' (empty)' : '') + (firstPhrase(v) !== v ? ` · block ${hx(v)}` : '')) + mu;
+    return `TRACK ${d2(c.x + 1)} · ROW ${rS(c.y, 3)} · ` + (v < 0 ? 'empty' : `chain ${hx(v)}` + (isEmptyChain(S.chains[v]) ? ' (empty)' : '')) + mu; }
   if (tv === 'chain'){ const ch = S.chains[cChain], r = ch ? ch[c.y] : [-1, 0];
     return c.x === 0 ? (r[0] < 0 ? 'No phrase. The chain ends at the first empty row.' : `Phrase ${hx(r[0])}` + (isEmptyPhrase(S.phrases[r[0]]) ? ' (empty)' : '')) : `Transpose ${sgn(r[1])} semitones for this row`; }
   if (onPset()){ const len = plen(cPhrase), lpb = S.plpb[cPhrase] || 0, e2 = lpb || S.lpb;
@@ -3402,11 +3549,14 @@ function fit(){
     if (!gh || fit >= FITROWS + 0.2 || fs <= 7) break;
     fs = Math.max(7, fs * fit / (FITROWS + 0.3));
   }
+  // TEXT SIZE (Project): scale what fits. Bigger shows fewer rows and the lines can scroll sideways.
+  if (tScale !== 100) scr.style.fontSize = Math.max(5, fs * tScale / 100).toFixed(2) + 'px';
 }
 // Song shows 16 rows like the M8, more when the screen is tall (unfolded in portrait).
 function songRows(){ const fs = parseFloat(scr.style.fontSize) || 14, h = grid.clientHeight; return h > 0 ? clamp(Math.floor(h / (fs * 1.3) + 0.05) - 1, 8, 48) : 16; }
 const BLK = ' ▁▂▃▄▅▆▇█';
 const lvl = p => p <= 0.0001 ? 0 : clamp((20 * Math.log10(p) + 48) / 48, 0, 1);
+let hKey = '';
 function draw(){
   if (view !== 'tracker') return;
   if (selA && selA.v !== tv) selA = null;
@@ -3423,9 +3573,9 @@ function draw(){
   if (tv === 'song'){
     sub = S.name;
     const VR = songRows(); if (c.y < c.top) c.top = c.y; if (c.y > c.top + VR - 1) c.top = c.y - VR + 1; c.top = clamp(c.top, 0, 256 - VR);
-    const hd = ['   ']; for (let t = 0; t < NT; t++) hd.push({t:d2(t + 1), cls:'th' + mc(t), x:t, y:-1}, ' '); L.push(hd);
+    const hd = [stepDec ? '    ' : '   ']; for (let t = 0; t < NT; t++) hd.push({t:d2(t + 1), cls:'th' + mc(t), x:t, y:-1}, ' '); L.push(hd);
     for (let y = c.top; y < c.top + VR; y++){
-      const ln = [{t:hx(y), cls:'rn' + (y % 4 ? '' : ' rn4') + rsel(y), r:y}, ' '];
+      const ln = [{t:rS(y, 3), cls:'rn' + (y % 4 ? '' : ' rn4') + rsel(y), r:y}, ' '];
       for (let t = 0; t < NT; t++){ const v = S.song[y][t], pl = P && tp.mode === 'song' && P[t] && P[t].row === y;
         ln.push({t:h2(v), cls:cc(t, y, (v < 0 ? 'e' : 'v') + (pl ? ' pl' : '') + (v >= 0 && blockMuted(S, y, t) ? ' sm' : '')), x:t, y}, ' '); }
       L.push(ln);
@@ -3433,9 +3583,9 @@ function draw(){
   } else if (tv === 'chain'){
     title = 'CHAIN ' + hx(cChain); sub = 'TRACK ' + d2(cTrack + 1);
     const ch = S.chains[cChain], pr = playRows(p => tp.mode !== 'phrase' && p.chain === cChain ? p.cr : null);
-    L.push(['  ', {t:'PH', cls:'th'}, ' ', {t:'TP', cls:'th'}]);
+    L.push([stepDec ? '   ' : '  ', {t:'PH', cls:'th'}, ' ', {t:'TP', cls:'th'}]);
     for (let y = 0; y < 16; y++){ const r = ch ? ch[y] : [-1, 0];
-      L.push([{t:hx(y, 1), cls:'rn' + (y % 4 ? '' : ' rn4') + (pr.has(y) ? ' pl' : '') + rsel(y), r:y}, ' ', {t:h2(r[0]), cls:cc(0, y, r[0] < 0 ? 'e' : 'v'), x:0, y}, ' ', {t:hx(r[1]), cls:cc(1, y, r[1] ? 'v' : 'e'), x:1, y}]); }
+      L.push([{t:stepDec ? d2(y) : hx(y, 1), cls:'rn' + (y % 4 ? '' : ' rn4') + (pr.has(y) ? ' pl' : '') + rsel(y), r:y}, ' ', {t:h2(r[0]), cls:cc(0, y, r[0] < 0 ? 'e' : 'v'), x:0, y}, ' ', {t:hx(r[1]), cls:cc(1, y, r[1] ? 'v' : 'e'), x:1, y}]); }
   } else if (tv === 'phrase'){
     title = 'PHRASE ' + hx(cPhrase); sub = 'TRACK ' + d2(cTrack + 1) + (polyView() ? ' · POLY' : '');
     const poly = polyView(); if (!poly && c.x >= 1 && c.x < NCOL) c.x = 0;
@@ -3448,7 +3598,7 @@ function draw(){
     c.top = clamp(c.top, 0, Math.max(0, len - VR));
     for (let y = c.top; y < Math.min(len, c.top + VR); y++){
       const r = p ? p[y] : blankRow();
-      const ln = [{t:hx(y), cls:'rn' + (y % 4 ? '' : ' rn4') + (pr.has(y) ? ' pl' : '') + rsel(y), r:y}, ' '];
+      const ln = [{t:rS(y), cls:'rn' + (y % 4 ? '' : ' rn4') + (pr.has(y) ? ' pl' : '') + rsel(y), r:y}, ' '];
       for (let q = 0; q < (poly ? NCOL : 1); q++) ln.push({t:noteS(r[q]), cls:cc(q, y, r[q] < 0 ? 'e' : 'cn'), x:q, y}, ' ');
       ln.push({t:h2(r[VC]), cls:cc(VC, y, r[VC] < 0 ? 'e' : 'cv'), x:VC, y}, ' ', {t:h2(r[IC]), cls:cc(IC, y, r[IC] < 0 ? 'e' : 'ci'), x:IC, y});
       for (let k = FX0; k < RW; k += 2) ln.push(' ', {t:r[k] < 0 ? '---' : (FXC[r[k]] || '???'), cls:cc(k, y, r[k] < 0 ? 'e' : 'cf'), x:k, y}, ' ', {t:h2(r[k + 1]), cls:cc(k + 1, y, r[k + 1] < 0 ? 'e' : 'v'), x:k + 1, y});
@@ -3491,11 +3641,17 @@ function draw(){
     `<span class="${s.cls || ''}"${s.x != null ? ` data-x="${s.x}" data-y="${s.y}"` : ''}${s.r != null ? ` data-r="${s.r}"` : ''}>${esc(s.t)}</span>`).join('') + '</div>').join('');
   // Song and Phrase page their own rows; the list screens (Inst, FX, Project) can be taller than the
   // screen, so keep the cursor's line in view.
-  if (GRIDV.has(tv) || tv === 'mixer') grid.scrollTop = 0;
+  if (tv === 'song' || tv === 'phrase') grid.scrollTop = 0;
   else { const cur = grid.querySelector('.cur'), ln = cur && cur.closest('.ln');
     if (ln){ const g = grid.getBoundingClientRect(), r = ln.getBoundingClientRect(), m = r.height;
       if (r.top - m < g.top) grid.scrollTop -= g.top - r.top + m;
       else if (r.bottom + m > g.bottom) grid.scrollTop += r.bottom - g.bottom + m; } }
+  // With big text a line can be wider than the screen: when the cursor moves, scroll sideways to keep it in view.
+  const hk = tv + ':' + c.x + ':' + c.y + ':' + tScale;
+  if (hk !== hKey){ hKey = hk; const cu = grid.querySelector('.cur');
+    if (!cu || grid.scrollWidth <= grid.clientWidth + 1) grid.scrollLeft = 0;
+    else { const g = grid.getBoundingClientRect(), r = cu.getBoundingClientRect(), m = r.width;
+      if (r.right + m > g.right) grid.scrollLeft += r.right - g.right + m; else if (r.left - m < g.left) grid.scrollLeft -= g.left - r.left + m; } }
   meterEls = tv === 'mixer' ? [...grid.querySelectorAll('.mt')] : []; masterEls = tv === 'mixer' ? [...grid.querySelectorAll('.mm')] : [];
   $('tTitle').textContent = title; $('tSub').textContent = sub;
   $('tInfo').textContent = info(); $('tHint').textContent = (tv === 'phrase' ? 'NOW ' + curS() + (inMode === 'keys' ? ' · oct ' + kOct + ' · step ' + kStep : '') + ' · ' : '') +
@@ -3592,7 +3748,7 @@ function drawArr(P){
   const anySolo = S.mix.some(m => m.solo);
   let h = '';
   for (let y = 0; y < N; y++){
-    h += `<div class="ar"><span class="rn${y % 4 ? '' : ' r4'}" data-ry="${y}">${hx(y)}</span>`;
+    h += `<div class="ar"><span class="rn${y % 4 ? '' : ' r4'}" data-ry="${y}">${rS(y, 3)}</span>`;
     for (let t = 0; t < NT; t++){
       if (t === 8) h += '<span></span>';
       const v = S.song[y][t];
@@ -3744,9 +3900,41 @@ grid.addEventListener('pointerdown', e => {
   if (tv === 'song' && e.altKey && y >= 0){ e.preventDefault(); toggleBlockMute(y, x); return; }
   const was = GRIDV.has(tv) || tv === 'mixer' ? c.x === x && c.y === y : c.y === y;
   c.x = x; c.y = y; if (!was) draw();
+  // A drag that starts on the cursor's own cell changes its value; one that starts anywhere else scrolls.
+  if (!was) return startScroll(e);
   drag = {id:e.pointerId, y0:e.clientY, acc:0, edit:was, moved:false, sy:c.y};
   try { grid.setPointerCapture(e.pointerId); } catch(_){}
 });
+// Scrolling with a finger: up or down anywhere on the screen (between and beside the lines, the title, the
+// info lines) moves through the rows, the cursor riding along; sideways when big text makes lines too wide.
+let sdrag = null;
+function startScroll(e){
+  sdrag = {id:e.pointerId, x0:e.clientX, y0:e.clientY, n:0, sl:grid.scrollLeft, st:grid.scrollTop};
+  try { scr.setPointerCapture(e.pointerId); } catch(_){}
+}
+function scrollRows(n){
+  if (!n) return;
+  const c = cs[tv];
+  if (tv === 'song' || tv === 'phrase'){
+    if (c.y < 0) c.y = c.top || 0;
+    const h = dims(tv).h; c.y = clamp(c.y + n, 0, h - 1); c.top = clamp((c.top || 0) + n, 0, Math.max(0, h - 1));
+  } else if (tv === 'mixer' || onPset()) return;
+  else c.y = clamp(c.y + n, 0, dims(tv).h - 1);
+  draw();
+}
+scr.addEventListener('pointerdown', e => {
+  if (sdrag || drag || (e.button && e.button > 0) || e.target.closest('[data-x],[data-r]')) return;
+  startScroll(e);
+});
+scr.addEventListener('pointermove', e => {
+  if (!sdrag || e.pointerId !== sdrag.id) return;
+  const dy = sdrag.y0 - e.clientY, dx = sdrag.x0 - e.clientX;
+  if (tv === 'mixer') grid.scrollTop = sdrag.st + dy;
+  else { const rh = (parseFloat(scr.style.fontSize) || 14) * 1.3, n = Math.trunc(dy / rh); if (n !== sdrag.n){ const d = n - sdrag.n; sdrag.n = n; scrollRows(d); } }
+  if (grid.scrollWidth > grid.clientWidth + 1) grid.scrollLeft = sdrag.sl + dx;
+});
+const sdragEnd = e => { if (sdrag && e.pointerId === sdrag.id) sdrag = null; };
+scr.addEventListener('pointerup', sdragEnd); scr.addEventListener('pointercancel', sdragEnd);
 grid.addEventListener('pointermove', e => {
   if (!drag || e.pointerId !== drag.id) return;
   const dy = drag.y0 - e.clientY;
@@ -3754,9 +3942,6 @@ grid.addEventListener('pointermove', e => {
     const n = Math.trunc(dy / 16);
     while (drag.acc < n){ bump(1, false); drag.acc++; drag.moved = true; }
     while (drag.acc > n){ bump(-1, false); drag.acc--; drag.moved = true; }
-  } else if (tv !== 'mixer' && tv !== 'chain' && drag.sy >= 0){
-    const rh = parseFloat(scr.style.fontSize || '14') * 1.3, n = Math.trunc(dy / rh);
-    if (n){ drag.moved = true; cs[tv].y = clamp(drag.sy + n, 0, dims(tv).h - 1); draw(); }
   }
 });
 const dragEnd = e => {
@@ -3772,7 +3957,7 @@ const dragEnd = e => {
 grid.addEventListener('pointerup', dragEnd); grid.addEventListener('pointercancel', dragEnd);
 // Mouse wheel moves the cursor a row per notch, so long screens scroll.
 let wAcc = 0;
-grid.addEventListener('wheel', e => {
+scr.addEventListener('wheel', e => {
   if (tv === 'mixer' || onPset()) return; e.preventDefault();
   wAcc += e.deltaMode === 1 ? e.deltaY * 40 : e.deltaY;
   const n = Math.trunc(wAcc / 40); if (!n) return; wAcc -= n * 40;
@@ -4010,8 +4195,9 @@ function setView(v){
   view = v === 'tracker' ? 'tracker' : 'synth';
   const tr = view === 'tracker';
   $('main').hidden = $('dock').hidden = tr; $('trk').hidden = !tr; $('tMode').hidden = !tr;
-  ['kitName', 'bKit', 'bMidi', 'bExport', 'bSkin'].forEach(id => $(id).hidden = tr);
-  if (tr) ['pKit', 'pExport', 'pMidi', 'pSkin'].forEach(id => $(id).hidden = true);
+  $('kitName').hidden = tr;
+  if (tr) toggleSettings(false);
+  $('bSet').title = tr ? 'Tracker settings: everything on the Project screen, plus audio' : 'Settings: kit, MIDI, export, skin and audio';
   document.body.classList.toggle('trkv', tr); songBtn();
   try { localStorage.setItem(VK, view); } catch(e){}
   updView();
@@ -4022,6 +4208,7 @@ const trap = () => { try { history.pushState({thunder:1}, ''); } catch(e){} };
 trap();
 addEventListener('popstate', () => {
   if (helpOpen()){ hideHelp(); trap(); return; }
+  if (tsetOpen()){ tsetHide(); trap(); return; }
   flushS(); saveCur();
   if (view === 'tracker'){
     if (tv === 'chain' || tv === 'phrase' || tv === 'inst') nav('left');
@@ -4057,6 +4244,88 @@ addEventListener('keydown', e => {
   if (!helpOpen()) return;
   e.stopImmediatePropagation();
   if (e.key === 'Escape'){ e.preventDefault(); hideHelp(); }
+}, true);
+/* ---------- tracker settings: the Project screen as a touch menu ---------- */
+// Built from the same rows as the Project screen (projRows), so the two always match: on/off rows become
+// checkboxes, choices dropdowns, numbers a slider with − and +, and › rows buttons. Audio settings (from
+// the synth's Settings) are lent to it while it is open.
+const tsetOpen = () => !$('tset').hidden;
+const tsetLabel = l => { const t = l.replace(/^›\s*/, '').toLowerCase(); return t.charAt(0).toUpperCase() + t.slice(1); };
+const tsetInfo = r => { try { return typeof r.info === 'function' ? r.info(r.get ? r.get() : 0) : (r.info || ''); } catch(e){ return ''; } };
+function tsetSet(r, v){ r.set(clamp(v, r.min, r.max)); if (r.after) r.after(); saveS(); draw(); }
+function tsetRow(r){
+  const row = el('div', 'tsr'), inf = el('div', 'tsi', tsetInfo(r).replace(/\.?\s*Tap EDIT twice\.?$/, '.').replace(/^EDIT renames the song$/, ''));
+  const lab = () => el('div', 'tsl', tsetLabel(r.l));
+  const refresh = () => { inf.textContent = tsetInfo(r).replace(/\.?\s*Tap EDIT twice\.?$/, '.'); };
+  if (r.act){
+    row.classList.add('act'); const b = el('button', null, tsetLabel(r.l)); b.type = 'button';
+    b.addEventListener('click', () => {
+      if (r.dbl && !confirm(tsetLabel(r.l) + '?\n\n' + inf.textContent)) return;
+      r.act(); draw(); setTimeout(tsetBuild, 50);
+    });
+    row.append(b, inf); return row;
+  }
+  if (r.show){ // NAME
+    const c = el('div', 'tsc'), inp = el('input'); inp.type = 'text'; inp.value = r.show(); inp.maxLength = 40; inp.spellcheck = false; inp.setAttribute('aria-label', tsetLabel(r.l));
+    inp.addEventListener('change', () => { S.name = inp.value.trim().slice(0, 40) || 'Song'; inp.value = S.name; saveS(); draw(); });
+    c.append(inp); row.append(lab(), c, inf); return row;
+  }
+  if (r.ck || (r.tog && r.fmt === onOff)){
+    row.classList.add('ck'); const lb = el('label', 'cb'), cb = el('input'); cb.type = 'checkbox';
+    cb.checked = r.inv ? !r.get() : !!r.get();
+    cb.addEventListener('change', () => { tsetSet(r, r.inv ? (cb.checked ? 0 : 1) : (cb.checked ? 1 : 0)); refresh(); });
+    lb.append(cb, document.createTextNode(r.ck || tsetLabel(r.l))); row.append(lb, inf); return row;
+  }
+  const c = el('div', 'tsc');
+  if (r.tog){ // two named choices: PAD / KEYS, 44.1K / 48K…
+    const sg = el('div', 'seg'); makeSeg(sg, [[0, r.fmt(0)], [1, r.fmt(1)]], () => r.get() ? 1 : 0, v => { tsetSet(r, v); refresh(); });
+    c.append(sg); row.append(lab(), c, inf); return row;
+  }
+  if (r.opts){
+    const sel = el('select'); sel.setAttribute('aria-label', tsetLabel(r.l));
+    for (let v = r.min; v <= r.max; v++) sel.append(new Option(r.fmt(v), String(v)));
+    sel.value = String(r.get()); sel.addEventListener('change', () => { tsetSet(r, +sel.value); refresh(); });
+    c.append(sel); row.append(lab(), c, inf); return row;
+  }
+  const st = r.step || 1, show = v => r.fmt ? r.fmt(v) : r.min < 0 ? sgn(v) : String(v);
+  const out = el('output', null, show(r.get())), rg = el('input');
+  rg.type = 'range'; rg.min = r.min; rg.max = r.max; rg.step = st; rg.value = r.get(); rg.setAttribute('aria-label', tsetLabel(r.l));
+  const put = v => { tsetSet(r, v); rg.value = r.get(); out.textContent = show(r.get()); refresh(); };
+  const btn = (t, d, a) => { const b = el('button', 'stp', t); b.type = 'button'; b.setAttribute('aria-label', a); b.addEventListener('click', () => { put(r.get() + d); if (r.l === 'PATTERN LEN') tsetBuild(); }); return b; };
+  rg.addEventListener('input', () => put(+rg.value));
+  rg.addEventListener('change', () => { if (r.l === 'PATTERN LEN') tsetBuild(); });
+  c.append(btn('−', -st, 'Less'), rg, btn('+', st, 'More'), out);
+  row.append(lab(), c, inf); return row;
+}
+function tsetBuild(){
+  if (!tsetOpen()) return;
+  const list = $('tsetList'), body = $('tsetBody'), keep = body.scrollTop; list.innerHTML = '';
+  let sec = null;
+  for (const r of projRows()){
+    if (r.sec || !sec){ sec = el('section', 'tsec'); sec.append(el('h3', null, r.sec || 'Tracker')); list.append(sec); }
+    sec.append(tsetRow(r));
+  }
+  body.scrollTop = keep;
+}
+function tsetShow(){
+  releaseAll(); $('tset').hidden = false; document.body.classList.add('tsetv');
+  $('bSet').classList.add('on'); $('bSet').setAttribute('aria-expanded', 'true');
+  const a = $('pAudio'); $('tsetAud').append(a); a.hidden = false; audRefresh();
+  $('tsetBody').scrollTop = 0; tsetBuild(); $('tsetBody').focus({preventScroll:true});
+}
+function tsetHide(){
+  if (!tsetOpen()) return;
+  $('tset').hidden = true; document.body.classList.remove('tsetv');
+  $('bSet').classList.remove('on'); $('bSet').setAttribute('aria-expanded', 'false');
+  const a = $('pAudio'); $('pExport').after(a); a.hidden = true; showSetTab();
+  draw();
+}
+$('tsetX').addEventListener('click', tsetHide);
+// While the settings are open the tracker's keys stay out of the way (Esc closes).
+addEventListener('keydown', e => {
+  if (!tsetOpen() || helpOpen()) return;
+  e.stopImmediatePropagation();
+  if (e.key === 'Escape'){ e.preventDefault(); tsetHide(); }
 }, true);
 updView = makeSeg($('segView'), [['tracker', 'Tracker'], ['synth', 'Synth']], () => view, setView);
 /* ===TRACKER END=== */

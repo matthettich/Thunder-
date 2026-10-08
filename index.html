@@ -370,6 +370,8 @@ body.trkv.cmdv .toast{bottom:calc(var(--k) * 3.3 + 60px + env(safe-area-inset-bo
   .trows button{min-height:40px; min-width:44px}
   .ttabbar .ttabs button{flex:1 0 auto; padding:0 6px; font-size:11.5px; letter-spacing:.02em}
 }
+.tsong{border:0; border-left:1px solid var(--line); min-height:36px; padding:0 14px; font-size:12px; font-weight:700; letter-spacing:.04em; flex:none; white-space:nowrap}
+.tsong.on{background:var(--pl); color:var(--inv)}
 .tcpu{border:0; border-left:1px solid var(--line); min-height:36px; padding:0 10px; font-size:12px; font-weight:600; letter-spacing:.04em; flex:none; white-space:nowrap;
   font-variant-numeric:tabular-nums; position:relative; min-width:84px; text-align:left; background:var(--side)}
 .tcpu i{position:absolute; left:0; bottom:0; height:4px; width:0; background:var(--ink); transition:width .3s}
@@ -456,6 +458,7 @@ body.arrtiny .tarr{width:200px} body.arrtiny .tagrid b{color:transparent}
   <button id="bMidi" aria-expanded="false">MIDI ▾</button>
   <button id="bExport" aria-expanded="false">Export ▾</button>
   <button id="bSkin" aria-expanded="false">Skin ▾</button>
+  <button type="button" class="tsong" id="tSong" aria-label="Play or stop the song" title="Play the song from the tracker's cursor row, or stop it" hidden>▶ SONG</button>
   <button type="button" class="tmode" id="tMode" aria-label="Switch input mode" hidden>INPUT: PAD</button>
   <button type="button" class="tcpu" id="tCpu" aria-label="Audio load"><span>CPU --</span><i></i></button>
   <button type="button" id="bHelp" aria-label="Help and keys (?)" title="Help and keys (? or F1)">?</button>
@@ -2580,11 +2583,14 @@ function tStart(mode, o){
   for (let i = 0; i < NSLOT; i++) ensure(i);
   seq.time = ctx.currentTime + 0.08;
   Object.assign(tp, {on:true, mode, seq, q:[], pos:null, bpm:seq.bpm, tks:seq.tks, st:0});
-  tp.timer = setInterval(pump, 25); pump(); draw();
+  tp.timer = setInterval(pump, 25); pump(); draw(); songBtn();
   void r;
 }
+// The SONG button in the synth's top bar: play the song from the tracker's cursor row, or stop it.
+function songBtn(){ const b = $('tSong'); if (!b) return; b.hidden = view === 'tracker'; b.textContent = tp.on ? '■ STOP' : '▶ SONG'; b.classList.toggle('on', tp.on); }
 function pump(){
   if (!tp.on) return;
+  if (view !== 'tracker' && tp.q.length > 96) tp.q.splice(0, tp.q.length - 96);   // nothing drains the play positions while the synth is open
   const s = tp.seq; let n = 0;
   while (s.alive() && s.time < ctx.currentTime + 0.15 && n++ < 64){
     const r = s.step(); for (const e of r.evs) rt.pl.play(e); tp.q.push({t:r.t, pos:r.pos, bpm:s.bpm, tks:r.tks, line:r.line});
@@ -2594,6 +2600,7 @@ function tStop(quiet){
   if (tp.timer) clearInterval(tp.timer);
   tp.timer = 0; tp.on = false; tp.q = []; tp.pos = null;
   if (rt) rt.pl.stopAll(ctx.currentTime);
+  songBtn();
   if (!quiet) draw();
 }
 function preview(ii, note, vol, poly){
@@ -2934,7 +2941,8 @@ function bump(d, big){
       case 'chain': case 'phrase': case 'vol': case 'fxv': v = clamp(v + d * (big ? 16 : 1), 0, 255); break;
       case 'tsp': v = clamp(v + d * (big ? 12 : 1), -128, 127); break;
       case 'note': v = v === OFF ? last.note : clamp(v + d * (big ? 12 : 1), 0, 119); break;
-      case 'inst': v = clamp(v + d * (big ? 4 : 1), 0, NI - 1); break;
+      // 16 instruments, 00–0F: the big step jumps between the drum ones (00–07) and the synth ones (08–0F).
+      case 'inst': { const nv = clamp(v + d * (big ? 8 : 1), 0, NI - 1); if (nv === v) toast(`Instruments go 00–0F (16 of them, in hex: 0A is 10, 0F is 15). 00–07 play the drum pads, 08–0F the synths.`); v = nv; break; }
       case 'fxc': v = ((v + d * (big ? 4 : 1)) % FXC.length + FXC.length) % FXC.length; break;
     }
     setCell(tv, c.x, c.y, v); after(k, tv, c.x, c.y, v); return;
@@ -3911,6 +3919,7 @@ $('tKp').addEventListener('pointerdown', e => {
 });
 $('tKp').addEventListener('click', e => { const b = e.target.closest('button[data-a]'); if (b && e.detail === 0 && !b.disabled) kpAction(b.dataset.a); });
 $('tMode').addEventListener('click', () => setInput(inMode === 'keys' ? 'pad' : 'keys'));
+$('tSong').addEventListener('click', () => { if (tp.on) tStop(); else tStart('song', {row:cs.song.y}); songBtn(); });
 const HINTK = {
   song:'Type hex · Enter add or open · Enter×2 new chain · Del clear · M mute block · Alt+arrows ±1/±16 · Shift+→ open · Shift+↑↓ lines',
   songP:'Type hex · Enter add · Enter×2 new phrase (unique copy on a block) · M mute block · Del clear · Shift+→ open phrase · Shift+↑↓ lines',
@@ -3930,7 +3939,7 @@ function setView(v){
   $('main').hidden = $('dock').hidden = tr; $('trk').hidden = !tr; $('tMode').hidden = !tr;
   ['kitName', 'bKit', 'bMidi', 'bExport', 'bSkin'].forEach(id => $(id).hidden = tr);
   if (tr) ['pKit', 'pExport', 'pMidi', 'pSkin'].forEach(id => $(id).hidden = true);
-  document.body.classList.toggle('trkv', tr);
+  document.body.classList.toggle('trkv', tr); songBtn();
   try { localStorage.setItem(VK, view); } catch(e){}
   updView();
   if (tr){ releaseAll(); measure(); fit(); draw(); if (!raf) raf = requestAnimationFrame(frame); }

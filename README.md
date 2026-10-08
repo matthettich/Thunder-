@@ -117,7 +117,7 @@ Both are on by default on touch screens and can be turned off in Project (COMMAN
 
 These screen, transport and undo keys also work in PAD mode.
 
-**Tempo and ticks.** Beside ROWS, the tracker shows the tempo and the ticks a step. While it plays they follow `TPO` and `TIC` (in gold), and the dots light up tick by tick through each step. Tap them for a reminder of where to set them.
+**Tempo and ticks.** In KEYS mode, **OCT − / +** beside ROWS sets the octave for typed and keypad notes (tap the number for octave 4). Beside ROWS, the tracker shows the tempo and the ticks a step. While it plays they follow `TPO` and `TIC` (in gold), and the dots light up tick by tick through each step. Tap them for a reminder of where to set them.
 
 **On a phone** the tabs take the first line under the top bar, with tempo, ticks and ROWS on the second. The buttons under the screen are taller for thumbs, and the screen's text shrinks as needed so 16 rows always fit.
 

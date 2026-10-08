@@ -403,6 +403,7 @@ body.trkv.cmdv .toast{bottom:calc(var(--k) * 3.3 + 60px + env(safe-area-inset-bo
 .trows .rv{display:flex; flex-direction:column; justify-content:center; align-items:center; line-height:1.05; min-width:46px; border-inline:1px solid var(--line)}
 .trows .rv small{font-size:9px; letter-spacing:.06em; color:var(--muted)} .trows .rv b{font-size:14px}
 .trows button:active{background:var(--ink); color:var(--inv)}
+.toct{border-left:1px solid var(--line)}
 /* On a phone the tabs take the first line; tempo, ticks, rows and INPUT share the second. */
 @media (max-width:600px){
   .ttabbar{flex-wrap:wrap} .ttabbar .ttabs{flex:1 1 100%; border-bottom:1px solid var(--line)}
@@ -638,6 +639,7 @@ body.arrtiny .tarr{width:200px} body.arrtiny .tagrid b{color:transparent}
     <div class="tpat" id="tPat">
       <span class="tclk" id="tClk" title="Tempo and ticks a step (TPO and TIC change them as the song plays)"><b id="tClkB">120</b><small>BPM</small><b id="tClkT">6</b><small>TK</small><span class="tdots" id="tDots"></span></span>
       <span class="trows" role="group" aria-label="Rows in this phrase"><button type="button" id="tRowsDn" aria-label="Fewer rows">−</button><button type="button" id="tRowsV" class="rv" aria-label="Rows in this phrase"><small id="tRowsP">PH 00</small><b id="tRowsN">16</b></button><button type="button" id="tRowsUp" aria-label="More rows">+</button></span>
+      <span class="trows toct" id="tOct" role="group" aria-label="Octave for note entry" hidden><button type="button" id="tOctDn" aria-label="Octave down">−</button><button type="button" id="tOctV" class="rv" aria-label="Octave, tap to reset to 4" title="Octave for typed and keypad notes (− and = on a keyboard) · tap for 4"><small>OCT</small><b id="tOctN">4</b></button><button type="button" id="tOctUp" aria-label="Octave up">+</button></span>
     </div></div>
   <div class="tbody">
     <div class="tscr" id="tScr">
@@ -3658,6 +3660,7 @@ function draw(){
   drawArr(P);
   const km = inMode === 'keys'; $('tKp').hidden = !km; $('tPad').hidden = km; $('tLegKeys').hidden = !km; $('tLegPad').hidden = km;
   drawPat();
+  $('tOct').hidden = !km; $('tOctN').textContent = kOct;
   if (km) drawKeypad();
   document.querySelectorAll('#tTabs button').forEach(b => b.classList.toggle('on', b.dataset.v === tv));
   document.querySelectorAll('#tMap [data-v]').forEach(b => b.classList.toggle('on', b.dataset.v === tv));
@@ -4072,6 +4075,9 @@ function fxLetter(ch){
   const curV = getCell(tv, c.x, c.y), at = list.findIndex(([, i]) => i === curV);
   typeFx(list[(at + 1) % list.length][1]); return true;
 }
+$('tOctDn').addEventListener('click', () => setOct(kOct - 1));
+$('tOctUp').addEventListener('click', () => setOct(kOct + 1));
+$('tOctV').addEventListener('click', () => setOct(4));
 function setOct(o){ kOct = clamp(o, 0, 8); toast('Octave ' + kOct + (view === 'synth' ? ' · Z plays C-' + kOct : '')); kpSig = ''; draw(); }
 function setInput(m){
   inMode = m === 'keys' ? 'keys' : 'pad'; try { localStorage.setItem(IK, inMode); } catch(e){}

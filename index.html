@@ -39,7 +39,8 @@
 [hidden]{display:none!important}
 /* help sheet: a full-screen page over everything, in the same bands-and-lines look */
 /* settings sheets: the synth's Settings band tabs and the tracker's full-screen settings menu */
-.top #bSet .setg{font-size:15px; line-height:1}
+.top #bSet{gap:7px; min-width:40px}
+.top #bSet .setg{width:22px; height:22px; flex:none; display:block}
 .setband .bar{gap:10px}
 .setband .settabs{flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none}
 .setband .settabs button{flex:none; padding-inline:14px}
@@ -70,8 +71,7 @@
 .tset #tsetAud .band{border:1px solid var(--line); margin-top:8px}
 body.tsetv .toast{z-index:70; bottom:calc(24px + env(safe-area-inset-bottom,0px))}
 @media (max-width:560px){ .tset .tsr, .tset .tsr.act{grid-template-columns:minmax(0,1fr)} .tset .tsr .tsi, .tset .tsr.act .tsi{grid-column:1} .tset .hhead .lbl{display:none} }
-@media (max-width:600px){ body.trkv .top #bSet .setx{display:none} }
-@media (max-width:480px){ .top #bSet .setx{display:none} }
+@media (max-width:480px){ body:not(.trkv) .top #bSet .setx{display:none} }
 .help.tset .hhead b{display:inline}
 .tset #tsetAud .band .bar .ttl{display:none}
 .help{position:fixed; inset:0; z-index:60; display:flex; flex-direction:column; background:var(--bench); color:var(--ink)}
@@ -494,9 +494,8 @@ body.arrtiny .tarr{width:200px} body.arrtiny .tagrid b{color:transparent}
   <div class="seg" id="segView" role="group" aria-label="Screen"></div>
   <input id="kitName" class="kitname" type="text" aria-label="Kit name" spellcheck="false">
   <div class="sp"></div>
-  <button id="bSet" aria-expanded="false" aria-label="Settings" title="Settings: kit, MIDI, export, skin and audio (in the tracker: the Project settings)"><span class="setg">⚙&#xFE0E;</span><span class="setx">Settings</span></button>
+  <button id="bSet" aria-expanded="false" aria-label="Settings" title="Settings: kit, MIDI, export, skin and audio (in the tracker: the Project settings)"><svg class="setg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7z"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1.08-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1.08 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9c.26.6.85 1 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg><span class="setx">Settings</span></button>
   <button type="button" class="tsong" id="tSong" aria-label="Play or stop the song" title="Play the song from the tracker's cursor row, or stop it" hidden>▶ SONG</button>
-  <button type="button" class="tmode" id="tMode" aria-label="Switch input mode" hidden>INPUT: PAD</button>
   <button type="button" class="tcpu" id="tCpu" aria-label="Audio load"><span>CPU --</span><i></i></button>
   <button type="button" id="bHelp" aria-label="Help and keys (?)" title="Help and keys (? or F1)">?</button>
 </div>
@@ -744,7 +743,7 @@ body.arrtiny .tarr{width:200px} body.arrtiny .tagrid b{color:transparent}
 <h3>Chords and polyphony</h3>
 <p><b>Tracks 9–16 are polyphonic.</b> Open a phrase from one of them and it shows four note columns, N1–N4, so a row can hold a chord. Notes on these tracks ring over each other, up to 4 at a time per track; a fifth steals the oldest. A note OFF in any note column releases everything on the track. Tracks 1–8 stay one note at a time, and a phrase played there uses only N1.</p>
 <h3>Two input modes</h3>
-<p><b>PAD</b> is the M8 way: a d-pad plus SHIFT, PLAY, OPTION and EDIT, good with a thumb. <b>KEYS</b> is direct entry: type notes, hex and effects, Renoise style, with an on-screen keypad on touch screens. Switch with the <b>INPUT</b> button next to CPU at the top or Project → INPUT.</p>
+<p><b>PAD</b> is the M8 way: a d-pad plus SHIFT, PLAY, OPTION and EDIT, good with a thumb. <b>KEYS</b> is direct entry: type notes, hex and effects, Renoise style, with an on-screen keypad on touch screens. Switch with ⚙ Settings → Input (or Project → INPUT).</p>
 </section>
     <section id="hAll"><h2>Keys that work everywhere</h2><table><tr><td><kbd>?</kbd> or <kbd>F1</kbd></td><td>Open or close this help</td></tr><tr><td><kbd>Ctrl/⌘</kbd> <kbd>S</kbd></td><td>Save the project (writes back to the same file where the browser allows)</td></tr><tr><td><kbd>Shift</kbd> <kbd>Ctrl/⌘</kbd> <kbd>S</kbd></td><td>Save As: a new file</td></tr><tr><td><kbd>Ctrl/⌘</kbd> <kbd>O</kbd></td><td>Open a project file</td></tr><tr><td><kbd>Ctrl/⌘</kbd> <kbd>Z</kbd> / <kbd>Ctrl/⌘</kbd> <kbd>Y</kbd></td><td>Undo / redo in the tracker (also <kbd>Shift</kbd> <kbd>Ctrl/⌘</kbd> <kbd>Z</kbd>). A paste or cut undoes in one step</td></tr><tr><td><kbd>Alt</kbd> <kbd>1</kbd>–<kbd>7</kbd></td><td>Song, Chain, Phrase, Inst, Mixer, FX, Project · <kbd>Alt</kbd> <kbd>0</kbd> back to the synth</td></tr><tr><td><kbd>Ctrl/⌘</kbd> <kbd>Shift</kbd> <kbd>arrows</kbd></td><td>Change screen, M8 style (▲ Project, ▼ Mixer, ◀▶ along every screen: Song, Chain, Phrase, Inst, Mixer, FX, Project)</td></tr><tr><td><kbd>F2</kbd> <kbd>F3</kbd> <kbd>F4</kbd></td><td>Phrase, Mixer, Inst</td></tr><tr><td><kbd>F5</kbd> <kbd>F6</kbd> <kbd>F7</kbd> <kbd>F8</kbd></td><td>Play song from the top · play this screen · song from the cursor row · stop</td></tr></table></section>
     <section id="hKeys"><h2>Tracker · KEYS mode</h2><h3>Moving</h3><table><tr><td><kbd>arrows</kbd></td><td>Move the cursor (drops a line selection)</td></tr><tr><td><kbd>Shift</kbd> <kbd>◀</kbd> <kbd>Shift</kbd> <kbd>▶</kbd></td><td>Previous / next screen, in tab order (Song → … → Inst → Mixer → FX → Project)</td></tr><tr><td><kbd>Tab</kbd> / <kbd>Shift</kbd> <kbd>Tab</kbd></td><td>Next / previous column (phrase) or track</td></tr><tr><td><kbd>Home</kbd> <kbd>End</kbd> <kbd>PgUp</kbd> <kbd>PgDn</kbd></td><td>Top, bottom, 16 rows up or down</td></tr><tr><td><kbd>[</kbd> <kbd>]</kbd> or <kbd>Ctrl/⌘</kbd> <kbd>▲▼</kbd></td><td>Previous / next chain, phrase, instrument or FX track</td></tr><tr><td>Mouse wheel</td><td>Scroll the screen a row at a time</td></tr></table><h3>Typing</h3><table><tr><td><kbd>Z</kbd> <kbd>S</kbd> <kbd>X</kbd> … <kbd>/</kbd></td><td>Notes, lower octave (S D G H J are the sharps); on tracks 9–16, Tab to N2–N4 to add chord notes</td></tr><tr><td><kbd>Q</kbd> <kbd>2</kbd> <kbd>W</kbd> … <kbd>P</kbd></td><td>Notes, upper octave</td></tr><tr><td><kbd>1</kbd> or <kbd>Caps Lock</kbd></td><td>Note off</td></tr><tr><td><kbd>−</kbd> <kbd>=</kbd> or numpad <kbd>/</kbd> <kbd>*</kbd></td><td>Octave down / up</td></tr><tr><td><kbd>0</kbd>–<kbd>9</kbd> <kbd>A</kbd>–<kbd>F</kbd></td><td>Hex values: two digits, or one for an instrument</td></tr><tr><td>Letters</td><td>Commands in FX columns (press again to cycle: R gives RET, REP, RND, RNL)</td></tr><tr><td><kbd>{</kbd> <kbd>}</kbd></td><td>Edit step down / up: how far the cursor moves after you type</td></tr><tr><td><kbd>Alt</kbd> <kbd>arrows</kbd></td><td>Change the value (◀▶ by 1, ▲▼ by more)</td></tr><tr><td><kbd>Enter</kbd></td><td>Add, open, or run a › row · twice for a new chain or phrase · in a phrase, picks up what’s there as the current values: the row’s instrument, plus the note, volume, or effect and its value under the cursor (shown after NOW on the hint line)</td></tr></table><h3>Rows</h3><table><tr><td><kbd>Delete</kbd></td><td>Clear the row and step down · <kbd>Shift</kbd> <kbd>Delete</kbd> just the cell</td></tr><tr><td><kbd>Insert</kbd></td><td>Add a blank row (rows below move down)</td></tr><tr><td><kbd>Backspace</kbd></td><td>Same as Delete: clear the row and step down; rows below stay where they are</td></tr><tr><td><kbd>Ctrl/⌘</kbd> <kbd>Backspace</kbd></td><td>Remove the row (rows below move up)</td></tr></table><h3>Selecting, copy and paste</h3><table><tr><td><kbd>Shift</kbd> <kbd>▲</kbd> <kbd>Shift</kbd> <kbd>▼</kbd></td><td>Select whole lines in Song, Chain and Phrase. The first press takes the cursor’s line, the next ones grow it</td></tr><tr><td><kbd>Ctrl/⌘</kbd> <kbd>A</kbd></td><td>Select every line</td></tr><tr><td><kbd>Ctrl/⌘</kbd> <kbd>B</kbd></td><td>Start a block selection; arrows grow it</td></tr><tr><td><kbd>Ctrl/⌘</kbd> <kbd>C</kbd> <kbd>Ctrl/⌘</kbd> <kbd>X</kbd></td><td>Copy / cut the selection</td></tr><tr><td><kbd>Ctrl/⌘</kbd> <kbd>V</kbd></td><td>Paste at the cursor row, or over a selection from its top. Lines paste into any phrase</td></tr><tr><td><kbd>Esc</kbd></td><td>Drop the selection</td></tr><tr><td>Row numbers</td><td>Tap or click one to select that line; another to grow the selection to it</td></tr></table><h3>Playing</h3><table><tr><td><kbd>Space</kbd></td><td>Play or stop this screen (phrase, chain or song)</td></tr><tr><td><kbd>Shift</kbd> <kbd>Space</kbd></td><td>Play the song from the cursor row</td></tr></table></section>
@@ -3659,7 +3658,6 @@ function draw(){
   drawArr(P);
   const km = inMode === 'keys'; $('tKp').hidden = !km; $('tPad').hidden = km; $('tLegKeys').hidden = !km; $('tLegPad').hidden = km;
   drawPat();
-  $('tMode').innerHTML = '<span class="mx">INPUT: </span>' + (km ? 'KEYS' : 'PAD'); $('tMode').classList.toggle('on', km);
   if (km) drawKeypad();
   document.querySelectorAll('#tTabs button').forEach(b => b.classList.toggle('on', b.dataset.v === tv));
   document.querySelectorAll('#tMap [data-v]').forEach(b => b.classList.toggle('on', b.dataset.v === tv));
@@ -4176,7 +4174,6 @@ $('tKp').addEventListener('pointerdown', e => {
   b.classList.add('dn'); setTimeout(() => b.classList.remove('dn'), 110); kpAction(b.dataset.a);
 });
 $('tKp').addEventListener('click', e => { const b = e.target.closest('button[data-a]'); if (b && e.detail === 0 && !b.disabled) kpAction(b.dataset.a); });
-$('tMode').addEventListener('click', () => setInput(inMode === 'keys' ? 'pad' : 'keys'));
 $('tSong').addEventListener('click', () => { if (tp.on) tStop(); else tStart('song', {row:cs.song.y}); songBtn(); });
 const HINTK = {
   song:'Type hex · Enter add or open · Enter×2 new chain · Del clear · M mute block · Alt+arrows ±1/±16 · Shift+→ open · Shift+↑↓ lines',
@@ -4194,7 +4191,7 @@ let updView = () => {};
 function setView(v){
   view = v === 'tracker' ? 'tracker' : 'synth';
   const tr = view === 'tracker';
-  $('main').hidden = $('dock').hidden = tr; $('trk').hidden = !tr; $('tMode').hidden = !tr;
+  $('main').hidden = $('dock').hidden = tr; $('trk').hidden = !tr;
   $('kitName').hidden = tr;
   if (tr) toggleSettings(false);
   $('bSet').title = tr ? 'Tracker settings: everything on the Project screen, plus audio' : 'Settings: kit, MIDI, export, skin and audio';

@@ -36,3 +36,10 @@ NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPO
 NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES
 OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+## Fonts
+
+The `fonts` folder holds Jost (https://github.com/indestructible-type/Jost, Copyright Owen Earl, indestructible type*;
+subset to Latin and the symbols ...Thunder uses) and JetBrains Mono (https://github.com/JetBrains/JetBrainsMono,
+Copyright The JetBrains Mono Project Authors). Both are under the SIL Open Font License 1.1, included as
+`fonts/OFL-Jost.txt` and `fonts/OFL-JetBrainsMono.txt`.

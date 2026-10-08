@@ -11,9 +11,18 @@
 <link rel="icon" type="image/png" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <title>...Thunder</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="preload" href="fonts/Jost-500.woff" as="font" type="font/woff" crossorigin>
+<link rel="preload" href="fonts/JetBrainsMono-400.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+/* Fonts ship with the app (fonts/, SIL Open Font License), so it looks the same offline and in the desktop build.
+   Futura comes first in --font: where it's installed (Macs) it's used; elsewhere Jost, an open Futura-style face. */
+@font-face{font-family:Jost; src:url(fonts/Jost-400.woff) format("woff"); font-weight:400; font-display:swap}
+@font-face{font-family:Jost; src:url(fonts/Jost-500.woff) format("woff"); font-weight:500; font-display:swap}
+@font-face{font-family:Jost; src:url(fonts/Jost-600.woff) format("woff"); font-weight:600; font-display:swap}
+@font-face{font-family:Jost; src:url(fonts/Jost-700.woff) format("woff"); font-weight:700 900; font-display:swap}
+@font-face{font-family:"JetBrains Mono"; src:url(fonts/JetBrainsMono-400.woff2) format("woff2"); font-weight:400 500; font-display:swap}
+@font-face{font-family:"JetBrains Mono"; src:url(fonts/JetBrainsMono-700.woff2) format("woff2"); font-weight:600 900; font-display:swap}
+</style>
 <style>
 /* Layout: Seeds "Minimal" skin, light only (as in Seeds). Full-width bands split by 1px ink lines:
    grey control bands, a black monitor screen for the waveform, white module cards with thick
@@ -430,7 +439,7 @@ body.arrtiny .tarr{width:200px} body.arrtiny .tagrid b{color:transparent}
 .tagrid b.tm{opacity:.35}
 .tagrid b.c{outline:2px solid var(--ar-cur); outline-offset:0; position:relative; z-index:1}
 .tagrid b.c:not(.f):not(.m):not(.z):not(.p){color:var(--ar-dim)}
-.tafoot{flex:none; font-size:10px; line-height:1.35; color:var(--ar-dim); padding:6px 10px 8px; border-top:1px solid var(--ar-line); font-family:system-ui, sans-serif}
+.tafoot{flex:none; font-size:10px; line-height:1.35; color:var(--ar-dim); padding:6px 10px 8px; border-top:1px solid var(--ar-line); font-family:var(--font)}
 @media (max-width:480px){ .top{flex-wrap:wrap} .top .brand{display:none} .top .kitname{order:9; flex:1 1 100%} .top button{white-space:nowrap} .ttabs button{padding:0 10px; font-size:12px} .tmode .mx{display:none} .tmode{padding:0 10px} .tctl{padding-inline:10px} .tcmd{padding-inline:10px} }
 </style>
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>

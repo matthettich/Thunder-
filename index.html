@@ -297,6 +297,9 @@ body.mlearn .row.mtarget input[type=range]{outline:3px solid var(--pl); outline-
 :root{--mono:"JetBrains Mono",ui-monospace,"Roboto Mono","Droid Sans Mono",Menlo,monospace; --k:clamp(40px,min(7.4vh,11.4vw),62px)}
 #segView{flex-wrap:nowrap; flex:none}
 #segView button{white-space:nowrap}
+/* No text selection, callouts or Chrome's tap-to-search sheet anywhere in the tracker (taps are commands here). */
+.trk, .trk *{-webkit-touch-callout:none; user-select:none; -webkit-user-select:none; -webkit-tap-highlight-color:transparent}
+.trk :is(input,textarea,[contenteditable]){user-select:text; -webkit-user-select:text}
 .trk{flex:1; min-height:0; min-width:0; overflow:hidden; display:flex; flex-direction:column; background:var(--bench)}
 .ttabs{display:flex; flex:none; border-bottom:1px solid var(--line); background:var(--side); overflow-x:auto; scrollbar-width:none}
 .ttabs button{border:0; border-right:1px solid var(--line); background:none; min-height:36px; padding:0 14px; font-weight:500; font-size:13px; letter-spacing:.04em; flex:none}
@@ -2854,8 +2857,14 @@ function pump(){
   if (view !== 'tracker' && tp.q.length > 96) tp.q.splice(0, tp.q.length - 96);   // nothing drains the play positions while the synth is open
   const s = tp.seq; let n = 0;
   while (s.alive() && s.time < ctx.currentTime + 0.15 && n++ < 64){
-    const r = s.step(); for (const e of r.evs) rt.pl.play(e); tp.q.push({t:r.t, pos:r.pos, bpm:s.bpm, tks:r.tks, line:r.line});
+    const r = s.step(); for (const e of r.evs){ rt.pl.play(e); if (e.type === 'note') padBlink(e); } tp.q.push({t:r.t, pos:r.pos, bpm:s.bpm, tks:r.tks, line:r.line});
   }
+}
+// With the synth open, light each pad as the tracker plays it (in time with the sound).
+function padBlink(e){
+  if (view === 'tracker' || !padEls[e.pad]) return;
+  const ms = Math.max(0, (e.t - ctx.currentTime + (ctx.outputLatency || ctx.baseLatency || 0)) * 1000);
+  setTimeout(() => { if (tp.on && view !== 'tracker' && audible(e.track)) flash(e.pad); }, ms);
 }
 function tStop(quiet){
   if (tp.timer) clearInterval(tp.timer);
@@ -3156,7 +3165,13 @@ function fxRows(){
 }
 function projRows(){
   return [
-    {l:'INPUT', sec:'Input', get:() => inMode === 'keys' ? 1 : 0, set:v => setInput(v ? 'keys' : 'pad'), min:0, max:1, tog:true, d:0, fmt:v => v ? 'KEYS' : 'PAD', info:() => 'PAD: d-pad and four keys. KEYS: type notes and hex, with an on-screen keypad on touch screens'},
+    {l:'› SAVE', sec:'Project file', act:() => saveProj(false), info:() => (projFile ? 'Saves over ' + projFile.name : 'Saves the song and kit as one .json file') + ' · Ctrl/⌘+S'},
+    {l:'› SAVE AS', act:() => saveProj(true), info:() => 'Saves to a new file, keeping the old one · Shift+Ctrl/⌘+S'},
+    {l:'› LOAD PROJECT', act:openProj, info:() => 'Load a project file (song and kit) · Ctrl/⌘+O'},
+    ...(canShareProj() ? [{l:'› SHARE PROJECT', act:shareProj, info:() => 'Send the project file (song and kit) to Drive, email, a chat or your other device, then open it there with LOAD PROJECT'}] : []),
+    {l:'› NEW SONG', dbl:true, act:() => setSong(freshSong(), 'New song. The kit is unchanged.'), info:() => 'Clears the song, keeps the kit. Tap EDIT twice'},
+    {l:'› LOAD DEMO', dbl:true, act:() => setSong(demoSong(), 'Loaded the starter beat.'), info:() => 'Replaces the song with the starter beat. Tap EDIT twice'},
+    {l:'INPUT', sec:'Input', gap:true, get:() => inMode === 'keys' ? 1 : 0, set:v => setInput(v ? 'keys' : 'pad'), min:0, max:1, tog:true, d:0, fmt:v => v ? 'KEYS' : 'PAD', info:() => 'PAD: d-pad and four keys. KEYS: type notes and hex, with an on-screen keypad on touch screens'},
     {l:'COMMANDS', get:() => cmdOn ? 1 : 0, set:v => setCmd(!!v), min:0, max:1, tog:true, d:+coarse, fmt:onOff, info:() => 'A row of buttons for the two-key commands: change value, clear, select, copy, cut, paste, other chain or phrase, play the song'},
     {l:'STICKY KEYS', get:() => latchOn ? 1 : 0, set:v => setLatch(!!v), min:0, max:1, tog:true, d:1, fmt:onOff, info:() => 'Tap SHIFT or OPTION on its own and it stays lit for the next button, so no command needs two fingers. Tap it again to cancel'},
     {l:'EDIT STEP', get:() => kStep, set:v => kStep = v, min:0, max:16, big:4, fmt:v => v + (v === 1 ? ' row' : ' rows'), info:() => 'How far the cursor moves after you type a note or value or delete a row (the edit step). Keyboard: { and }'},
@@ -3177,9 +3192,9 @@ function projRows(){
     {l:'NAME', sec:'Song', gap:true, show:() => S.name, tap:() => { const n = prompt('Song name', S.name); if (n != null){ S.name = n.trim().slice(0, 40) || 'Song'; saveS(); draw(); } }, info:() => 'EDIT renames the song'},
     {l:'TRACKS', get:() => ntr(), set:v => setNtr(v), min:8, max:NT, big:8, d:16, fmt:v => v + ' tracks',
       info:() => `How many tracks this song uses, 8 to ${NT}. Song and Mixer show as many as fit and scroll sideways (arrows, or swipe left and right). Tracks past this number are hidden and silent; their notes are kept`},
-    {l:'TEMPO', get:() => S.bpm, set:v => S.bpm = v, min:40, max:300, big:10, d:120, fmt:v => v + ' BPM', after:rtAllFx, info:() => 'Beats per minute, 4 steps to a beat. Track delays follow it'},
+    {l:'TEMPO', get:() => S.bpm, set:v => { S.bpm = v; if (tp.on && tp.seq) tp.seq.bpm = v; }, min:40, max:300, big:10, d:120, fmt:v => v + ' BPM', after:rtAllFx, info:() => 'Beats per minute, 4 steps to a beat. Track delays follow it'},
     {l:'LPB', get:() => S.lpb, set:v => S.lpb = v, min:1, max:16, big:4, d:4, fmt:v => v + ' lines/beat · 1/' + (v * 4), info:() => 'Lines per beat: 4 makes each row a 16th, 8 a 32nd, 3 or 6 triplets. A phrase can set its own on its LEN line'},
-    {l:'TICKS', get:() => S.ticks || TICKS, set:v => S.ticks = v, min:1, max:32, big:4, d:TICKS, fmt:v => v + ' ticks a step', info:() => 'How many ticks each step is cut into for DEL, RET, KIL, OFF, ARC, PSL and GRV (6 by default). A TIC command in a phrase changes it from that row on'},
+    {l:'TICKS', get:() => S.ticks || TICKS, set:v => { S.ticks = v; if (tp.on && tp.seq) tp.seq.tks = v; }, min:1, max:32, big:4, d:TICKS, fmt:v => v + ' ticks a step', info:() => 'How many ticks each step is cut into for DEL, RET, KIL, OFF, ARC, PSL and GRV (6 by default). A TIC command in a phrase changes it from that row on'},
     {l:'PATTERN LEN', get:() => S.dlen || 16, set:v => setDefLen(v), min:1, max:PROWS, big:4, d:16, fmt:v => v + (v === 1 ? ' row' : ' rows') + ' · new phrases', info:() => 'How many rows a new phrase starts with (empty phrases follow it too). Change one phrase with ROWS at the right of the tab bar, or its LEN line'},
     {l:'› ALL PHRASES TO ' + (S.dlen || 16), dbl:true, act:() => { for (let i = 0; i < 256; i++) S.plen[i] = S.dlen || 16; saveS(); draw(); toast(`Every phrase now plays ${S.dlen || 16} rows. Notes past that are kept, just not played.`); },
       info:() => `Sets every phrase, used or not, to ${S.dlen || 16} rows. Rows past the end keep their notes. Tap EDIT twice`},
@@ -3193,13 +3208,7 @@ function projRows(){
     {l:'› RENDER SONG', act:() => renderOut(false), gap:true, info:() => 'Stereo WAV of the song, from RENDER FROM to the end'},
     {l:'› RENDER STEMS', act:() => renderOut(true), info:() => 'A zip with the mix plus one stereo WAV per track, all the same length'},
     ...(canShare && lastR ? [{l:'› SHARE LAST RENDER', act:shareLast, info:() => 'Send the last render to Koala, SunVox or another app'}] : []),
-    {l:'› SAVE', sec:'Project file', act:() => saveProj(false), gap:true, info:() => (projFile ? 'Saves over ' + projFile.name : 'Saves the song and kit as one .json file') + ' · Ctrl/⌘+S'},
-    {l:'› SAVE AS', act:() => saveProj(true), info:() => 'Saves to a new file, keeping the old one · Shift+Ctrl/⌘+S'},
-    {l:'› LOAD PROJECT', act:openProj, info:() => 'Load a project file (song and kit) · Ctrl/⌘+O'},
-    ...(canShareProj() ? [{l:'› SHARE PROJECT', act:shareProj, info:() => 'Send the project file (song and kit) to Drive, email, a chat or your other device, then open it there with LOAD PROJECT'}] : []),
     {l:'› UPDATE APP', sec:'App', gap:true, act:() => checkUpdate(true), info:() => 'Reloads with the newest version (your song and kit are kept). The app also checks by itself when it opens'},
-    {l:'› NEW SONG', dbl:true, act:() => setSong(freshSong(), 'New song. The kit is unchanged.'), info:() => 'Clears the song, keeps the kit. Tap EDIT twice'},
-    {l:'› LOAD DEMO', dbl:true, act:() => setSong(demoSong(), 'Loaded the starter beat.'), info:() => 'Replaces the song with the starter beat. Tap EDIT twice'},
   ];
 }
 const rowsOf = v => v === 'inst' ? instRows() : v === 'project' ? projRows() : v === 'fx' ? fxRows() : [];
@@ -3476,7 +3485,13 @@ function go(v){
   if (v === 'phrase' && tv === 'chain'){ const ch = S.chains[cChain], id = ch ? ch[cs.chain.y][0] : -1; if (id >= 0) cPhrase = id; }
   if (v === 'inst' && tv === 'phrase'){ const p = S.phrases[cPhrase], r = p && p[cs.phrase.y]; if (r && r[IC] >= 0) cInst = r[IC]; }
   if (v === 'fx' && tv === 'mixer') cFxT = cs.mixer.y === 5 ? NT : cs.mixer.x;
-  if (v === 'fx' && GRIDV.has(tv)) cFxT = tv === 'song' ? cs.song.x : cTrack;
+  // Mixer and FX open on the track being edited (the song cursor's track, or the chain/phrase's track).
+  if (tv === 'song' && v !== 'song') cTrack = cs.song.x;
+  if (v === 'fx' && tv !== 'mixer' && tv !== 'fx') cFxT = cTrack;
+  if (v === 'mixer' && tv !== 'mixer'){
+    if (tv === 'fx'){ if (cFxT < NT) cs.mixer.x = cFxT; }
+    else { cs.mixer.x = Math.min(cTrack, ntr() - 1); if (cs.mixer.y === 5) cs.mixer.y = 0; }
+  }
   tv = v; if (MID.includes(v)) midV = v; selA = null; draw(); saveCur();
 }
 function nav(dir){
@@ -4040,6 +4055,11 @@ function scrollRows(n){
   else c.y = clamp(c.y + n, 0, dims(tv).h - 1);
   draw();
 }
+// A tap on the grid is a command, not a text tap: cancelling the touch keeps Chrome's
+// tap-to-search sheet (and the long-press menu) from popping up. Pointer events still fire.
+for (const t of [scr, arrGrid]) for (const ev of ['touchend', 'contextmenu']) t.addEventListener(ev, e => {
+  if (!e.target.closest('input,textarea,select,button,[contenteditable]') && e.cancelable) e.preventDefault();
+}, {passive:false});
 scr.addEventListener('pointerdown', e => {
   if (sdrag || drag || (e.button && e.button > 0) || e.target.closest('[data-x],[data-r]')) return;
   startScroll(e);

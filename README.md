@@ -6,9 +6,7 @@ An 8-pad drum synth and 16-track tracker for the browser, built for a Galaxy Z F
 
 ...Thunder is ...Thunder Plus with the **…waves** and **…chains** editors hidden. Project files go both ways: a song made in ...Thunder opens in Thunder Plus, and a Thunder Plus song opens here with everything in it. A kit's …waves layers and a song's …chains effects (Mixer → CHN) play here, live and in renders, just as in Thunder Plus; to change those patches, open the file in Thunder Plus. ...Thunder keeps its own saved kit, song and settings in the browser, separate from Thunder Plus.
 
-This app's `index.html` is built from Thunder Plus's: in the thunder-plus repo run `python3 tools/build-thunder.py ../Thunder-`. It also copies the two sound engines into `waves/` and `chains/`. Make changes in Thunder Plus and rebuild, rather than editing this `index.html` by hand.
-
-The desktop (Electron) build opens the app as plain files, which can't load the …chains engine, so …chains effects only play in the web app here; Thunder Plus's desktop build plays them.
+This app's `index.html` is built from Thunder Plus's: in the thunder-plus repo run `python3 tools/build-thunder.py ../Thunder-`. It also writes the desktop app's `electron/main.js` (served the same way as Thunder Plus's, so …chains plays there too) and copies the two sound engines into `waves/` and `chains/`. Make changes in Thunder Plus and rebuild, rather than editing this `index.html` by hand.
 
 ## What it does
 
@@ -45,6 +43,7 @@ The top bar has two menus that work like ...Seeds': **File ▾** and **⚙ Setti
 
 - **Hide chains page** (on by default) hides the chain screen; see Tracker below.
 - **Display steps as decimal** (on by default) numbers the rows in decimal: song rows 000–255, phrase rows 00–31, chain rows 00–15, the arrange overview too. Off shows hex. Phrase, chain and instrument numbers and values stay hex.
+- **View neighboring phrases** (off by default): on the Phrase screen, a faint, read-only copy of the notes the tracks either side play at the same song row, the left track's in violet before the note column and the right track's in mustard after it, so you can see the parts around the one you're editing.
 - **Follow playhead** (off by default) scrolls Song and Phrase with the playhead while the song plays; the cursor rides along and Phrase switches to whatever the cursor's track is playing.
 - **Show side panel** (on by default): the grey column at the right on wide screens. Turn it off for more room.
 - **Text size** (60–200%) makes the tracker's text and lines bigger or smaller. Bigger shows fewer rows; when a line gets wider than the screen it scrolls sideways to follow the cursor.

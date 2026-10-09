@@ -1806,11 +1806,12 @@ function smpFromJSON(j){
   const i16 = new Int16Array(u8.buffer), d = new Float32Array(i16.length); for (let i = 0; i < i16.length; i++) d[i] = i16[i] / 32767;
   return {sr:j.sr || 48000, name:j.name, data:d};
 }
-const layerToJSON = (L, noSmp) => Object.assign({}, L, {sample: L.sample && !noSmp ? smpToJSON(L.sample) : null});
-const layerFromJSON = j => { const L = freshLayer(j); L.sample = smpFromJSON(j.sample); if (!TYPE[L.type]) L.type = 'sine'; return L; };
-const voiceToJSON = (v, noSmp) => Object.assign({}, v, {layers: v.layers.map(L => layerToJSON(L, noSmp))});
-const voiceFromJSON = j => { const v = mkVoice(j.name || 'Pad', []); Object.assign(v, j); v.layers = (j.layers || []).slice(0, 8).map(layerFromJSON); while (v.layers.length < 8) v.layers.push(freshLayer()); v.sel = Math.min(Math.max(v.sel | 0, 0), 7); return v; };
-const kitToJSON = noSmp => ({app:'thunder', v:1, name:kit.name, voices:kit.voices.map(v => voiceToJSON(v, noSmp))});
+// Plain functions (not consts), so the saved kit can be read at start-up, before this part of the script has run.
+function layerToJSON(L, noSmp){ return Object.assign({}, L, {sample: L.sample && !noSmp ? smpToJSON(L.sample) : null}); }
+function layerFromJSON(j){ const L = freshLayer(j); L.sample = smpFromJSON(j.sample); if (!TYPE[L.type]) L.type = 'sine'; return L; }
+function voiceToJSON(v, noSmp){ return Object.assign({}, v, {layers: v.layers.map(L => layerToJSON(L, noSmp))}); }
+function voiceFromJSON(j){ const v = mkVoice(j.name || 'Pad', []); Object.assign(v, j); v.layers = (j.layers || []).slice(0, 8).map(layerFromJSON); while (v.layers.length < 8) v.layers.push(freshLayer()); v.sel = Math.min(Math.max(v.sel | 0, 0), 7); return v; }
+function kitToJSON(noSmp){ return {app:'thunder', v:1, name:kit.name, voices:kit.voices.map(v => voiceToJSON(v, noSmp))}; }
 function kitFromJSON(j){
   if (!j || !Array.isArray(j.voices) || j.voices.length < 1) throw new Error('This file isn’t a ...Thunder kit.');
   const vs = j.voices.slice(0, NSLOT).map(voiceFromJSON); while (vs.length < NPAD) vs.push(mkVoice('Pad ' + (vs.length + 1), []));
@@ -1822,7 +1823,7 @@ function save(){
   try { localStorage.setItem(KEY, JSON.stringify(kitToJSON(false))); }
   catch(e){ try { localStorage.setItem(KEY, JSON.stringify(kitToJSON(true))); } catch(e2){} }
 }
-function loadSaved(){ try { const s = localStorage.getItem(KEY) || localStorage.getItem(OLD_KEY); return s ? kitFromJSON(JSON.parse(s)) : null; } catch(e){ return null; } }
+function loadSaved(){ try { const s = localStorage.getItem(KEY) || localStorage.getItem(OLD_KEY); return s ? kitFromJSON(JSON.parse(s)) : null; } catch(e){ console.warn('Couldn’t load the saved kit', e); return null; } }
 function setKit(k){ kit = k; cur = 0; for (let i = 0; i < NSLOT; i++){ dirty[i] = true; cache[i] = null; } refreshAll(); save(); }
 
 /* ---------- files out ---------- */

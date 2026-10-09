@@ -1,6 +1,6 @@
 // ...Thunder offline support. The app page is fetched fresh when online (so updates show up)
 // and served from the cache when offline.
-const CACHE = 'thunder-v50';
+const CACHE = 'thunder-v51';
 const FILES = ['./', './index.html', './manifest.webmanifest?v=2', './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png', './icons/apple-touch-icon.png',
   './fonts/Jost-400.woff', './fonts/Jost-500.woff', './fonts/Jost-600.woff', './fonts/Jost-700.woff', './fonts/JetBrainsMono-400.woff2', './fonts/JetBrainsMono-700.woff2',
   './waves/waves-worklet.js?v=4', './chains/chains-worklet.js?v=2'];

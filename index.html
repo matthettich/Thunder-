@@ -3039,7 +3039,7 @@ function leaveWaves(){
   const a = wvApi(); if (a) a.pause();
   for (let i = 0; i < nslots(); i++) if (kit.voices[i] && usesWaves(kit.voices[i])) dirty[i] = true;
 }
-function openWaves(){ setView('waves'); }
+function openWaves(){}
 function closeWaves(){ setView('synth'); }
 
 /* ---------- …chains editor: a full-screen frame; the patch is read from and saved into the song ---------- */
@@ -3118,7 +3118,7 @@ function leaveChains(){
   chMeterWanted = false;
   const a = chApi(); if (a) a.pause();
 }
-function openChains(){ setView('chains'); }
+function openChains(){}
 function closeChains(){ setView('synth'); }
 // Jump to the …chains screen and centre + highlight a track's chain (used when its CHN is switched on and
 // the track already has a chain, and when picking a track that is already used inside the editor).
@@ -3354,7 +3354,7 @@ function chainsReady(ac){
     chnLoaded.set(ac, (async () => {
       if (!chnBin() || !ac.audioWorklet || !window.AudioWorkletNode) return false;
       if (!chnURL){
-        const src = await (await fetch('chains/chains-worklet.js?v=4')).text();
+        const src = await (await fetch('chains/chains-worklet.js?v=5')).text();
         chnURL = URL.createObjectURL(new Blob([src], {type:'application/javascript'}));
       }
       await ac.audioWorklet.addModule(chnURL);
@@ -4068,7 +4068,6 @@ function setChainOn(t, on){
   saveS();
   if (added && CH.frame) chainsDropFrame();   // the editor reloads with the new pair when it next opens
   chainsPush(); draw();
-  if (on && !added && !was) focusChainHit(t);   // already had a chain: jump to and highlight it
 }
 // Re-route every track that runs through …chains now, AND every track that did until this change (its Chain Out
 // was deleted or set to another track): without that, the old track kept a chains node with no way out and went silent.

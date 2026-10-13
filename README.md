@@ -4,9 +4,9 @@ An 8-pad drum synth and 16-track tracker for the browser, built for a Galaxy Z F
 
 ## ...Thunder and ...Thunder Plus
 
-...Thunder is ...Thunder Plus with the **…waves** and **…chains** editors hidden. Project files go both ways: a song made in ...Thunder opens in Thunder Plus, and a Thunder Plus song opens here with everything in it. A kit's …waves layers and a song's …chains effects (Mixer → CHN) play here, live and in renders, just as in Thunder Plus; to change those patches, open the file in Thunder Plus. ...Thunder keeps its own saved kit, song and settings in the browser, separate from Thunder Plus.
+...Thunder and ...Thunder Plus are one app: ⚙ Settings → App → **Mobile** switches between them. This install starts in Mobile (Synth and Tracker, PAD input, the **…waves** and **…chains** editors hidden); untick it for the full ...Thunder Plus, editors included. Project files go both ways: a song made in ...Thunder opens in Thunder Plus, and a Thunder Plus song opens here with everything in it. A kit's …waves layers and a song's …chains effects (Mixer → CHN) play here, live and in renders, just as in Thunder Plus; to change those patches, open the file in Thunder Plus. ...Thunder keeps its own saved kit, song and settings in the browser, separate from Thunder Plus.
 
-This app's `index.html` is built from Thunder Plus's: in the thunder-plus repo run `python3 tools/build-thunder.py ../Thunder-`. It also writes the desktop app's `electron/main.js` (served the same way as Thunder Plus's, so …chains plays there too) and copies the two sound engines into `waves/` and `chains/`. Make changes in Thunder Plus and rebuild, rather than editing this `index.html` by hand.
+This app's `index.html` is built from Thunder Plus's: in the thunder-plus repo run `python3 tools/build-thunder.py ../Thunder-`. The only differences are that this build starts in Mobile on every device, keeps its own saved data (thunder-*) and installs as ...Thunder. The script also writes the desktop app's `electron/main.js` and copies Thunder Plus's `waves/` and `chains/` folders (editors, engines, wasm). Make changes in Thunder Plus and rebuild, rather than editing this `index.html` by hand.
 
 ## What it does
 

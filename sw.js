@@ -1,27 +1,11 @@
-// ...Thunder offline support. The app page is fetched fresh when online (so updates show up)
-// and served from the cache when offline.
-const CACHE = 'thunder-v59';
-const FILES = ['./', './index.html', './manifest.webmanifest?v=2', './icons/icon-192.png', './icons/icon-512.png', './icons/icon-maskable-512.png', './icons/apple-touch-icon.png',
-  './fonts/Jost-400.woff', './fonts/Jost-500.woff', './fonts/Jost-600.woff', './fonts/Jost-700.woff', './fonts/JetBrainsMono-400.woff2', './fonts/JetBrainsMono-700.woff2',
-  './waves/index.html', './waves/waves-worklet.js?v=4', './waves/dsp/thunder-dsp.wasm', './waves/dsp/tfx.wasm', './waves/fonts/Jost-400.woff', './waves/fonts/Jost-500.woff',
-  './waves/fonts/Jost-600.woff', './waves/fonts/Jost-700.woff', './chains/index.html', './chains/chains-worklet.js?v=8', './chains/dsp/tfx.wasm', './chains/fonts/Jost-400.woff',
-  './chains/fonts/Jost-500.woff', './chains/fonts/Jost-600.woff', './chains/fonts/Jost-700.woff'];
-self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES))); self.skipWaiting(); });
-self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE && k.startsWith('thunder-')).map(k => caches.delete(k))))); self.clients.claim(); });
-self.addEventListener('fetch', e => {
-  const req = e.request;
-  if (req.method !== 'GET') return;
-  const url = new URL(req.url);
-  const isPage = req.mode === 'navigate' || url.pathname.endsWith('/index.html');
-  if (isPage){
-    // no-cache: always ask the server (a quick check when nothing changed), so a reload never shows an old copy.
-    e.respondWith(fetch(req.url, {cache:'no-cache', credentials:'same-origin'}).then(res => { if (res.ok){ const copy = res.clone(); caches.open(CACHE).then(c => c.put(req, copy)); } return res; })
-      .catch(() => caches.match(req)));
-    return;
-  }
-  // Everything else (icons, fonts): cache first, then the network.
-  e.respondWith(caches.match(req).then(hit => hit || fetch(req).then(res => {
-    if (res.ok && (url.origin === location.origin || /fonts\.(googleapis|gstatic)\.com/.test(url.host))){ const copy = res.clone(); caches.open(CACHE).then(c => c.put(req, copy)); }
-    return res;
-  })));
+// ...Thunder is retired: this address forwards to ...Thunder Plus. This service worker replaces the old one,
+// deletes the old app's offline copies (caches named thunder-*) and unregisters itself, so the forwarding page
+// always comes from the network. Saved work in localStorage and IndexedDB is not touched.
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', e => {
+  e.waitUntil((async () => {
+    for (const k of await caches.keys()) if (k.startsWith('thunder-')) await caches.delete(k);
+    await self.registration.unregister();
+    for (const c of await self.clients.matchAll({type:'window'})) c.navigate(c.url);
+  })());
 });
